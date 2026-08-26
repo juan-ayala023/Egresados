@@ -123,9 +123,22 @@ export default function Hero({ listo }: { listo: boolean }) {
         </motion.p>
 
         <h1 className="lining mt-6 font-display text-[clamp(3rem,11vw,8.5rem)] font-bold leading-[0.88] tracking-[-0.02em]">
+          {/* La máscara del reveal recorta a la altura de la caja de línea, y
+              leading-[0.88] la deja más corta que el descendente: la 'g' de
+              Homecoming baja hasta ~1.02em y quedaba cortada.
+
+              El relleno va en el HIJO, no en la máscara. Puesto en la máscara
+              agranda la zona visible y el texto asoma por debajo antes de
+              animar; puesto en el hijo crece también su altura, y como
+              `palabra` lo esconde con translateY(110%) el recorrido aumenta
+              solo. El margen negativo del padre descuenta ese alto extra para
+              que el interlineado entre las dos líneas no cambie. */}
           {titulo.map((linea, i) => (
-            <span key={linea} className="block overflow-hidden pb-[0.06em]">
-              <motion.span variants={palabra} className={`block ${i === 1 ? 'text-gold' : ''}`}>
+            <span key={linea} className="block overflow-hidden -mb-[0.18em]">
+              <motion.span
+                variants={palabra}
+                className={`block pb-[0.24em] ${i === 1 ? 'text-gold' : ''}`}
+              >
                 {linea}
               </motion.span>
             </span>
