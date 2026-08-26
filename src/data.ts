@@ -189,6 +189,10 @@ export const contacto = {
      dato de contacto inventado. */
   correo: '',
   telefono: '',
+  /* WhatsApp del botón flotante. Formato internacional, solo dígitos, con
+     indicativo y sin el '+': para Colombia es 57 + el celular.
+     Ej: '573001234567'. Vacío = el botón no se pinta. */
+  whatsapp: '',
   instagram: '@thecolumbusschool',
   web: 'thecolumbus.school',
 };

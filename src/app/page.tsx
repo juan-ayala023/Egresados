@@ -15,6 +15,7 @@ import Boletas from '@/components/Boletas';
 import Checkout from '@/components/Checkout';
 import FAQ from '@/components/FAQ';
 import Footer from '@/components/Footer';
+import BotonWhatsApp from '@/components/BotonWhatsApp';
 import { ease } from '@/lib/motion';
 import type { Boleta } from '@/data';
 
@@ -64,6 +65,8 @@ export default function Home() {
       </main>
 
       <Footer />
+
+      <BotonWhatsApp />
 
       <Checkout
         boleta={seleccion?.boleta ?? null}
