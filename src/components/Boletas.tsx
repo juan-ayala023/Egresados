@@ -3,9 +3,11 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { Check, Minus, Plus } from 'lucide-react';
-import { boletas, formatoCOP, type Boleta } from '@/data';
+import { boletas, formatoCOP, totalPorBoleta, type Boleta } from '@/data';
 import RevealText from './RevealText';
 import Magnetic from './Magnetic';
+import Aurora from './Aurora';
+import LineaAgua from './LineaAgua';
 import { dur, ease, enVista, escalonar, subir } from '@/lib/motion';
 
 const MAX_POR_COMPRA = 4;
@@ -29,10 +31,31 @@ function Tarjeta({ b, onComprar }: { b: Boleta; onComprar: Props['onComprar'] })
         agotada
           ? 'border-white/[0.06] bg-surface/20 opacity-45'
           : b.destacada
-          ? 'border-gold/45 bg-gradient-to-b from-gold/[0.07] to-transparent shadow-[0_0_60px_-25px_rgba(212,175,55,0.5)]'
+          ? 'border-gold/45 bg-gradient-to-b from-gold/[0.07] to-transparent shadow-[0_0_60px_-25px_rgb(var(--gold)/0.5)]'
           : 'border-white/[0.09] bg-surface/40 hover:border-white/20'
       }`}
     >
+      {/* Troqueles: los dos semicírculos que deja la máquina al cortar un
+          tiquete. Van pintados del color del fondo de la sección, así que
+          se leen como agujeros reales en la tarjeta. */}
+      <span
+        aria-hidden
+        className="absolute -left-3 top-1/2 h-6 w-6 -translate-y-1/2 rounded-full bg-ink"
+      />
+      <span
+        aria-hidden
+        className="absolute -right-3 top-1/2 h-6 w-6 -translate-y-1/2 rounded-full bg-ink"
+      />
+      {/* Perforación entre los dos troqueles */}
+      <span
+        aria-hidden
+        className="absolute inset-x-6 top-1/2 h-px -translate-y-1/2 opacity-40"
+        style={{
+          backgroundImage:
+            'repeating-linear-gradient(to right, rgb(var(--gold)/0.55) 0 5px, transparent 5px 11px)',
+        }}
+      />
+
       {b.destacada && !agotada && (
         <span className="absolute -top-3 left-8 rounded-full bg-gold px-4 py-1 font-body text-[10px] font-semibold uppercase tracking-[0.14em] text-ink">
           Más elegida
@@ -44,14 +67,35 @@ function Tarjeta({ b, onComprar }: { b: Boleta; onComprar: Props['onComprar'] })
         </span>
       )}
 
-      <h3 className="font-display text-3xl leading-none text-bone">{b.nombre}</h3>
+      <h3 className="font-display font-bold text-3xl leading-none text-bone">{b.nombre}</h3>
       <p className="mt-3 font-body text-[13px] text-muted">{b.descripcion}</p>
 
+      {/* Desglose: el asistente ve la tarifa de servicio antes de pagar,
+          no al final del checkout. */}
       <div className="mt-7">
-        <span className="lining font-display text-4xl text-gold">{formatoCOP(b.precio)}</span>
+        <span className="lining font-display font-bold text-4xl text-gold">
+          {formatoCOP(totalPorBoleta(b))}
+        </span>
         <span className="ml-2 font-body text-xs uppercase tracking-[0.14em] text-muted">
           {b.personas > 1 ? `/ ${b.personas} personas` : '/ persona'}
         </span>
+
+        {b.tarifaServicio > 0 && (
+          <dl className="mt-4 space-y-1.5 border-t border-white/[0.08] pt-4 font-body text-[13px]">
+            <div className="flex justify-between">
+              <dt className="text-muted">Precio boleta</dt>
+              <dd className="tabular-nums text-bone/75">{formatoCOP(b.precio)}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted">Tarifa de servicio</dt>
+              <dd className="tabular-nums text-bone/75">{formatoCOP(b.tarifaServicio)}</dd>
+            </div>
+            <div className="flex justify-between pt-1.5 font-semibold">
+              <dt className="text-bone">Total a pagar</dt>
+              <dd className="tabular-nums text-gold">{formatoCOP(totalPorBoleta(b))}</dd>
+            </div>
+          </dl>
+        )}
       </div>
 
       <ul className="mt-8 flex-1 space-y-3.5">
@@ -112,7 +156,7 @@ function Tarjeta({ b, onComprar }: { b: Boleta; onComprar: Props['onComprar'] })
             agotada
               ? 'cursor-not-allowed border border-white/10 text-muted'
               : b.destacada
-              ? 'bg-gold text-ink hover:bg-goldSoft hover:shadow-[0_0_36px_-8px_rgba(212,175,55,0.7)]'
+              ? 'bg-gold text-ink hover:bg-goldSoft hover:shadow-[0_0_36px_-8px_rgb(var(--gold)/0.7)]'
               : 'border border-white/20 text-bone hover:border-gold hover:text-gold'
           }`}
         >
@@ -123,7 +167,7 @@ function Tarjeta({ b, onComprar }: { b: Boleta; onComprar: Props['onComprar'] })
       {/* Resplandor que sigue el hover */}
       {!agotada && (
         <div className="pointer-events-none absolute inset-0 rounded-sm opacity-0 transition-opacity duration-700 group-hover:opacity-100"
-             style={{ boxShadow: '0 30px 80px -30px rgba(212,175,55,0.35)' }} />
+             style={{ boxShadow: '0 30px 80px -30px rgb(var(--gold) / 0.35)' }} />
       )}
     </motion.div>
   );
@@ -133,18 +177,21 @@ export default function Boletas({ onComprar }: Props) {
   return (
     <section
       id="boletas"
-      className="relative border-y border-white/[0.06] bg-surface/30 py-28 md:py-36"
+      className="relative overflow-hidden border-y border-white/[0.06] bg-surface/30 py-28 md:py-36"
     >
-      <div className="mx-auto max-w-7xl px-6">
+      <Aurora variante="oro" intensidad={0.9} />
+
+      <div className="relative mx-auto max-w-7xl px-6">
+        <LineaAgua className="mb-16 opacity-70" />
         <div className="mx-auto max-w-2xl text-center">
           <motion.p variants={subir} initial="oculto" whileInView="visible" viewport={enVista} className="eyebrow">
             Boletería
           </motion.p>
           <RevealText
-            texto="Escoge cómo quieres vivirla"
+            texto="Asegura tu lugar en la noche"
             as="h2"
-            className="mt-6 font-display text-[clamp(2.2rem,5vw,3.6rem)] font-medium leading-[1.05] tracking-[-0.015em]"
-            acento={[3]}
+            className="mt-6 font-display text-[clamp(2.2rem,5vw,3.6rem)] font-bold leading-[1.05] tracking-[-0.015em]"
+            acento={[4]}
           />
           <motion.p variants={subir} initial="oculto" whileInView="visible" viewport={enVista}
                     className="mt-6 font-body text-[15px] leading-relaxed text-bone/60">
@@ -153,7 +200,15 @@ export default function Boletas({ onComprar }: Props) {
           </motion.p>
         </div>
 
-        <div className="mt-16 grid items-stretch gap-6 lg:grid-cols-3">
+        <div
+          className={`mt-16 grid items-stretch gap-6 ${
+            boletas.length === 1
+              ? 'mx-auto max-w-md'
+              : boletas.length === 2
+              ? 'sm:grid-cols-2'
+              : 'lg:grid-cols-3'
+          }`}
+        >
           {boletas.map((b, i) => (
             <motion.div
               key={b.id}

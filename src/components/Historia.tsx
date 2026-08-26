@@ -5,6 +5,9 @@ import { useEffect, useRef, useState } from 'react';
 import Photo from './Photo';
 import Reveal from './Reveal';
 import RevealText from './RevealText';
+import Magnetic from './Magnetic';
+import Aurora from './Aurora';
+import LineaAgua from './LineaAgua';
 import { dur, ease, enVista, subir, escalonar } from '@/lib/motion';
 import { historia, evento, imagenes } from '@/data';
 
@@ -43,7 +46,7 @@ function CintaPromociones() {
         {[...anos, ...anos].map((a, i) => (
           <span
             key={`${a}-${i}`}
-            className="shrink-0 cursor-default font-display text-2xl tabular-nums text-bone/[0.16] transition-colors duration-200 hover:text-gold sm:text-3xl"
+            className="shrink-0 cursor-default font-display font-bold text-2xl tabular-nums text-bone/[0.16] transition-colors duration-200 hover:text-gold sm:text-3xl"
           >
             {a}
           </span>
@@ -80,7 +83,10 @@ export default function Historia() {
   const fotoY = useTransform(scrollYProgress, [0, 1], ['-8%', '8%']);
 
   return (
-    <section id="evento" className="relative mx-auto max-w-7xl px-6 py-28 md:py-40">
+    <section id="evento" className="relative overflow-hidden">
+      <Aurora variante="agua" intensidad={0.5} />
+      <div className="relative mx-auto max-w-7xl px-6 py-28 md:py-40">
+        <LineaAgua className="mb-14 max-w-md opacity-80" />
       <div ref={ref} className="grid items-center gap-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-20">
         <div>
           <motion.p
@@ -96,7 +102,7 @@ export default function Historia() {
           <RevealText
             texto={historia.titulo}
             as="h2"
-            className="mt-6 font-display text-[clamp(2.2rem,5vw,4rem)] font-medium leading-[1.03] tracking-[-0.015em]"
+            className="mt-6 font-display text-[clamp(2.2rem,5vw,4rem)] font-bold leading-[1.03] tracking-[-0.015em]"
             acento={[0]}
           />
 
@@ -107,6 +113,13 @@ export default function Historia() {
             viewport={enVista}
             className="mt-8 space-y-5"
           >
+            <motion.p
+              variants={subir}
+              className="max-w-xl font-body text-[17px] font-medium leading-relaxed text-bone"
+            >
+              {historia.entrada}
+            </motion.p>
+
             {historia.parrafos.map((p, i) => (
               <motion.p
                 key={i}
@@ -116,6 +129,19 @@ export default function Historia() {
                 {p}
               </motion.p>
             ))}
+
+            <motion.p
+              variants={subir}
+              className="max-w-xl font-body text-[15px] leading-[1.85] text-gold"
+            >
+              {historia.cierre}
+            </motion.p>
+
+            <motion.div variants={subir} className="pt-4">
+              <Magnetic href="#boletas" className="btn-ghost" fuerza={0.2}>
+                {historia.cta}
+              </Magnetic>
+            </motion.div>
           </motion.div>
 
           <motion.div
@@ -131,15 +157,23 @@ export default function Historia() {
             initial="oculto"
             whileInView="visible"
             viewport={enVista}
-            className="grid grid-cols-3 gap-6 pt-10"
+            className="grid grid-cols-1 gap-0 pt-10 sm:grid-cols-3 sm:gap-6"
           >
+            {/* En móvil las tres cifras en fila quedaban a ~100px cada una y
+                las etiquetas largas se partían en tres renglones. Debajo de
+                640px cada cifra pasa a ser una fila: número a la izquierda,
+                etiqueta a la derecha. Desde sm vuelve a la rejilla de tres. */}
             {historia.stats.map((s) => (
-              <motion.div key={s.label} variants={subir}>
-                <div className="font-display text-4xl leading-none text-gold sm:text-5xl">
+              <motion.div
+                key={s.label}
+                variants={subir}
+                className="flex items-baseline justify-between gap-4 border-b border-white/[0.07] py-4 sm:block sm:border-0 sm:py-0"
+              >
+                <div className="font-display font-bold text-4xl leading-none text-gold sm:text-5xl">
                   <Contador valor={s.valor} />
                   {s.sufijo}
                 </div>
-                <div className="mt-3 font-body text-[11px] uppercase leading-relaxed tracking-[0.14em] text-muted">
+                <div className="text-right font-body text-[11px] uppercase leading-relaxed tracking-[0.14em] text-muted sm:mt-3 sm:text-left">
                   {s.label}
                 </div>
               </motion.div>
@@ -168,7 +202,7 @@ export default function Historia() {
               transition={{ duration: dur.reveal, ease: ease.out, delay: 0.5 }}
               className="gold-rule mb-5 origin-left"
             />
-            <p className="font-display text-xl text-bone">
+            <p className="font-display font-bold text-xl text-bone">
               {evento.fundacion} — {evento.fundacion + evento.aniversario}
             </p>
             <p className="mt-1.5 font-body text-xs uppercase tracking-[0.14em] text-muted">
@@ -179,6 +213,7 @@ export default function Historia() {
       </div>
 
       <CintaPromociones />
+      </div>
     </section>
   );
 }

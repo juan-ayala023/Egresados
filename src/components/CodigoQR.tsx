@@ -57,7 +57,7 @@ export default function CodigoQR({ seed, size = 168 }: { seed: string; size?: nu
       className="rounded-sm bg-white p-1"
     >
       <rect width={size} height={size} fill="#FFFFFF" />
-      <g fill="#0A0A0F">
+      <g fill="#001222">
         {modulos}
         <Finder x={0} y={0} />
         <Finder x={N - 7} y={0} />

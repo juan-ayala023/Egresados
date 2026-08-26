@@ -1,17 +1,16 @@
 import type { Metadata } from 'next';
-import { Playfair_Display, Inter } from 'next/font/google';
+import { Roboto } from 'next/font/google';
 import './globals.css';
 import { evento } from '@/data';
 
-const display = Playfair_Display({
+/* El manual de marca prohíbe expresamente usar fuentes distintas a Roboto en
+   títulos y cuerpos de texto. Antes había Playfair Display + Inter: ambas
+   estaban fuera de norma. Una sola familia, tres pesos:
+   700 títulos y subtítulos · 500 apoyos de UI · 400 cuerpos. */
+const roboto = Roboto({
   subsets: ['latin'],
-  variable: '--font-display',
-  display: 'swap',
-});
-
-const body = Inter({
-  subsets: ['latin'],
-  variable: '--font-body',
+  weight: ['400', '500', '700'],
+  variable: '--font-roboto',
   display: 'swap',
 });
 
@@ -22,7 +21,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es" className={`${display.variable} ${body.variable}`}>
+    <html lang="es" className={roboto.variable}>
       <body className="font-body">{children}</body>
     </html>
   );

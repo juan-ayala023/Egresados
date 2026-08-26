@@ -9,6 +9,7 @@ import {
   anosGraduacion,
   evento,
   formatoCOP,
+  totalPorBoleta,
   metodosPago,
   type Boleta,
 } from '@/data';
@@ -68,7 +69,12 @@ export default function Checkout({ boleta, cantidad, onClose }: Props) {
     };
   }, [boleta, procesando, onClose]);
 
-  const total = useMemo(() => (boleta ? boleta.precio * cantidad : 0), [boleta, cantidad]);
+  /* El total DEBE incluir la tarifa de servicio: es lo que la tarjeta de
+     boletería le prometió al asistente. Si aquí se cobrara solo el precio
+     base, el sitio mostraría una cifra y la pasarela cobraría otra. */
+  const subtotal = useMemo(() => (boleta ? boleta.precio * cantidad : 0), [boleta, cantidad]);
+  const tarifas = useMemo(() => (boleta ? boleta.tarifaServicio * cantidad : 0), [boleta, cantidad]);
+  const total = useMemo(() => subtotal + tarifas, [subtotal, tarifas]);
 
   const actualizar = (i: number, campo: keyof Asistente, valor: string) => {
     setAsistentes((prev) => prev.map((a, idx) => (idx === i ? { ...a, [campo]: valor } : a)));
@@ -122,7 +128,7 @@ export default function Checkout({ boleta, cantidad, onClose }: Props) {
             className="relative w-full max-w-2xl rounded-lg border border-white/10 bg-surface shadow-2xl"
           >
             {/* Encabezado */}
-            <div className="flex items-center justify-between border-b border-white/[0.08] px-7 py-5">
+            <div className="flex items-center justify-between border-b border-white/[0.08] px-5 py-4 sm:px-7 sm:py-5">
               <div className="flex items-center gap-4">
                 {paso === 1 && !procesando && (
                   <button
@@ -137,7 +143,7 @@ export default function Checkout({ boleta, cantidad, onClose }: Props) {
                   <p className="font-body text-[10px] uppercase tracking-eyebrow text-gold/70">
                     Paso {paso + 1} de 3
                   </p>
-                  <h3 className="mt-1 font-display text-xl text-bone">{PASOS[paso]}</h3>
+                  <h3 className="mt-1 font-display font-bold text-xl text-bone">{PASOS[paso]}</h3>
                 </div>
               </div>
               {!procesando && (
@@ -152,7 +158,7 @@ export default function Checkout({ boleta, cantidad, onClose }: Props) {
             </div>
 
             {/* Progreso */}
-            <div className="flex gap-1.5 px-7 pt-5">
+            <div className="flex gap-1.5 px-5 pt-4 sm:px-7 sm:pt-5">
               {PASOS.map((_, i) => (
                 <div key={i} className="h-0.5 flex-1 overflow-hidden rounded-full bg-white/[0.08]">
                   <motion.div
@@ -164,7 +170,7 @@ export default function Checkout({ boleta, cantidad, onClose }: Props) {
               ))}
             </div>
 
-            <div className="relative max-h-[62vh] overflow-y-auto px-7 py-7">
+            <div className="relative max-h-[68vh] overflow-y-auto px-5 py-6 sm:max-h-[62vh] sm:px-7 sm:py-7">
              <AnimatePresence mode="wait" custom={sentido}>
               <motion.div
                 key={paso}
@@ -185,7 +191,7 @@ export default function Checkout({ boleta, cantidad, onClose }: Props) {
                   {asistentes.map((a, i) => (
                     <div key={i} className="space-y-4">
                       <div className="flex items-center gap-3">
-                        <span className="font-display text-lg text-gold">
+                        <span className="font-display font-bold text-lg text-gold">
                           {String(i + 1).padStart(2, '0')}
                         </span>
                         <span className="font-body text-[11px] uppercase tracking-[0.16em] text-muted">
@@ -268,10 +274,10 @@ export default function Checkout({ boleta, cantidad, onClose }: Props) {
                   <div className="rounded-sm border border-white/[0.08] bg-white/[0.02] p-6">
                     <div className="flex items-baseline justify-between">
                       <div>
-                        <p className="font-display text-xl text-bone">{boleta.nombre}</p>
+                        <p className="font-display font-bold text-xl text-bone">{boleta.nombre}</p>
                         <p className="mt-1 font-body text-[12px] text-muted">
                           {cantidad} {cantidad === 1 ? 'boleta' : 'boletas'} ·{' '}
-                          {formatoCOP(boleta.precio)} c/u
+                          {formatoCOP(totalPorBoleta(boleta))} c/u
                         </p>
                       </div>
                       <span className="font-body text-sm tabular-nums text-bone/70">
@@ -281,11 +287,28 @@ export default function Checkout({ boleta, cantidad, onClose }: Props) {
 
                     <div className="my-5 h-px bg-white/[0.08]" />
 
+                    {boleta.tarifaServicio > 0 && (
+                      <dl className="mb-5 space-y-1.5 font-body text-[13px]">
+                        <div className="flex justify-between">
+                          <dt className="text-muted">
+                            Boletas ({cantidad} × {formatoCOP(boleta.precio)})
+                          </dt>
+                          <dd className="tabular-nums text-bone/75">{formatoCOP(subtotal)}</dd>
+                        </div>
+                        <div className="flex justify-between">
+                          <dt className="text-muted">
+                            Tarifa de servicio ({cantidad} × {formatoCOP(boleta.tarifaServicio)})
+                          </dt>
+                          <dd className="tabular-nums text-bone/75">{formatoCOP(tarifas)}</dd>
+                        </div>
+                      </dl>
+                    )}
+
                     <div className="flex items-baseline justify-between">
                       <span className="font-body text-[11px] uppercase tracking-[0.16em] text-muted">
                         Total a pagar
                       </span>
-                      <span className="lining font-display text-3xl text-gold">{formatoCOP(total)}</span>
+                      <span className="lining font-display font-bold text-3xl text-gold">{formatoCOP(total)}</span>
                     </div>
                   </div>
 
@@ -353,7 +376,7 @@ export default function Checkout({ boleta, cantidad, onClose }: Props) {
                     <Check size={26} className="text-gold" strokeWidth={2} />
                   </motion.div>
 
-                  <h4 className="mt-7 font-display text-3xl text-bone">Tu boleta está lista</h4>
+                  <h4 className="mt-7 font-display font-bold text-3xl text-bone">Tu boleta está lista</h4>
                   <p className="mt-3 font-body text-[13.5px] leading-relaxed text-muted">
                     Enviamos {cantidad === 1 ? 'la boleta' : 'las boletas'} a{' '}
                     <span className="text-bone/80">{asistentes[0]?.correo || 'tu correo'}</span>.
@@ -404,7 +427,7 @@ export default function Checkout({ boleta, cantidad, onClose }: Props) {
             </div>
 
             {/* Pie */}
-            <div className="border-t border-white/[0.08] px-7 py-5">
+            <div className="border-t border-white/[0.08] px-5 py-4 sm:px-7 sm:py-5">
               {paso === 0 && (
                 <motion.button
                   whileTap={{ scale: 0.985 }}

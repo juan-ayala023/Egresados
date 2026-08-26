@@ -3,12 +3,9 @@
 import Image from 'next/image';
 import { useState } from 'react';
 import { imagenes } from '@/data';
+import { blurDataURL } from '@/lib/theme';
 
-const BLUR =
-  'data:image/svg+xml;base64,' +
-  Buffer.from(
-    '<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"><rect width="8" height="8" fill="#12121A"/></svg>'
-  ).toString('base64');
+const BLUR = blurDataURL();
 
 type Props = {
   src: string;

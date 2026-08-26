@@ -19,7 +19,7 @@ export default function FAQ() {
         <RevealText
           texto="Lo que todos preguntan"
           as="h2"
-          className="mt-6 font-display text-[clamp(2.2rem,5vw,3.4rem)] font-medium leading-[1.05] tracking-[-0.015em]"
+          className="mt-6 font-display text-[clamp(2.2rem,5vw,3.4rem)] font-bold leading-[1.05] tracking-[-0.015em]"
           acento={[2]}
         />
       </div>
@@ -40,7 +40,7 @@ export default function FAQ() {
                 aria-expanded={activa}
                 className="flex w-full items-center justify-between gap-6 py-6 text-left transition-colors hover:text-gold"
               >
-                <span className="font-display text-lg leading-snug text-bone sm:text-xl">
+                <span className="font-display font-bold text-lg leading-snug text-bone sm:text-xl">
                   {f.pregunta}
                 </span>
                 <motion.span

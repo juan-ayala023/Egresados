@@ -1,21 +1,37 @@
 import type { Config } from 'tailwindcss';
 
+/* Los colores NO se declaran aquí. Viven en src/app/globals.css como canales RGB
+   y este archivo solo los referencia. El placeholder <alpha-value> es lo que
+   permite que sigan funcionando los modificadores tipo bg-gold/40. */
 const config: Config = {
   content: ['./src/**/*.{js,ts,jsx,tsx,mdx}'],
   theme: {
     extend: {
       colors: {
-        ink: '#0A0A0F',
-        surface: '#12121A',
-        surfaceAlt: '#1A1A24',
-        gold: '#D4AF37',
-        goldSoft: '#E8CE7A',
-        bone: '#F2EDE4',
-        muted: '#8C8A93',
+        ink: 'rgb(var(--ink) / <alpha-value>)',
+        surface: 'rgb(var(--surface) / <alpha-value>)',
+        surfaceAlt: 'rgb(var(--surface-alt) / <alpha-value>)',
+        brand: 'rgb(var(--brand) / <alpha-value>)',
+        /* 'gold' conserva el nombre a propósito: ahora contiene el Amarillo
+           Pantone 139C, que sigue siendo un dorado. Cambiar el nombre habría
+           tocado 86 usos en los componentes sin ganar claridad. */
+        gold: 'rgb(var(--gold) / <alpha-value>)',
+        goldSoft: 'rgb(var(--gold-soft) / <alpha-value>)',
+        bone: 'rgb(var(--bone) / <alpha-value>)',
+        muted: 'rgb(var(--muted) / <alpha-value>)',
+        grayBrand: 'rgb(var(--gray-brand) / <alpha-value>)',
+        magenta: 'rgb(var(--magenta) / <alpha-value>)',
+        cyan: 'rgb(var(--cyan) / <alpha-value>)',
+        green: 'rgb(var(--green) / <alpha-value>)',
+        orange: 'rgb(var(--orange) / <alpha-value>)',
+        purple: 'rgb(var(--purple) / <alpha-value>)',
       },
+      /* El manual solo autoriza Roboto: Bold para títulos y subtítulos,
+         Regular para cuerpos. 'display' y 'body' apuntan a la misma familia
+         y se diferencian por peso, no por fuente. */
       fontFamily: {
-        display: ['var(--font-display)', 'serif'],
-        body: ['var(--font-body)', 'sans-serif'],
+        display: ['var(--font-roboto)', 'system-ui', 'sans-serif'],
+        body: ['var(--font-roboto)', 'system-ui', 'sans-serif'],
       },
       letterSpacing: {
         eyebrow: '0.32em',

@@ -2,10 +2,52 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================================================
+   SISTEMA DE COLOR — The Columbus School
+   Fuente: Manual de marca TCS. Ningún valor aquí es inventado.
+
+   Primarios   Azul  Pantone 280C  #004990
+               Amarillo Pantone 139C  #C88A12
+   Secundarios Magenta #EC008C · Cyan #00AEEF · Verde 375C #92C83E
+               Naranja #F37021 · Morado #8E278F
+   Terciario   Gris Dark Shadow #6D6E71 (solo cuerpos de texto, fondo claro)
+
+   Los oscuros (--ink, --surface, --surface-alt) NO son negros: son el azul
+   280C bajado de luminosidad, manteniendo su matiz (210°). El manual prohíbe
+   el negro en textos y la marca es azul-dominante, así que el sitio no tiene
+   un solo píxel de negro puro.
+
+   Valores en CANALES RGB para que Tailwind aplique opacidad: bg-gold/40.
+   ========================================================================== */
 :root {
-  --ink: #0a0a0f;
-  --surface: #12121a;
-  --gold: #d4af37;
+  /* Superficies — azul 280C oscurecido */
+  --ink: 0 18 34;            /* #001222  fondo base            */
+  --surface: 0 32 58;        /* #00203A  tarjetas y paneles    */
+  --surface-alt: 0 46 82;    /* #002E52  superficie elevada    */
+
+  /* Primarios de marca */
+  --brand: 0 73 144;         /* #004990  Azul Pantone 280C     */
+  --gold: 200 138 18;        /* #C88A12  Amarillo Pantone 139C */
+  --gold-soft: 236 170 44;   /* #ECAA2C  139C aclarado, hover  */
+
+  /* Texto */
+  --bone: 242 247 251;       /* #F2F7FB  texto principal       */
+  --muted: 143 166 184;      /* #8FA6B8  secundario sobre oscuro
+                                El gris de marca #6D6E71 da 3.71:1 sobre
+                                --ink: reprueba AA. Se usa solo en secciones
+                                claras, vía --gray-brand.      */
+  --gray-brand: 109 110 113; /* #6D6E71  Dark Shadow, fondo claro */
+
+  /* Secundarios — acentos puntuales (iconos, etiquetas, la pata) */
+  --magenta: 236 0 140;      /* #EC008C */
+  --cyan: 0 174 239;         /* #00AEEF */
+  --green: 146 200 62;       /* #92C83E */
+  --orange: 243 112 33;      /* #F37021 */
+  --purple: 142 39 143;      /* #8E278F */
+
+  /* Cromo de interfaz */
+  --scroll-thumb: 0 58 104;
+  --scroll-thumb-hover: 0 78 138;
 }
 
 * {
@@ -17,8 +59,8 @@ html {
 }
 
 body {
-  background-color: var(--ink);
-  color: #f2ede4;
+  background-color: rgb(var(--ink));
+  color: rgb(var(--bone));
   overflow-x: hidden;
 }
 
@@ -34,7 +76,7 @@ body::after {
 }
 
 ::selection {
-  background: rgba(212, 175, 55, 0.3);
+  background: rgb(var(--gold) / 0.3);
   color: #fff;
 }
 
@@ -43,14 +85,14 @@ body::after {
   width: 10px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--ink);
+  background: rgb(var(--ink));
 }
 ::-webkit-scrollbar-thumb {
-  background: #2a2a35;
+  background: rgb(var(--scroll-thumb));
   border-radius: 99px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #3a3a48;
+  background: rgb(var(--scroll-thumb-hover));
 }
 
 @layer components {
@@ -65,7 +107,7 @@ body::after {
   .btn-gold {
     @apply inline-flex items-center justify-center gap-2 rounded-full bg-gold px-8 py-4
            font-body text-sm font-semibold uppercase tracking-[0.12em] text-ink
-           transition-all duration-300 hover:bg-goldSoft hover:shadow-[0_0_40px_-8px_rgba(212,175,55,0.6)]
+           transition-all duration-300 hover:bg-goldSoft hover:shadow-[0_0_40px_-8px_rgb(var(--gold)/0.6)]
            focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4
            focus-visible:outline-gold disabled:pointer-events-none disabled:opacity-40;
   }
@@ -95,6 +137,19 @@ body::after {
   .group:hover .photo-treat {
     @apply grayscale-[15%] brightness-100 scale-105;
   }
+}
+
+/* En pantallas táctiles no existe el hover: sin esto las fotos se quedaban
+   desaturadas y oscuras para siempre, justo en el dispositivo donde más
+   se ve el sitio. Se les deja el estado "levantado" de entrada, sin el
+   escalado, que ahí no aporta nada. */
+@media (hover: none) {
+  .photo-treat {
+    filter: grayscale(18%) contrast(1.06) brightness(0.95);
+  }
+}
+
+@layer components {
 
   /* Cifras de caja alta: para números grandes donde la legibilidad manda */
   .lining {

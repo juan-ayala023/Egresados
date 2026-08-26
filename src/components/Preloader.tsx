@@ -86,7 +86,7 @@ export default function Preloader({ onDone }: { onDone: () => void }) {
             transition={{ duration: 0.45, ease: ease.out }}
             className="absolute inset-0 z-10 flex flex-col items-center justify-center"
           >
-            <span className="lining font-display text-[clamp(5rem,20vw,13rem)] leading-none tabular-nums text-bone">
+            <span className="lining font-display font-bold text-[clamp(5rem,20vw,13rem)] leading-none tabular-nums text-bone">
               {String(n).padStart(2, '0')}
             </span>
             <motion.span

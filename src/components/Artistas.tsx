@@ -5,6 +5,7 @@ import { useRef } from 'react';
 import Photo from './Photo';
 import Reveal from './Reveal';
 import RevealText from './RevealText';
+import Aurora from './Aurora';
 import { dur, ease, enVista, subir } from '@/lib/motion';
 import { artistas } from '@/data';
 
@@ -52,7 +53,7 @@ function Tarjeta({ a, i }: { a: (typeof artistas)[number]; i: number }) {
         className="mt-6"
       >
         <p className="font-body text-[10px] uppercase tracking-eyebrow text-gold/70">{a.genero}</p>
-        <h3 className="mt-3 font-display text-2xl leading-tight text-bone transition-colors duration-500 group-hover:text-gold">
+        <h3 className="mt-3 font-display font-bold text-2xl leading-tight text-bone transition-colors duration-500 group-hover:text-gold">
           {a.nombre}
         </h3>
         <p className="mt-3 font-body text-[14px] leading-relaxed text-bone/55">{a.descripcion}</p>
@@ -65,9 +66,11 @@ export default function Artistas() {
   return (
     <section
       id="artistas"
-      className="relative border-y border-white/[0.06] bg-surface/40 py-28 md:py-36"
+      className="relative overflow-hidden border-y border-white/[0.06] bg-surface/40 py-28 md:py-36"
     >
-      <div className="mx-auto max-w-7xl px-6">
+      <Aurora variante="agua" intensidad={0.6} />
+
+      <div className="relative mx-auto max-w-7xl px-6">
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <div>
             <motion.p
@@ -82,7 +85,7 @@ export default function Artistas() {
             <RevealText
               texto="Ocho horas de música en vivo"
               as="h2"
-              className="mt-6 max-w-lg font-display text-[clamp(2.2rem,5vw,3.6rem)] font-medium leading-[1.05] tracking-[-0.015em]"
+              className="mt-6 max-w-lg font-display text-[clamp(2.2rem,5vw,3.6rem)] font-bold leading-[1.05] tracking-[-0.015em]"
               acento={[3]}
             />
           </div>

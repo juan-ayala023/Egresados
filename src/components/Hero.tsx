@@ -2,9 +2,10 @@
 
 import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
 import { useEffect, useRef, useState } from 'react';
-import { MapPin, CalendarDays } from 'lucide-react';
+import { MapPin, CalendarDays, Clock } from 'lucide-react';
 import Photo from './Photo';
 import Magnetic from './Magnetic';
+import Aurora from './Aurora';
 import { dur, ease, escalonar, palabra, subir } from '@/lib/motion';
 import { evento, imagenes } from '@/data';
 
@@ -52,12 +53,12 @@ function Unidad({ valor, label }: { valor: number; label: string }) {
   const s = String(valor).padStart(2, '0');
   return (
     <div>
-      <div className="flex font-display text-3xl leading-none text-bone lining sm:text-4xl">
+      <div className="flex font-display font-bold text-3xl leading-none text-bone lining sm:text-4xl">
         {s.split('').map((d, i) => (
           <Digito key={i} valor={d} />
         ))}
       </div>
-      <div className="mt-2 font-body text-[10px] uppercase tracking-eyebrow text-muted">{label}</div>
+      <div className="mt-2 font-body text-[9px] uppercase tracking-[0.18em] text-muted sm:text-[10px] sm:tracking-eyebrow">{label}</div>
     </div>
   );
 }
@@ -121,7 +122,7 @@ export default function Hero({ listo }: { listo: boolean }) {
           {evento.colegio} · {evento.fundacion}–{evento.fundacion + evento.aniversario}
         </motion.p>
 
-        <h1 className="lining mt-6 font-display text-[clamp(3rem,11vw,8.5rem)] font-medium leading-[0.88] tracking-[-0.02em]">
+        <h1 className="lining mt-6 font-display text-[clamp(3rem,11vw,8.5rem)] font-bold leading-[0.88] tracking-[-0.02em]">
           {titulo.map((linea, i) => (
             <span key={linea} className="block overflow-hidden pb-[0.06em]">
               <motion.span variants={palabra} className={`block ${i === 1 ? 'text-gold' : ''}`}>
@@ -140,8 +141,7 @@ export default function Hero({ listo }: { listo: boolean }) {
           variants={subir}
           className="mt-7 max-w-lg font-body text-base leading-relaxed text-bone/70"
         >
-          Una noche para todas las promociones, en {evento.ciudad}, con orquesta en vivo hasta
-          las tres de la mañana.
+          {evento.descripcion}
         </motion.p>
 
         <motion.div
@@ -154,13 +154,17 @@ export default function Hero({ listo }: { listo: boolean }) {
           </span>
           <span className="flex items-center gap-2.5">
             <MapPin size={16} className="text-gold" strokeWidth={1.5} />
-            {evento.lugar}, {evento.ciudad}
+            {evento.lugar} ({evento.direccion})
+          </span>
+          <span className="flex items-center gap-2.5">
+            <Clock size={16} className="text-gold" strokeWidth={1.5} />
+            {evento.horaTexto}
           </span>
         </motion.div>
 
         <motion.div variants={subir} className="mt-11 flex flex-wrap items-center gap-4">
           <Magnetic href="#boletas" className="btn-gold">
-            Comprar mi boleta
+            Comprar boleta
           </Magnetic>
           <Magnetic href="#evento" className="btn-ghost" fuerza={0.2}>
             Ver el evento
@@ -175,7 +179,9 @@ export default function Hero({ listo }: { listo: boolean }) {
         className="relative z-10 border-t border-white/[0.08] bg-ink/50 backdrop-blur-sm"
       >
         <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-6 px-6 py-6 md:flex-row md:items-center">
-          <div className="flex items-end gap-7">
+          {/* gap-7 con 4 unidades y etiquetas de tracking ancho sumaba más
+              de 330px: se desbordaba en iPhone SE. Escala con la pantalla. */}
+          <div className="flex w-full items-end justify-between gap-3 sm:w-auto sm:justify-start sm:gap-7">
             {unidades.map((u) => (
               <Unidad key={u.l} valor={u.v} label={u.l} />
             ))}
@@ -187,7 +193,7 @@ export default function Hero({ listo }: { listo: boolean }) {
               <span className="relative inline-flex h-2 w-2 rounded-full bg-gold" />
             </span>
             <span className="font-body text-xs uppercase tracking-[0.18em] text-bone/70">
-              Cupos limitados · {evento.cuposTotales} personas
+              {evento.urgencia}
             </span>
           </div>
         </div>

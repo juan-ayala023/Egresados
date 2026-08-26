@@ -54,7 +54,7 @@ export default function Galeria() {
           <RevealText
             texto={galeria.titulo}
             as="h2"
-            className="mt-6 font-display text-[clamp(2.2rem,5vw,3.6rem)] font-medium leading-[1.05] tracking-[-0.015em]"
+            className="mt-6 font-display text-[clamp(2.2rem,5vw,3.6rem)] font-bold leading-[1.05] tracking-[-0.015em]"
             acento={[3, 4]}
           />
         </div>
@@ -85,7 +85,7 @@ export default function Galeria() {
                 <div className="absolute inset-0 border border-transparent transition-colors duration-500 group-hover:border-gold/30" />
 
                 {/* Pie que sube al pasar el cursor */}
-                <span className="absolute inset-x-0 bottom-0 translate-y-full bg-gradient-to-t from-ink/90 to-transparent px-4 pb-4 pt-10 text-left transition-transform duration-500 ease-out group-hover:translate-y-0">
+                <span className="absolute inset-x-0 bottom-0 translate-y-full bg-gradient-to-t from-ink/90 to-transparent px-4 pb-4 pt-10 text-left transition-transform duration-500 ease-out group-hover:translate-y-0 [@media(hover:none)]:translate-y-0">
                   <span className="block font-body text-[11px] uppercase tracking-[0.14em] text-bone/85">
                     {f.alt}
                   </span>
@@ -135,9 +135,18 @@ export default function Galeria() {
               </motion.button>
             ))}
 
-            <div
+            {/* En móvil nadie busca las flechas: desliza. El umbral de 60px
+                evita que un scroll vertical torpe cambie de foto. */}
+            <motion.div
               onClick={(e) => e.stopPropagation()}
-              className="relative mx-auto w-[min(90vw,1000px)]"
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={0.16}
+              onDragEnd={(_, info) => {
+                if (info.offset.x < -60) mover(1);
+                else if (info.offset.x > 60) mover(-1);
+              }}
+              className="relative mx-auto w-[min(92vw,1000px)] touch-pan-y"
             >
               <div className="relative aspect-[4/3] w-full overflow-hidden rounded-sm">
                 <AnimatePresence initial={false} mode="wait" custom={sentido}>
@@ -180,7 +189,7 @@ export default function Galeria() {
                   className="h-full bg-gold"
                 />
               </div>
-            </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

@@ -5,3 +5,7 @@ out
 .DS_Store
 *.tsbuildinfo
 next-env.d.ts
+
+# Originales de cámara (143 MB). Fuera de git y fuera de public/.
+originales-galeria
+originales-artistas
