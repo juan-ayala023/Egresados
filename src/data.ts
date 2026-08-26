@@ -191,8 +191,13 @@ export const contacto = {
   telefono: '',
   /* WhatsApp del botón flotante. Formato internacional, solo dígitos, con
      indicativo y sin el '+': para Colombia es 57 + el celular.
-     Ej: '573001234567'. Vacío = el botón no se pinta. */
-  whatsapp: '',
+     Vacío = el botón no se pinta.
+
+     PROVISIONAL: número de relleno para poder ver el botón mientras el comité
+     define el WhatsApp de soporte. Es una secuencia de ceros a propósito, no
+     un celular real: WhatsApp responde "número no válido" en vez de abrirle
+     el chat a un desconocido. REEMPLAZAR antes de publicar. */
+  whatsapp: '573000000000',
   instagram: '@thecolumbusschool',
   web: 'thecolumbus.school',
 };
