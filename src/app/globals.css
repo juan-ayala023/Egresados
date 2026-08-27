@@ -124,6 +124,20 @@ body::after {
     @apply w-full rounded-lg border border-white/10 bg-white/[0.03] px-4 py-3
            font-body text-sm text-bone placeholder:text-muted/60
            transition-colors focus:border-gold/50 focus:bg-white/[0.05] focus:outline-none;
+    /* El desplegable de un <select>, su barra de scroll y la flecha los pinta
+       el sistema operativo, no la hoja de estilos. Declarar el esquema hace
+       que los dibuje oscuros en vez de asumir una página blanca. */
+    color-scheme: dark;
+  }
+
+  /* Respaldo para navegadores que ignoran color-scheme en el desplegable.
+     La lista nativa hereda el `text-bone` del campo pero NO su fondo: el
+     bg-white/[0.03] es translúcido y se compone contra el blanco del sistema,
+     así que quedaba texto casi blanco sobre blanco. Cada opción necesita un
+     par de colores propios y opacos. */
+  .field option {
+    background-color: rgb(var(--surface));
+    color: rgb(var(--bone));
   }
 
   .label {
