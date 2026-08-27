@@ -115,8 +115,6 @@ export type Boleta = {
   personas: number;
   descripcion: string;
   incluye: string[];
-  cuposTotales: number;
-  cuposVendidos: number;
   destacada: boolean;
 };
 
@@ -136,8 +134,6 @@ export const boletas: Boleta[] = [
       'Estación de comida nocturna',
       'Parqueadero incluido',
     ],
-    cuposTotales: 500,
-    cuposVendidos: 158,
     destacada: true,
   },
 ];

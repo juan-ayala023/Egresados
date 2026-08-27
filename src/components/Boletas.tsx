@@ -1,27 +1,47 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Check, Minus, Plus } from 'lucide-react';
-import { boletas, formatoCOP, totalPorBoleta, type Boleta } from '@/data';
+import { boletas as boletasBase, formatoCOP, totalPorBoleta, type Boleta } from '@/data';
+import { obtenerBoletas, aPesos, type EstadoVenta } from '@/lib/api';
 import RevealText from './RevealText';
-import Magnetic from './Magnetic';
 import Aurora from './Aurora';
 import LineaAgua from './LineaAgua';
-import { dur, ease, enVista, escalonar, subir } from '@/lib/motion';
+import { dur, ease, enVista, subir } from '@/lib/motion';
 
-const MAX_POR_COMPRA = 4;
+/* La boleta que pinta la tarjeta: el contenido editorial sale de data.ts
+   (nombre, descripción, qué incluye) y lo comercial del backend (precio,
+   tarifa, tope por compra, disponibilidad). El servidor es la única fuente
+   de verdad sobre lo que se cobra; data.ts solo evita que la sección
+   aparezca vacía mientras responde la API. */
+type BoletaVista = Boleta & { maxPorCompra: number; disponible: boolean };
+
+const desdeBase = (b: Boleta): BoletaVista => ({ ...b, maxPorCompra: 4, disponible: true });
 
 type Props = {
   onComprar: (boleta: Boleta, cantidad: number) => void;
 };
 
-function Tarjeta({ b, onComprar }: { b: Boleta; onComprar: Props['onComprar'] }) {
+function Tarjeta({
+  b,
+  ventaAbierta,
+  onComprar,
+}: {
+  b: BoletaVista;
+  ventaAbierta: boolean;
+  onComprar: Props['onComprar'];
+}) {
   const [cantidad, setCantidad] = useState(1);
-  const disponibles = b.cuposTotales - b.cuposVendidos;
-  const agotada = disponibles <= 0;
-  const porcentaje = Math.round((b.cuposVendidos / b.cuposTotales) * 100);
-  const casiAgotada = !agotada && porcentaje >= 70;
+  const agotada = !b.disponible || !ventaAbierta;
+  const tope = b.maxPorCompra;
+
+  /* Si el backend baja el tope mientras la tarjeta está abierta, la cantidad
+     elegida podría quedar por encima. Se corrige sola en vez de mandar al
+     servidor una orden que va a rebotar. */
+  useEffect(() => {
+    setCantidad((c) => Math.min(c, tope));
+  }, [tope]);
 
   return (
     <motion.div
@@ -63,7 +83,7 @@ function Tarjeta({ b, onComprar }: { b: Boleta; onComprar: Props['onComprar'] })
       )}
       {agotada && (
         <span className="absolute -top-3 left-8 rounded-full border border-white/20 bg-ink px-4 py-1 font-body text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">
-          Agotada
+          {ventaAbierta ? 'Agotada' : 'Venta cerrada'}
         </span>
       )}
 
@@ -107,27 +127,10 @@ function Tarjeta({ b, onComprar }: { b: Boleta; onComprar: Props['onComprar'] })
         ))}
       </ul>
 
-      {/* Disponibilidad */}
-      <div className="mt-9">
-        <div className="mb-2.5 flex items-baseline justify-between font-body text-[11px] uppercase tracking-[0.12em]">
-          <span className={casiAgotada ? 'text-gold' : 'text-muted'}>
-            {agotada ? 'Sin disponibilidad' : `${disponibles} de ${b.cuposTotales} disponibles`}
-          </span>
-          <span className="tabular-nums text-muted">{porcentaje}%</span>
-        </div>
-        <div className="h-1 w-full overflow-hidden rounded-full bg-white/[0.07]">
-          <motion.div
-            initial={{ width: 0 }}
-            whileInView={{ width: `${porcentaje}%` }}
-            viewport={{ once: true }}
-            transition={{ duration: 1.2, ease: 'easeOut' }}
-            className={`h-full rounded-full ${agotada ? 'bg-muted/50' : 'bg-gold'}`}
-          />
-        </div>
-      </div>
-
-      {/* Cantidad + CTA */}
-      <div className="mt-7 flex items-center gap-3">
+      {/* Cantidad + CTA.
+          No hay barra de cupos: el comité pidió no revelar cuántos quedan y
+          el backend, en consecuencia, solo envía un booleano. */}
+      <div className="mt-9 flex items-center gap-3">
         <div className="flex items-center rounded-full border border-white/12">
           <button
             onClick={() => setCantidad((c) => Math.max(1, c - 1))}
@@ -139,8 +142,8 @@ function Tarjeta({ b, onComprar }: { b: Boleta; onComprar: Props['onComprar'] })
           </button>
           <span className="w-8 text-center font-body text-sm tabular-nums text-bone">{cantidad}</span>
           <button
-            onClick={() => setCantidad((c) => Math.min(MAX_POR_COMPRA, disponibles, c + 1))}
-            disabled={agotada || cantidad >= Math.min(MAX_POR_COMPRA, disponibles)}
+            onClick={() => setCantidad((c) => Math.min(tope, c + 1))}
+            disabled={agotada || cantidad >= tope}
             aria-label="Agregar una"
             className="flex h-11 w-11 items-center justify-center text-bone transition-colors hover:text-gold disabled:opacity-25"
           >
@@ -160,7 +163,7 @@ function Tarjeta({ b, onComprar }: { b: Boleta; onComprar: Props['onComprar'] })
               : 'border border-white/20 text-bone hover:border-gold hover:text-gold'
           }`}
         >
-          {agotada ? 'Agotada' : 'Continuar'}
+          {agotada ? (ventaAbierta ? 'Agotada' : 'Cerrada') : 'Continuar'}
         </motion.button>
       </div>
 
@@ -174,6 +177,45 @@ function Tarjeta({ b, onComprar }: { b: Boleta; onComprar: Props['onComprar'] })
 }
 
 export default function Boletas({ onComprar }: Props) {
+  const [boletas, setBoletas] = useState<BoletaVista[]>(() => boletasBase.map(desdeBase));
+  const [estadoVenta, setEstadoVenta] = useState<EstadoVenta>('abierta');
+
+  /* Arranca con lo de data.ts para que la sección nunca aparezca vacía, y se
+     sobrescribe con lo que diga el servidor. Si la API no responde queda el
+     precio local: la orden se valida igual del lado del backend, así que
+     nadie puede pagar un valor distinto al vigente. */
+  useEffect(() => {
+    let vivo = true;
+    obtenerBoletas()
+      .then(({ estadoVenta, boletas }) => {
+        if (!vivo) return;
+        setEstadoVenta(estadoVenta);
+        setBoletas(
+          boletas.map((api) => {
+            const base = boletasBase.find((b) => b.id === api.id) ?? boletasBase[0];
+            return {
+              ...base,
+              id: api.id,
+              nombre: base.nombre,
+              precio: aPesos(api.precioCentavos),
+              tarifaServicio: aPesos(api.tarifaServicioCentavos),
+              maxPorCompra: api.maxPorCompra,
+              disponible: api.disponible,
+            };
+          })
+        );
+      })
+      .catch(() => {
+        /* Silencio deliberado: la sección ya tiene contenido de data.ts y un
+           error de red aquí no debe tapar la página con una alerta. */
+      });
+    return () => {
+      vivo = false;
+    };
+  }, []);
+
+  const tope = boletas[0]?.maxPorCompra ?? 4;
+
   return (
     <section
       id="boletas"
@@ -195,7 +237,7 @@ export default function Boletas({ onComprar }: Props) {
           />
           <motion.p variants={subir} initial="oculto" whileInView="visible" viewport={enVista}
                     className="mt-6 font-body text-[15px] leading-relaxed text-bone/60">
-            Máximo {MAX_POR_COMPRA} boletas por compra. Cada asistente se registra con
+            Máximo {tope} boletas por compra. Cada asistente se registra con
             nombre y cédula para el ingreso.
           </motion.p>
         </div>
@@ -219,7 +261,7 @@ export default function Boletas({ onComprar }: Props) {
               className="flex"
             >
               <div className="flex w-full">
-                <Tarjeta b={b} onComprar={onComprar} />
+                <Tarjeta b={b} ventaAbierta={estadoVenta === 'abierta'} onComprar={onComprar} />
               </div>
             </motion.div>
           ))}
