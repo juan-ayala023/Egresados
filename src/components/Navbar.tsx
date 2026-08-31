@@ -53,73 +53,83 @@ export default function Navbar({ listo }: { listo: boolean }) {
   });
 
   return (
-    <motion.header
-      initial={{ y: -80, opacity: 0 }}
-      animate={listo ? { y: oculto ? -100 : 0, opacity: 1 } : { y: -80, opacity: 0 }}
-      transition={{ duration: 0.6, ease: ease.out, delay: listo && !oculto ? 0.2 : 0 }}
-      /* La barra nunca es transparente: el Azul 280C es el identificador del
-         colegio y sobre la fotografía del hero es lo que hace que la pieza se
-         lea como un evento de TCS y no como una fiesta cualquiera. Arriba va
-         velado para no tapar la foto; con scroll se vuelve opaco. */
-      className={`fixed inset-x-0 top-0 z-50 transition-[padding,background-color,border-color] duration-500 ${
-        scrolled
-          ? 'border-b border-gold/30 bg-brand/95 py-3 backdrop-blur-xl'
-          : 'border-b border-white/10 bg-brand/25 py-5 backdrop-blur-md'
-      }`}
-    >
-      <nav className="mx-auto flex max-w-7xl items-center justify-between px-6">
-        <a href="#top" aria-label={`${evento.titulo} — ${evento.colegio}`} className="flex items-center">
-          {/* Alto fijo, ancho automático: la marca no se deforma nunca.
-              Encoge al hacer scroll, igual que el resto de la barra. */}
-          <Image
-            src={imagenes.logoHorizontal}
-            alt={`${evento.titulo} · ${evento.colegio}`}
-            width={1880}
-            height={659}
-            priority
-            className={`w-auto transition-[height] duration-500 ${
-              scrolled ? 'h-10 sm:h-12' : 'h-14 sm:h-16'
-            }`}
-          />
-        </a>
-
-        <ul className="hidden items-center gap-9 lg:flex">
-          {links.map((l) => (
-            <li key={l.href}>
-              <a
-                href={l.href}
-                className="group relative font-body text-[13px] font-medium uppercase tracking-[0.14em] text-white/90 transition-colors hover:text-gold"
-              >
-                {l.label}
-                <span className="absolute -bottom-1.5 left-0 h-px w-full origin-right scale-x-0 bg-gold transition-transform duration-500 ease-out group-hover:origin-left group-hover:scale-x-100" />
-              </a>
-            </li>
-          ))}
-        </ul>
-
-        <div className="flex items-center gap-3">
-          <a
-            href="#boletas"
-            className="rounded-full bg-gold px-4 py-2 font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-ink transition-all hover:bg-goldSoft sm:px-5 sm:py-2.5 sm:text-[12px] sm:tracking-[0.16em]"
-          >
-            Comprar Boleta
+    <>
+      <motion.header
+        initial={{ y: -80, opacity: 0 }}
+        animate={listo ? { y: oculto ? -100 : 0, opacity: 1 } : { y: -80, opacity: 0 }}
+        transition={{ duration: 0.6, ease: ease.out, delay: listo && !oculto ? 0.2 : 0 }}
+        /* La barra nunca es transparente: el Azul 280C es el identificador del
+           colegio y sobre la fotografía del hero es lo que hace que la pieza se
+           lea como un evento de TCS y no como una fiesta cualquiera. Arriba va
+           velado para no tapar la foto; con scroll se vuelve opaco. */
+        className={`fixed inset-x-0 top-0 z-50 transition-[padding,background-color,border-color] duration-500 ${
+          scrolled
+            ? 'border-b border-gold/30 bg-brand/95 py-3 backdrop-blur-xl'
+            : 'border-b border-white/10 bg-brand/25 py-5 backdrop-blur-md'
+        }`}
+      >
+        <nav className="mx-auto flex max-w-7xl items-center justify-between px-6">
+          <a href="#top" aria-label={`${evento.titulo} — ${evento.colegio}`} className="flex items-center">
+            {/* Alto fijo, ancho automático: la marca no se deforma nunca.
+                Encoge al hacer scroll, igual que el resto de la barra. */}
+            <Image
+              src={imagenes.logoHorizontal}
+              alt={`${evento.titulo} · ${evento.colegio}`}
+              width={1880}
+              height={659}
+              priority
+              className={`w-auto transition-[height] duration-500 ${
+                scrolled ? 'h-10 sm:h-12' : 'h-14 sm:h-16'
+              }`}
+            />
           </a>
 
-          {/* Área táctil de 44px, el mínimo recomendado para el pulgar. */}
-          <button
-            type="button"
-            onClick={() => setMenu(true)}
-            aria-label="Abrir menú"
-            aria-expanded={menu}
-            aria-controls="menu-movil"
-            className="-mr-2 flex h-11 w-11 items-center justify-center text-bone transition-colors hover:text-gold lg:hidden"
-          >
-            <Menu size={22} strokeWidth={1.5} />
-          </button>
-        </div>
-      </nav>
+          <ul className="hidden items-center gap-9 lg:flex">
+            {links.map((l) => (
+              <li key={l.href}>
+                <a
+                  href={l.href}
+                  className="group relative font-body text-[13px] font-medium uppercase tracking-[0.14em] text-white/90 transition-colors hover:text-gold"
+                >
+                  {l.label}
+                  <span className="absolute -bottom-1.5 left-0 h-px w-full origin-right scale-x-0 bg-gold transition-transform duration-500 ease-out group-hover:origin-left group-hover:scale-x-100" />
+                </a>
+              </li>
+            ))}
+          </ul>
 
-      {/* ---------- Panel móvil ---------- */}
+          <div className="flex items-center gap-3">
+            <a
+              href="#boletas"
+              className="rounded-full bg-gold px-4 py-2 font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-ink transition-all hover:bg-goldSoft sm:px-5 sm:py-2.5 sm:text-[12px] sm:tracking-[0.16em]"
+            >
+              Comprar Boleta
+            </a>
+
+            {/* Área táctil de 44px, el mínimo recomendado para el pulgar. */}
+            <button
+              type="button"
+              onClick={() => setMenu(true)}
+              aria-label="Abrir menú"
+              aria-expanded={menu}
+              aria-controls="menu-movil"
+              className="-mr-2 flex h-11 w-11 items-center justify-center text-bone transition-colors hover:text-gold lg:hidden"
+            >
+              <Menu size={22} strokeWidth={1.5} />
+            </button>
+          </div>
+        </nav>
+      </motion.header>
+
+      {/* ---------- Panel móvil ----------
+          VA FUERA DEL <header>, y no es un detalle de orden: el header tiene
+          backdrop-blur y además framer-motion le anima la `y` (o sea, un
+          transform). Cualquiera de las dos convierte al header en el bloque
+          contenedor de sus hijos `position: fixed`, así que aquí adentro
+          `fixed inset-0` no medía la pantalla sino la barra: el fondo opaco
+          se pintaba solo en esos ~70px, los enlaces se salían por debajo y el
+          menú se veía transparente sobre la página. Aparte, al esconderse la
+          barra con el scroll se llevaba el menú con ella. */}
       <AnimatePresence>
         {menu && (
           <motion.div
@@ -200,6 +210,6 @@ export default function Navbar({ listo }: { listo: boolean }) {
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.header>
+    </>
   );
 }
