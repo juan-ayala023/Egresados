@@ -4,7 +4,7 @@ import Image from 'next/image';
 
 import { Instagram, Mail, Phone, MapPin, Clock, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { contacto, evento, imagenes } from '@/data';
+import { cierre, contacto, evento, imagenes } from '@/data';
 import RevealText from './RevealText';
 import Magnetic from './Magnetic';
 import Aurora from './Aurora';
@@ -59,14 +59,26 @@ export default function Footer() {
               {evento.fechaTexto}
             </motion.p>
 
+            {/* El titular pasó de tres palabras a una frase larga: a 4.5rem
+                ocupaba cuatro renglones. Cuerpo más bajo y sin salto forzado,
+                que ahora parte solo donde le corresponde. */}
             <RevealText
-              texto={`Nos vemos en ${evento.lugar}`}
+              texto={cierre.titulo}
               as="h2"
-              className="mt-6 font-display text-[clamp(2.4rem,6vw,4.5rem)] font-bold leading-[1.02] tracking-[-0.02em]"
-              acento={[3, 4, 5]}
-              saltos={[1]}
-              gap={0.09}
+              className="mt-6 font-display text-[clamp(2rem,4.6vw,3.4rem)] font-bold leading-[1.08] tracking-[-0.02em]"
+              acento={[9]}
+              gap={0.07}
             />
+
+            <motion.p
+              variants={subir}
+              initial="oculto"
+              whileInView="visible"
+              viewport={enVista}
+              className="mx-auto mt-6 max-w-xl font-body text-[15px] leading-relaxed text-bone/65"
+            >
+              {cierre.subtitulo}
+            </motion.p>
 
             <LineaAgua className="mx-auto mt-8 max-w-sm" />
 
@@ -97,7 +109,7 @@ export default function Footer() {
 
             <motion.div variants={subir} initial="oculto" whileInView="visible" viewport={enVista} className="mt-11">
               <Magnetic href="#boletas" className="btn-gold">
-                Comprar mi boleta
+                {cierre.cta}
               </Magnetic>
             </motion.div>
 
@@ -126,14 +138,16 @@ export default function Footer() {
       <div className="mx-auto max-w-7xl px-6 py-12">
         <div className="flex flex-col items-center justify-between gap-8 md:flex-row md:items-start">
           <div className="text-center md:text-left">
-            {/* El lockup vertical ya dice el nombre del colegio, así que la
-                línea de texto que lo repetía sobraba. */}
+            {/* El lockup ya dice el nombre del colegio, así que la línea de
+                texto que lo repetía sobraba. Va en horizontal por pedido del
+                colegio; la marca de agua de arriba sigue siendo la vertical,
+                que es la que cabe en ese espacio alto y centrado. */}
             <Image
-              src={imagenes.logoVertical}
+              src={imagenes.logoHorizontal}
               alt={`${evento.titulo} · ${evento.colegio}`}
-              width={562}
-              height={670}
-              className="mx-auto h-28 w-auto md:mx-0"
+              width={1880}
+              height={659}
+              className="mx-auto h-14 w-auto md:mx-0"
             />
             <p className="mt-5 font-body text-[12px] text-muted">{contacto.comite}</p>
           </div>

@@ -1,7 +1,7 @@
 /* Colores que CSS no puede alcanzar porque viven dentro de una data-URI.
    Debe reflejar --surface de globals.css. Es el único hex duplicado del proyecto
    y está aquí, señalado, en vez de escondido dentro de un componente. */
-export const BLUR_HEX = '#00203A';
+export const BLUR_HEX = '#002E5C';
 
 /* SVG de 8x8 sólido, codificado como data-URI sin base64 (no requiere Buffer,
    funciona igual en servidor y navegador). */

@@ -9,9 +9,12 @@ import { ease } from '@/lib/motion';
 import { evento, imagenes } from '@/data';
 import Aurora from './Aurora';
 
+/* Menú definido por el colegio. 'Experiencia' apunta a la sección #evento.
+   OJO: Artistas ya no tiene entrada aquí; la sección sigue existiendo en la
+   página y solo se llega bajando o desde el enlace de Experiencia. */
 const links = [
-  { href: '#evento', label: 'El evento' },
-  { href: '#artistas', label: 'Artistas' },
+  { href: '#top', label: 'Inicio' },
+  { href: '#evento', label: 'Experiencia' },
   { href: '#galeria', label: 'Galería' },
   { href: '#boletas', label: 'Boletas' },
   { href: '#faq', label: 'Preguntas' },
@@ -54,10 +57,14 @@ export default function Navbar({ listo }: { listo: boolean }) {
       initial={{ y: -80, opacity: 0 }}
       animate={listo ? { y: oculto ? -100 : 0, opacity: 1 } : { y: -80, opacity: 0 }}
       transition={{ duration: 0.6, ease: ease.out, delay: listo && !oculto ? 0.2 : 0 }}
+      /* La barra nunca es transparente: el Azul 280C es el identificador del
+         colegio y sobre la fotografía del hero es lo que hace que la pieza se
+         lea como un evento de TCS y no como una fiesta cualquiera. Arriba va
+         velado para no tapar la foto; con scroll se vuelve opaco. */
       className={`fixed inset-x-0 top-0 z-50 transition-[padding,background-color,border-color] duration-500 ${
         scrolled
-          ? 'border-b border-white/[0.06] bg-ink/85 py-3 backdrop-blur-xl'
-          : 'border-b border-transparent py-6'
+          ? 'border-b border-gold/30 bg-brand/95 py-3 backdrop-blur-xl'
+          : 'border-b border-white/10 bg-brand/25 py-5 backdrop-blur-md'
       }`}
     >
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-6">
@@ -71,7 +78,7 @@ export default function Navbar({ listo }: { listo: boolean }) {
             height={659}
             priority
             className={`w-auto transition-[height] duration-500 ${
-              scrolled ? 'h-8 sm:h-9' : 'h-10 sm:h-12'
+              scrolled ? 'h-10 sm:h-12' : 'h-14 sm:h-16'
             }`}
           />
         </a>
@@ -81,7 +88,7 @@ export default function Navbar({ listo }: { listo: boolean }) {
             <li key={l.href}>
               <a
                 href={l.href}
-                className="group relative font-body text-[12px] uppercase tracking-[0.16em] text-bone/60 transition-colors hover:text-gold"
+                className="group relative font-body text-[13px] font-medium uppercase tracking-[0.14em] text-white/90 transition-colors hover:text-gold"
               >
                 {l.label}
                 <span className="absolute -bottom-1.5 left-0 h-px w-full origin-right scale-x-0 bg-gold transition-transform duration-500 ease-out group-hover:origin-left group-hover:scale-x-100" />
@@ -93,9 +100,9 @@ export default function Navbar({ listo }: { listo: boolean }) {
         <div className="flex items-center gap-3">
           <a
             href="#boletas"
-            className="rounded-full border border-gold/40 px-4 py-2 font-body text-[10px] uppercase tracking-[0.14em] text-gold transition-all hover:bg-gold hover:text-ink sm:px-5 sm:py-2.5 sm:text-[11px] sm:tracking-[0.16em]"
+            className="rounded-full bg-gold px-4 py-2 font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-ink transition-all hover:bg-goldSoft sm:px-5 sm:py-2.5 sm:text-[12px] sm:tracking-[0.16em]"
           >
-            Comprar
+            Comprar Boleta
           </a>
 
           {/* Área táctil de 44px, el mínimo recomendado para el pulgar. */}
@@ -134,7 +141,7 @@ export default function Navbar({ listo }: { listo: boolean }) {
                   alt={`${evento.titulo} · ${evento.colegio}`}
                   width={1880}
                   height={659}
-                  className="h-9 w-auto"
+                  className="h-14 w-auto"
                 />
                 <button
                   type="button"
@@ -183,7 +190,7 @@ export default function Navbar({ listo }: { listo: boolean }) {
                   onClick={() => setMenu(false)}
                   className="btn-gold w-full"
                 >
-                  Comprar boleta
+                  Comprar Boleta
                 </a>
                 <p className="mt-4 text-center font-body text-[11px] uppercase tracking-[0.16em] text-muted">
                   {evento.fechaTexto}

@@ -8,7 +8,10 @@ import RevealText from './RevealText';
 import { dur, ease, enVista, subir } from '@/lib/motion';
 
 export default function FAQ() {
-  const [abierta, setAbierta] = useState<number | null>(0);
+  /* Se identifica por el texto de la pregunta y no por índice: con las
+     categorías, el índice 0 existe en las tres y se abrirían todas a la vez.
+     Arranca abierta la primera de todas, como antes. */
+  const [abierta, setAbierta] = useState<string | null>(faq[0].preguntas[0].pregunta);
 
   return (
     <section id="faq" className="mx-auto max-w-4xl px-6 py-28 md:py-36">
@@ -24,60 +27,81 @@ export default function FAQ() {
         />
       </div>
 
-      <div className="mt-14 divide-y divide-white/[0.08] border-y border-white/[0.08]">
-        {faq.map((f, i) => {
-          const activa = abierta === i;
-          return (
-            <motion.div
-              key={f.pregunta}
-              initial={{ opacity: 0, y: 18 }}
-              whileInView={{ opacity: 1, y: 0 }}
+      <div className="mt-14 space-y-14">
+        {faq.map((grupo, g) => (
+          <div key={grupo.categoria}>
+            <motion.h3
+              variants={subir}
+              initial="oculto"
+              whileInView="visible"
               viewport={enVista}
-              transition={{ duration: dur.base, ease: ease.out, delay: i * 0.07 }}
+              className="eyebrow"
             >
-              <button
-                onClick={() => setAbierta(activa ? null : i)}
-                aria-expanded={activa}
-                className="flex w-full items-center justify-between gap-6 py-6 text-left transition-colors hover:text-gold"
-              >
-                <span className="font-display font-bold text-lg leading-snug text-bone sm:text-xl">
-                  {f.pregunta}
-                </span>
-                <motion.span
-                  animate={{ rotate: activa ? 45 : 0 }}
-                  transition={{ duration: 0.3 }}
-                  className={`shrink-0 ${activa ? 'text-gold' : 'text-muted'}`}
-                >
-                  <Plus size={18} strokeWidth={1.5} />
-                </motion.span>
-              </button>
+              {grupo.categoria}
+            </motion.h3>
 
-              <AnimatePresence initial={false}>
-                {activa && (
+            <div className="mt-6 divide-y divide-white/[0.08] border-y border-white/[0.08]">
+              {grupo.preguntas.map((f, i) => {
+                const activa = abierta === f.pregunta;
+                return (
                   <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.5, ease: ease.out }}
-                    className="overflow-hidden"
+                    key={f.pregunta}
+                    initial={{ opacity: 0, y: 18 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={enVista}
+                    transition={{ duration: dur.base, ease: ease.out, delay: i * 0.07 }}
                   >
-                    <p className="max-w-2xl pb-7 font-body text-[14.5px] leading-[1.85] text-bone/60">
-                      {f.respuesta}
-                    </p>
+                    <button
+                      onClick={() => setAbierta(activa ? null : f.pregunta)}
+                      aria-expanded={activa}
+                      className="flex w-full items-center justify-between gap-6 py-6 text-left transition-colors hover:text-gold"
+                    >
+                      <span className="font-display font-bold text-lg leading-snug text-bone sm:text-xl">
+                        {f.pregunta}
+                      </span>
+                      <motion.span
+                        animate={{ rotate: activa ? 45 : 0 }}
+                        transition={{ duration: 0.3 }}
+                        className={`shrink-0 ${activa ? 'text-gold' : 'text-muted'}`}
+                      >
+                        <Plus size={18} strokeWidth={1.5} />
+                      </motion.span>
+                    </button>
+
+                    <AnimatePresence initial={false}>
+                      {activa && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.5, ease: ease.out }}
+                          className="overflow-hidden"
+                        >
+                          <p className="max-w-2xl pb-7 font-body text-[14.5px] leading-[1.85] text-bone/60">
+                            {f.respuesta}
+                          </p>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.div>
-          );
-        })}
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </div>
 
-      <p className="mt-10 text-center font-body text-[13px] text-muted">
-        ¿Otra pregunta? Escríbenos a{' '}
-        <a href={`mailto:${contacto.correo}`} className="text-gold underline-offset-4 hover:underline">
-          {contacto.correo}
-        </a>
-      </p>
+      {/* Sin correo no hay línea. Antes se pintaba "Escríbenos a" seguido de
+          nada y un enlace mailto vacío: misma regla que el Footer y el botón
+          de WhatsApp, antes un hueco que un dato inventado. */}
+      {contacto.correo && (
+        <p className="mt-14 text-center font-body text-[13px] text-muted">
+          ¿Otra pregunta? Escríbenos a{' '}
+          <a href={`mailto:${contacto.correo}`} className="text-gold underline-offset-4 hover:underline">
+            {contacto.correo}
+          </a>
+        </p>
+      )}
     </section>
   );
 }

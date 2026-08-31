@@ -10,9 +10,19 @@ export const evento = {
   fundacion: 1947,
   titulo: 'Homecoming Party 80 Años',
   bajada: 'Reencuentro de Egresados',
-  /* Texto del bloque principal, entregado por el colegio. */
+
+  /* ---- Bloque principal (hero). Texto entregado por el colegio. ----
+     El título dejó de nombrar el evento, así que el nombre se movió al
+     eyebrow: si no, el visitante no sabe a qué llegó. */
+  eyebrowHero: 'Homecoming 80 Años · The Columbus School',
+  /* Una línea por renglón: el hero las anima por separado, con máscara. */
+  tituloHero: ['Volver a donde', 'las mejores historias', 'comenzaron.'],
   descripcion:
-    'Ocho décadas transformando vidas. Una noche exclusiva para que todas las generaciones vuelvan a encontrarse, revivir historias y crear nuevos recuerdos.',
+    '80 años de legado, amistades inolvidables y momentos compartidos. Este es el reencuentro de la gran familia Columbus School. ¿Vas a dejar que te lo cuenten?',
+  ctaPrincipal: 'Asegura tu lugar en el Reencuentro',
+  /* Lleva a #artistas: es donde está "lo que vamos a ofrecer" (los shows y
+     sus horarios), no a la sección de concepto. */
+  ctaSecundario: 'Ver detalles de la noche',
   urgencia: '¡Cupos limitados! No te quedes por fuera',
   /* Tal cual lo entregó el colegio:
        Rango:  1947 – 2027  (fundacion + aniversario, sale en el hero)
@@ -34,64 +44,104 @@ export const evento = {
 
 export const historia = {
   eyebrow: 'El reencuentro',
-  titulo: '80 Años: Para revivir, recordar y volver a conectar.',
-  entrada: '¡El gran reencuentro de los 80 años ya está aquí!',
+  titulo: 'Ocho décadas construyendo la comunidad TCS.',
+  /* Subtitular: es la línea destacada, en cuerpo más alto que el resto. */
+  entrada:
+    'El tiempo pasa, pero lo que viviste en las aulas y campos de TCS te acompaña para siempre.',
   parrafos: [
-    'Durante 8 décadas, TCS ha sido el espacio donde aprendimos a liderar, a conectar e inspirar. Más que un colegio, dejamos en sus pasillos risas, triunfos, grandes amistades y momentos imborrables.',
-    'Es momento de volver a reunirnos, abrazar los recuerdos, reencontrarnos con viejos amigos y celebrar el orgullo de ser egresados de The Columbus School.',
+    'Caminar de nuevo por el campus, escuchar la música de tu época y abrazar a las personas con las que creciste. Cumplir 80 años no pasa todos los días: esta noche celebramos nuestro pasado, nuestro presente y la huella que cada promoción dejó en la historia del colegio.',
   ],
   cierre: '¡Asegura tu boleta, invita a tus compañeros y celebremos juntos este gran legado!',
   cta: 'Conoce más',
-  /* PENDIENTE: solo la primera cifra está confirmada. Las otras dos vienen
-     del boceto y nadie las ha validado. */
+  /* El colegio pidió quitar "500 cupos disponibles": anunciar el aforo invita
+     a esperar. PENDIENTE: de las dos que quedan, solo la de 80 está
+     confirmada; 62 viene del boceto y nadie la ha validado. */
   stats: [
     { valor: 80, sufijo: '', label: 'Años de historia' },
-    { valor: 500, sufijo: '', label: 'Cupos disponibles' },
     { valor: 62, sufijo: '', label: 'Promociones convocadas' },
   ],
 };
 
+/* ---- SECCIÓN 3: la noche. Texto entregado por el colegio. ----
+   Cada bloque nombra su icono con una llave; el componente la traduce a un
+   icono de lucide. data.ts no importa componentes: es un archivo de texto y
+   tiene que poder editarlo alguien que no programa. Los iconos son de línea
+   sin relleno, que es lo único que autoriza el manual de marca. */
+export const noche = {
+  eyebrow: 'La noche',
+  titulo: 'Una noche para volver, reencontrarnos y celebrar',
+  intro:
+    'Prepárate para una celebración pensada para disfrutar, recordar y crear nuevos momentos junto a quienes hicieron parte de tu historia.',
+  bloques: [
+    {
+      icono: 'bar' as const,
+      titulo: 'Bar',
+      texto:
+        'Cócteles y bebidas cuidadosamente seleccionadas para brindar y celebrar durante toda la noche.',
+    },
+    {
+      icono: 'gastronomia' as const,
+      titulo: 'Experiencia gastronómica',
+      texto:
+        'Una propuesta gastronómica impecable para disfrutar con amigos, de la mano de Marmoleo.',
+    },
+    {
+      icono: 'musica' as const,
+      titulo: 'Música en vivo',
+      texto:
+        'Banda completa en vivo con Felipe Ángel, un show de Jessi Uribe de "Yo Me Llamo" y las mejores canciones para bailar sin parar a cargo de DJ ALEX.',
+    },
+    {
+      icono: 'sorpresas' as const,
+      titulo: 'Sorpresas y espacios de reencuentro',
+      texto:
+        'Espacios para fotos, diferentes experiencias y momentos especiales para recordar tu paso por el colegio.',
+    },
+  ],
+};
+
 export const artistas = [
-  /* Orden cronológico: cada tarjeta muestra su hora, así que listarlas
-     desordenadas se lee como un error. El documento las mostraba con Pipe
-     Ángel primero, pero ahí decía 2:00 P.M. — confirmado que es 2:00 a.m.,
-     así que cierra la noche. */
+  /* El colegio pidió dejar SOLO los nombres en las tarjetas: se quitaron el
+     género y la descripción. `horario` sí se conserva aunque hoy no se pinte,
+     porque es lo que justifica este orden: la noche va en orden cronológico y
+     sin el dato nadie sabría por qué DJ Alex va primero. (El documento traía
+     a Felipe Ángel de primero con "2:00 P.M." — confirmado que es 2:00 a.m.,
+     así que cierra.) */
   {
     nombre: 'DJ Alex',
-    genero: 'Clásicos, reggaetón y crossover',
-    descripcion:
-      'La mezcla perfecta de clásicos, reggaetón y los hits de todas las épocas para bailar hasta el final de la madrugada.',
     horario: '11:30 p.m.',
     imagen: '/images/artistas/dj-alex.jpg',
   },
   {
     nombre: 'Yo Me Llamo Jessi Uribe',
-    genero: 'Música popular y despecho',
-    descripcion:
-      'Los grandes éxitos de la música popular y despecho interpretados con la voz y el sentimiento del show tributo número uno del país.',
     horario: '1:00 a.m.',
     imagen: '/images/artistas/yo-me-llamo-jessi-uribe.jpg',
   },
   {
-    nombre: 'Banda Pipe Ángel',
-    genero: 'Show en vivo',
-    descripcion:
-      'Un show cargado de energía y los mejores éxitos en vivo para encender la pista y poner a cantar a todas las promociones.',
+    nombre: 'Banda Felipe Ángel',
     horario: '2:00 a.m.',
-    imagen: '/images/artistas/banda-pipe-angel.jpg',
+    imagen: '/images/artistas/felipe-angel-banda.jpg',
   },
 ];
 
 export const galeria = {
-  eyebrow: 'Edición anterior',
-  titulo: 'Así estuvo la última vez',
-  nota: 'Homecoming · The Columbus School',
+  eyebrow: 'Recuerdos del Homecoming',
+  titulo: 'Así se vive la experiencia Columbus',
+  subtitulo:
+    'Grandes momentos, risas e historias que se repiten en cada edición. Este año, la foto no está completa sin ti.',
+  /* El cierre de la galería es pregunta + botón, en una línea: la pregunta
+     es la que empuja, el botón solo dice qué pasa al hacer clic. */
+  ctaPregunta: '¿Listo para reencontrarte?',
+  cta: 'Asegurar mi entrada',
   /* Fotos reales del colegio. Todas vienen de cámara en 3:2, así que las
      proporciones de abajo se mantienen cerca de esa relación: forzar
      verticales recortaría medio encuadre. El orden cuenta la noche:
-     llegada, disfraces, público, montaje, tarima, pista, cierre. */
+     llegada, disfraces, público, montaje, tarima, pista, cierre.
+
+     La PRIMERA es la destacada: ocupa el doble de alto y de ancho en la
+     retícula, así que conviene que sea la de más escala. */
   fotos: [
-    { src: '/images/galeria/homecoming_01.jpg', alt: 'Zona lounge bajo carpa antes de que arranque la noche', ratio: 'aspect-[3/2]' },
+    { src: '/images/galeria/homecoming_09.jpg', alt: 'Plano general del salón en el punto más alto de la noche', ratio: 'aspect-[3/2]' },
     { src: '/images/galeria/homecoming_02.jpg', alt: 'Grupo de egresados posando con disfraces de los setenta', ratio: 'aspect-[3/2]' },
     { src: '/images/galeria/homecoming_03.jpg', alt: 'Público con los brazos arriba entre confeti', ratio: 'aspect-[4/3]' },
     { src: '/images/galeria/homecoming_04.jpg', alt: 'Muro de fotografías históricas junto a las mesas montadas', ratio: 'aspect-[3/2]' },
@@ -99,7 +149,7 @@ export const galeria = {
     { src: '/images/galeria/homecoming_06.jpg', alt: 'La pista llena vista desde el fondo del salón', ratio: 'aspect-[4/3]' },
     { src: '/images/galeria/homecoming_07.jpg', alt: 'Dos asistentes tomándose una foto en la terraza', ratio: 'aspect-square' },
     { src: '/images/galeria/homecoming_08.jpg', alt: 'Egresados bailando entre globos', ratio: 'aspect-[3/2]' },
-    { src: '/images/galeria/homecoming_09.jpg', alt: 'Plano general del salón en el punto más alto de la noche', ratio: 'aspect-[3/2]' },
+    { src: '/images/galeria/homecoming_01.jpg', alt: 'Zona lounge bajo carpa antes de que arranque la noche', ratio: 'aspect-[3/2]' },
     { src: '/images/galeria/homecoming_10.jpg', alt: 'Concierto en tarima, edición de 2017', ratio: 'aspect-[4/3]' },
   ],
 };
@@ -121,18 +171,24 @@ export type Boleta = {
 export const boletas: Boleta[] = [
   {
     id: 'homecoming-80',
-    nombre: 'Boleta Homecoming 80 Años',
+    nombre: 'Pase Individual Homecoming 80 Años',
     precio: 80000,
+    /* El comprador paga la tarifa de servicio: $80.000 + $6.634 = $86.634.
+       (Antes iba en 0 porque el acta del comite decia que el colegio asumia
+       los costos financieros; se cambio por pedido del colegio.)
+       Este valor es solo el respaldo que se pinta mientras responde la API; si
+       no coincide con BOLETA_TARIFA_COP del backend, el usuario ve un precio
+       y despues otro. */
     tarifaServicio: 6634,
     personas: 1,
-    descripcion: 'Entrada individual al evento',
-    /* PENDIENTE: el documento no dice qué incluye la boleta. Esta lista es
-       la del boceto y no está validada por el colegio. */
+    descripcion: 'Experiencia completa de reencuentro y celebración',
+    /* Lista validada por el colegio. Se cayeron a propósito el coctel de
+       bienvenida y la estación de comida nocturna, que venían del boceto:
+       la boleta no promete consumo. */
     incluye: [
-      'Ingreso a la fiesta',
-      'Coctel de bienvenida',
-      'Estación de comida nocturna',
-      'Parqueadero incluido',
+      'Acceso exclusivo a la Gran Fiesta Homecoming 80 Años',
+      'Música en vivo & DJ Set (Hits generacionales de tus años escolares)',
+      'Parqueadero interno en el campus incluido',
     ],
     destacada: true,
   },
@@ -149,33 +205,78 @@ export const metodosPago = [
   { id: 'bancolombia', nombre: 'Bancolombia', detalle: 'Botón Bancolombia' },
 ];
 
+/* Preguntas entregadas por el colegio, agrupadas tal como las mandó.
+   Reemplazan por completo la lista del boceto. Traen dos cambios de fondo,
+   no de redacción:
+     · Las boletas ya NO son reembolsables. Antes se ofrecía 80% hasta 15
+       días antes del evento.
+     · La respuesta de vestuario dice "Estilo Coctel", pero el pie del sitio
+       sigue diciendo "Elegante de noche" (evento.codigoVestuario). Se dejó
+       así a propósito: el colegio no pidió cambiar el pie. */
 export const faq = [
   {
-    pregunta: '¿Puedo llevar acompañante si no es egresado?',
-    respuesta:
-      'Sí. Cada egresado puede comprar hasta 4 boletas. Solo pedimos que registres el nombre completo y la cédula de cada acompañante para el control de ingreso.',
+    categoria: 'Alimentos y Bebidas',
+    preguntas: [
+      {
+        pregunta: '¿Habrá venta de comida y bebidas durante el evento?',
+        respuesta:
+          '¡Sí! Para tu comodidad, contaremos con una variada oferta gastronómica y barras de licores preparadas especialmente para la noche. Por logística y seguridad del campus, no estará permitido el ingreso de alimentos o bebidas externos.',
+      },
+      {
+        pregunta: '¿Qué métodos de pago se aceptarán en el evento?',
+        respuesta:
+          'Aceptaremos tarjetas de crédito, débito y transferencias electrónicas. Te recomendamos contar con métodos de pago digitales para mayor agilidad al comprar tus consumos.',
+      },
+    ],
   },
   {
-    pregunta: '¿Cuál es el código de vestuario?',
-    respuesta:
-      'Elegante de noche. Vestido largo o corto para ellas, traje oscuro para ellos. La corbata es opcional.',
+    categoria: 'Boletas y Registro',
+    preguntas: [
+      {
+        pregunta: '¿Quiénes pueden asistir al evento?',
+        respuesta:
+          'El evento es exclusivo para la comunidad de egresados de The Columbus School.',
+      },
+      {
+        pregunta: '¿Qué incluye el valor de mi boleta?',
+        respuesta:
+          'Tu entrada incluye el acceso general a la fiesta, parqueadero en el campus, shows y la presentación de la orquesta en vivo para celebrar nuestros 80 años.',
+      },
+      {
+        pregunta: '¿Puedo comprar la boleta en la entrada el día del evento?',
+        respuesta:
+          'No. Para garantizar la seguridad y la logística del aforo, las boletas se venden exclusivamente de forma anticipada a través de esta plataforma digital.',
+      },
+      {
+        pregunta: '¿Puedo transferir mi boleta si no puedo asistir?',
+        respuesta:
+          'Las boletas no son reembolsables. Sin embargo, si necesitas transferir tu entrada a otro egresado, puedes contactar al equipo de soporte oficial con anticipación para actualizar los datos de ingreso.',
+      },
+    ],
   },
   {
-    pregunta: '¿Cómo recibo mi boleta?',
-    respuesta:
-      'Apenas se confirma el pago te llega un correo con tu boleta digital y un código QR único por persona. Ese QR se escanea en la entrada. No necesitas imprimir nada.',
-  },
-  {
-    pregunta: '¿Hay reembolsos?',
-    respuesta:
-      'Aceptamos cancelaciones hasta 15 días antes del evento con reembolso del 80%. Después de esa fecha la boleta es transferible a otra persona escribiéndonos al correo del comité.',
-  },
-  {
-    pregunta: '¿Hasta cuándo puedo comprar?',
-    respuesta:
-      'La venta cierra el 7 de noviembre o cuando se agoten los 500 cupos, lo que ocurra primero. En la edición anterior se agotó tres semanas antes.',
+    categoria: 'Logística y Acceso',
+    preguntas: [
+      {
+        pregunta: '¿Cuál es el código de vestimenta (Dress Code)?',
+        respuesta: 'Estilo Coctel. ¡Ven cómodo y listo para bailar toda la noche!',
+      },
+      {
+        pregunta: '¿Qué debo presentar en la entrada para ingresar?',
+        respuesta:
+          'Debes presentar tu cédula de ciudadanía (o documento de identidad oficial) junto con el código QR de tu boleta digital.',
+      },
+    ],
   },
 ];
+
+/* ---- Cierre del sitio (pie). Texto entregado por el colegio. ---- */
+export const cierre = {
+  titulo: 'Hay lugares a los que siempre vale la pena regresar.',
+  subtitulo:
+    'No dejes que te lo cuenten por fotos. Vuelve a vivir la experiencia The Columbus School.',
+  cta: 'Comprar mi boleta ahora',
+};
 
 export const contacto = {
   comite: 'Comité Organizador Homecoming 80 Años',
@@ -202,16 +303,25 @@ export const imagenes = {
   /* PROVISIONAL: recorte de una foto de la galería mientras llega la portada
      definitiva (2560x1440, sin texto ni logos quemados encima). */
   hero: '/images/portada/portada-desktop-provisional.jpg',
-  historia: '/images/historia.jpg',
+  /* La foto de la sección de historia sale de la galería: es la misma
+     imagen del público con los brazos arriba. El marco de esa sección es
+     4/5 (vertical) y esta es 3/2, así que se recorta por los lados. */
+  historia: '/images/galeria/homecoming_03.jpg',
   /* Logo del evento, versión blanca sobre transparente. La horizontal va en
      el menú; la vertical en el pie. Las dos traen el lockup completo:
      80 Years · To Relive Remember · The Columbus School. */
   /* Lettering de egresados. Va sobre fondo CLARO: su azul es el 280C, que
      sobre el navy del sitio da 2.0:1 de contraste y se apaga. */
   fraseTiger: '/images/piezas/frase-tiger.png',
+  /* Sello del evento en forma de boleta (TCS · Homecoming Party). Trae el
+     nombre quemado, así que sirve de sello y no de portada. La blanca es la
+     que sobrevive sobre la foto oscura del hero; la dorada queda para
+     fondos claros. */
+  selloBlanco: '/images/piezas/sello-tcs-blanco.png',
+  selloDorado: '/images/piezas/sello-tcs-dorado.png',
   logoHorizontal: '/images/logos/logo_horizontal.png',
   logoVertical: '/images/logos/logo_vertical.png',
-  fallback: 'https://placehold.co/800x600/00203A/C88A12?text=Homecoming',
+  fallback: 'https://placehold.co/800x600/002E5C/C88A12?text=Homecoming',
 };
 
 /* Años de graduación para el formulario: de la fundación al año pasado */

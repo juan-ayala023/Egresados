@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useCallback, useEffect, useState } from 'react';
 import { X, ChevronLeft, ChevronRight, Expand } from 'lucide-react';
@@ -7,7 +8,7 @@ import Photo from './Photo';
 import Reveal from './Reveal';
 import RevealText from './RevealText';
 import { dur, ease, enVista, subir } from '@/lib/motion';
-import { galeria } from '@/data';
+import { galeria, imagenes } from '@/data';
 
 export default function Galeria() {
   const [abierta, setAbierta] = useState<number | null>(null);
@@ -54,32 +55,68 @@ export default function Galeria() {
           <RevealText
             texto={galeria.titulo}
             as="h2"
-            className="mt-6 font-display text-[clamp(2.2rem,5vw,3.6rem)] font-bold leading-[1.05] tracking-[-0.015em]"
-            acento={[3, 4]}
+            className="mt-6 max-w-2xl font-display text-[clamp(2.2rem,5vw,3.6rem)] font-bold leading-[1.05] tracking-[-0.015em]"
+            acento={[4, 5]}
           />
+          <motion.p
+            variants={subir}
+            initial="oculto"
+            whileInView="visible"
+            viewport={enVista}
+            className="mt-6 max-w-xl font-body text-[15px] leading-relaxed text-bone/65"
+          >
+            {galeria.subtitulo}
+          </motion.p>
         </div>
-        <motion.p
-          variants={subir}
-          initial="oculto"
-          whileInView="visible"
+
+        {/* Sello del lema, en la esquina superior. El lettering es azul 280C:
+            sobre el navy del sitio da 2.0:1 y desaparece, así que va dentro de
+            una pastilla clara. La inclinación es lo que lo hace leer como
+            sello estampado y no como un logo más. */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.85, rotate: -10 }}
+          whileInView={{ opacity: 1, scale: 1, rotate: -4 }}
           viewport={enVista}
-          className="font-body text-xs uppercase tracking-[0.16em] text-muted"
+          transition={{ duration: dur.slow, ease: ease.out }}
+          className="shrink-0 self-start rounded-lg bg-bone px-5 py-4 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.5)] md:self-end"
         >
-          {galeria.nota}
-        </motion.p>
+          <Image
+            src={imagenes.fraseTiger}
+            alt="Once a Tiger, Always a Tiger"
+            width={650}
+            height={361}
+            className="h-auto w-[150px] sm:w-[170px]"
+          />
+        </motion.div>
       </div>
 
-      <div className="mt-14 columns-2 gap-4 md:columns-3 [&>*]:mb-4">
+      {/* Distribución pedida por el colegio: una foto principal que ocupa dos
+          columnas por dos filas y el resto alrededor. La altura de las filas la
+          fijan las fotos pequeñas (3:2), así que la destacada queda cerca de
+          esa misma proporción y ninguna se recorta de más.
+
+          Se dejó de usar `columns` (mampostería) porque ahí no existen los
+          spans: una celda no puede ocupar dos columnas. */}
+      <div className="mt-14 grid grid-cols-2 gap-4 md:grid-cols-3">
         {galeria.fotos.map((f, i) => (
-          <div key={f.src} className="break-inside-avoid">
-            <Reveal delay={(i % 3) * 0.1}>
+          <div
+            key={f.src}
+            className={i === 0 ? 'col-span-2 md:row-span-2' : ''}
+          >
+            <Reveal delay={(i % 3) * 0.1} className="h-full">
               <button
                 onClick={() => setAbierta(i)}
                 aria-label={`Ampliar: ${f.alt}`}
-                className={`group relative block w-full overflow-hidden rounded-sm ${f.ratio}
+                className={`group relative block h-full w-full overflow-hidden rounded-sm ${
+                  i === 0 ? 'aspect-[3/2] md:aspect-auto' : 'aspect-[3/2]'
+                }
                             focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold`}
               >
-                <Photo src={f.src} alt={f.alt} sizes="(max-width: 768px) 50vw, 33vw" />
+                <Photo
+                  src={f.src}
+                  alt={f.alt}
+                  sizes={i === 0 ? '(max-width: 768px) 100vw, 66vw' : '(max-width: 768px) 50vw, 33vw'}
+                />
                 <div className="absolute inset-0 bg-ink/30 transition-opacity duration-700 group-hover:opacity-0" />
                 <div className="absolute inset-0 bg-gold/[0.12] mix-blend-overlay" />
                 <div className="absolute inset-0 border border-transparent transition-colors duration-500 group-hover:border-gold/30" />
@@ -99,6 +136,21 @@ export default function Galeria() {
           </div>
         ))}
       </div>
+
+      <motion.div
+        variants={subir}
+        initial="oculto"
+        whileInView="visible"
+        viewport={enVista}
+        className="mt-12 flex flex-col items-center justify-center gap-5 sm:flex-row sm:gap-7"
+      >
+        <p className="font-display text-xl font-bold text-bone sm:text-2xl">
+          {galeria.ctaPregunta}
+        </p>
+        <a href="#boletas" className="btn-gold">
+          {galeria.cta}
+        </a>
+      </motion.div>
 
       <AnimatePresence>
         {abierta !== null && (

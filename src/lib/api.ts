@@ -37,8 +37,22 @@ export type BoletaApi = {
   disponible: boolean;
 };
 
+/* Tipos de documento que aprobó el acta ("NIT/CC"). El backend los valida
+   contra la misma lista; si cambia una, cambia la otra. */
+export const TIPOS_DOCUMENTO = ['CC', 'CE', 'NIT', 'PP', 'TI'] as const;
+export type TipoDocumento = (typeof TIPOS_DOCUMENTO)[number];
+
+export const ETIQUETA_DOCUMENTO: Record<TipoDocumento, string> = {
+  CC: 'Cédula de ciudadanía',
+  CE: 'Cédula de extranjería',
+  NIT: 'NIT',
+  PP: 'Pasaporte',
+  TI: 'Tarjeta de identidad',
+};
+
 export type Comprador = {
   nombre: string;
+  tipoDocumento: TipoDocumento;
   cedula: string;
   correo: string;
   celular: string;
@@ -49,6 +63,7 @@ export type Comprador = {
 
 export type AsistenteApi = {
   nombre: string;
+  tipoDocumento: TipoDocumento;
   cedula: string;
   correo: string;
   celular: string;
@@ -184,6 +199,24 @@ export const crearOrden = (orden: NuevaOrden) =>
 
 export const consultarOrden = (referencia: string) =>
   pedir<EstadoOrden>(`/api/ordenes/${encodeURIComponent(referencia)}`);
+
+/* Al volver del checkout, Wompi pone el id de la transacción en la URL. Se lo
+   mandamos al backend para que le PREGUNTE a Wompi cómo quedó el pago, en vez
+   de esperar a que llegue el webhook.
+
+   Dos razones para no saltarse esto:
+   1. Resuelve el pago en el segundo en que el usuario vuelve, sin esperar.
+   2. El backend guarda ese id, y sin él su barrido de reconciliación no tiene
+      a quién preguntarle después. Si el webhook se pierde y nunca mandamos el
+      id, esa orden se queda colgada y alguien pagó sin recibir sus boletas.
+
+   No es un atajo para "marcar como pagada": el backend verifica contra Wompi
+   que la transacción sea de esta orden y que el monto cuadre. */
+export const verificarPago = (referencia: string, idTransaccion: string) =>
+  pedir<EstadoOrden>(
+    `/api/ordenes/${encodeURIComponent(referencia)}/verificar`,
+    { method: 'POST', body: JSON.stringify({ idTransaccion }) }
+  );
 
 export const reenviarCorreo = (referencia: string) =>
   pedir<{ enviadoA: string }>(

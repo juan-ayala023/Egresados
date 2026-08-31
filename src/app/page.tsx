@@ -10,7 +10,6 @@ import Hero from '@/components/Hero';
 import Historia from '@/components/Historia';
 import Artistas from '@/components/Artistas';
 import Galeria from '@/components/Galeria';
-import Frase from '@/components/Frase';
 import Boletas from '@/components/Boletas';
 import Checkout from '@/components/Checkout';
 import FAQ from '@/components/FAQ';
@@ -58,7 +57,6 @@ export default function Home() {
           <Historia />
           <Artistas />
           <Galeria />
-          <Frase />
           <Boletas onComprar={(boleta, cantidad) => setSeleccion({ boleta, cantidad })} />
           <FAQ />
         </motion.div>

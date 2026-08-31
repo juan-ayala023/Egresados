@@ -4,7 +4,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Check, Loader2, AlertCircle, Download, Mail, ArrowLeft } from 'lucide-react';
-import { consultarOrden, reenviarCorreo, ErrorApi, type EstadoOrden } from '@/lib/api';
+import {
+  consultarOrden, verificarPago, reenviarCorreo, ErrorApi, type EstadoOrden,
+} from '@/lib/api';
 import { CLAVE_REFERENCIA } from '@/components/Checkout';
 import { evento, formatoCOP, imagenes } from '@/data';
 import { ease } from '@/lib/motion';
@@ -28,6 +30,25 @@ export default function ResultadoPago() {
 
   const referencia = useRef<string>('');
 
+  /* Primer intento, con el id que Wompi dejó en la URL: el backend le pregunta
+     directamente a la pasarela. Suele resolver el pago de una, sin esperar al
+     webhook. Si falla, no se dice nada al usuario y se sigue con el polling
+     normal: es un atajo, no la única vía. */
+  const verificar = useCallback(async (idTransaccion: string) => {
+    try {
+      const r = await verificarPago(referencia.current, idTransaccion);
+      setOrden(r);
+      if (r.estado !== 'pendiente') {
+        setFase('listo');
+        return true;
+      }
+    } catch {
+      /* Puede fallar por red o porque la pasarela todavía no sabe nada. El
+         polling de abajo se encarga. */
+    }
+    return false;
+  }, []);
+
   const consultar = useCallback(async () => {
     try {
       const r = await consultarOrden(referencia.current);
@@ -48,7 +69,11 @@ export default function ResultadoPago() {
     /* La referencia se guardó antes de salir hacia Wompi. El query param es
        el respaldo para cuando sessionStorage no está disponible (incógnito)
        o el usuario volvió desde otro dispositivo. */
-    const query = new URLSearchParams(window.location.search).get('referencia');
+    const params = new URLSearchParams(window.location.search);
+    /* Wompi devuelve al usuario con ?id=<transacción>. Es el dato que hace
+       posible resolver el pago sin esperar el webhook. */
+    const idTransaccion = params.get('id') ?? '';
+    const query = params.get('referencia');
     let guardada = '';
     try {
       guardada = sessionStorage.getItem(CLAVE_REFERENCIA) ?? '';
@@ -70,6 +95,13 @@ export default function ResultadoPago() {
 
     const ciclo = async () => {
       if (!vivo) return;
+
+      /* Solo en la primera vuelta, y solo si Wompi nos dio el id. */
+      if (intentos.current === 0 && idTransaccion) {
+        const resuelto = await verificar(idTransaccion);
+        if (resuelto || !vivo) return;
+      }
+
       const terminado = await consultar();
       if (terminado || !vivo) return;
       intentos.current += 1;
@@ -85,7 +117,7 @@ export default function ResultadoPago() {
       vivo = false;
       clearTimeout(id);
     };
-  }, [consultar]);
+  }, [consultar, verificar]);
 
   const reintentar = () => {
     intentos.current = 0;

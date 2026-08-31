@@ -1,13 +1,29 @@
 'use client';
 
+import type { Variants } from 'framer-motion';
 import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
 import { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import { MapPin, CalendarDays, Clock } from 'lucide-react';
 import Photo from './Photo';
 import Magnetic from './Magnetic';
 import Aurora from './Aurora';
+import CompartirWhatsApp from './CompartirWhatsApp';
 import { dur, ease, escalonar, palabra, subir } from '@/lib/motion';
 import { evento, imagenes } from '@/data';
+
+/* Entrada del sello: entra grande y torcido y se asienta, como el golpe de
+   un sello de tinta. Termina en -3 grados: derecho leería como otro logo
+   alineado, y es la inclinación la que lo vuelve estampado. */
+const sello: Variants = {
+  oculto: { opacity: 0, scale: 1.2, rotate: -10 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    rotate: -3,
+    transition: { duration: dur.base, ease: ease.out },
+  },
+};
 
 function useCuentaRegresiva(iso: string) {
   const [t, setT] = useState({ dias: 0, horas: 0, minutos: 0, segundos: 0 });
@@ -82,7 +98,7 @@ export default function Hero({ listo }: { listo: boolean }) {
     { v: t.segundos, l: 'Seg' },
   ];
 
-  const titulo = ['Homecoming', '80 Años'];
+  const titulo = evento.tituloHero;
 
   return (
     <section
@@ -104,6 +120,13 @@ export default function Hero({ listo }: { listo: boolean }) {
         />
       </motion.div>
 
+      {/* Duotono de marca. `mix-blend-color` toma el matiz y la saturación de
+          esta capa (Azul 280C) y conserva la luminosidad de la foto: la
+          fotografía queda teñida del azul del colegio en vez de ser una foto
+          de fiesta cualquiera oscurecida. Va DEBAJO del velo para que el
+          degradado siga controlando qué tan oscuro queda el conjunto. */}
+      <div className="absolute inset-0 bg-brand/70 mix-blend-color" />
+
       <motion.div
         style={sinMovimiento ? undefined : { opacity: velo }}
         className="absolute inset-0 bg-gradient-to-b from-ink via-ink/60 to-ink"
@@ -116,13 +139,31 @@ export default function Hero({ listo }: { listo: boolean }) {
         variants={escalonar(0.15, 0.09)}
         initial="oculto"
         animate={listo ? 'visible' : 'oculto'}
-        className="relative z-10 mx-auto flex w-full max-w-7xl flex-1 flex-col justify-center px-6 pb-16 pt-36"
+        className="relative z-10 mx-auto flex w-full max-w-7xl flex-1 flex-col justify-center px-6 pb-12 pt-28 sm:pt-32"
       >
+        {/* Sello del evento, arriba de todo: es la firma de la pieza. Va la
+            versión blanca porque el fondo es la foto teñida de navy; la
+            dorada se apagaría contra el velo. La sombra lo despega de la
+            foto para que no se confunda con el fondo. */}
+        <motion.div variants={sello} className="mb-7 w-fit origin-left">
+          <Image
+            src={imagenes.selloBlanco}
+            alt="Sello TCS Homecoming Party"
+            width={3174}
+            height={881}
+            priority
+            className="h-auto w-[170px] drop-shadow-[0_10px_26px_rgba(0,0,0,0.5)] sm:w-[215px]"
+          />
+        </motion.div>
+
         <motion.p variants={subir} className="eyebrow">
-          {evento.colegio} · {evento.fundacion}–{evento.fundacion + evento.aniversario}
+          {evento.eyebrowHero}
         </motion.p>
 
-        <h1 className="lining mt-6 font-display text-[clamp(3rem,11vw,8.5rem)] font-bold leading-[0.88] tracking-[-0.02em]">
+        {/* El título pasó de dos palabras a una frase de tres renglones: a
+            11vw se comía la pantalla. Cuerpo más bajo y ancho acotado para
+            que las líneas se lean como frase y no como titular de prensa. */}
+        <h1 className="lining mt-6 max-w-4xl font-display text-[clamp(2.25rem,min(6.4vw,8.2vh),5.25rem)] font-bold leading-[0.95] tracking-[-0.02em]">
           {/* La máscara del reveal recorta a la altura de la caja de línea, y
               leading-[0.88] la deja más corta que el descendente: la 'g' de
               Homecoming baja hasta ~1.02em y quedaba cortada.
@@ -137,7 +178,7 @@ export default function Hero({ listo }: { listo: boolean }) {
             <span key={linea} className="block overflow-hidden -mb-[0.18em]">
               <motion.span
                 variants={palabra}
-                className={`block pb-[0.24em] ${i === 1 ? 'text-gold' : ''}`}
+                className={`block pb-[0.24em] ${i === titulo.length - 1 ? 'text-gold' : ''}`}
               >
                 {linea}
               </motion.span>
@@ -147,19 +188,19 @@ export default function Hero({ listo }: { listo: boolean }) {
 
         <motion.div
           variants={subir}
-          className="mt-8 h-px w-full max-w-md origin-left bg-gradient-to-r from-gold/60 to-transparent"
+          className="mt-6 h-px w-full max-w-md origin-left bg-gradient-to-r from-gold/60 to-transparent"
         />
 
         <motion.p
           variants={subir}
-          className="mt-7 max-w-lg font-body text-base leading-relaxed text-bone/70"
+          className="mt-6 max-w-lg font-body text-base leading-relaxed text-bone/70"
         >
           {evento.descripcion}
         </motion.p>
 
         <motion.div
           variants={subir}
-          className="mt-9 flex flex-wrap items-center gap-x-8 gap-y-3 font-body text-sm text-bone/80"
+          className="mt-7 flex flex-wrap items-center gap-x-8 gap-y-3 font-body text-sm text-bone/80"
         >
           <span className="flex items-center gap-2.5">
             <CalendarDays size={16} className="text-gold" strokeWidth={1.5} />
@@ -175,13 +216,19 @@ export default function Hero({ listo }: { listo: boolean }) {
           </span>
         </motion.div>
 
-        <motion.div variants={subir} className="mt-11 flex flex-wrap items-center gap-4">
+        <motion.div variants={subir} className="mt-9 flex flex-wrap items-center gap-4">
           <Magnetic href="#boletas" className="btn-gold">
-            Comprar boleta
+            {evento.ctaPrincipal}
           </Magnetic>
-          <Magnetic href="#evento" className="btn-ghost" fuerza={0.2}>
-            Ver el evento
+          <Magnetic href="#artistas" className="btn-ghost" fuerza={0.2}>
+            {evento.ctaSecundario}
           </Magnetic>
+        </motion.div>
+
+        {/* Acción grupal, deliberadamente por debajo de los dos botones: la
+            prioridad es comprar, no compartir. */}
+        <motion.div variants={subir} className="mt-6">
+          <CompartirWhatsApp />
         </motion.div>
       </motion.div>
 

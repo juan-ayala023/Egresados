@@ -157,7 +157,12 @@ export default function Historia() {
             initial="oculto"
             whileInView="visible"
             viewport={enVista}
-            className="grid grid-cols-1 gap-0 pt-10 sm:grid-cols-3 sm:gap-6"
+            /* Las columnas siguen a la cantidad de cifras: al quitar la de
+               cupos quedaron dos, y una rejilla de tres las dejaba apretadas
+               contra la izquierda con un hueco al lado. */
+            className={`grid grid-cols-1 gap-0 pt-10 sm:gap-6 ${
+              historia.stats.length === 2 ? 'sm:grid-cols-2' : 'sm:grid-cols-3'
+            }`}
           >
             {/* En móvil las tres cifras en fila quedaban a ~100px cada una y
                 las etiquetas largas se partían en tres renglones. Debajo de
@@ -188,10 +193,13 @@ export default function Historia() {
           >
             <Photo
               src={imagenes.historia}
-              alt="El colegio a lo largo de los años"
+              alt="El público del Homecoming con los brazos arriba"
               sizes="(max-width: 1024px) 100vw, 45vw"
             />
           </motion.div>
+          {/* Mismo duotono de marca del hero, un punto más suave: aquí la foto
+              es más pequeña y un teñido fuerte le borra el detalle. */}
+          <div className="absolute inset-0 bg-brand/55 mix-blend-color" />
           <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/45 to-ink/25" />
           <div className="absolute inset-0 bg-gold/[0.16] mix-blend-overlay" />
           <div className="absolute bottom-7 left-7 right-7">

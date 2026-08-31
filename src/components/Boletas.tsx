@@ -87,7 +87,7 @@ function Tarjeta({
         </span>
       )}
 
-      <h3 className="font-display font-bold text-3xl leading-none text-bone">{b.nombre}</h3>
+      <h3 className="font-display font-bold text-2xl leading-tight text-bone">{b.nombre}</h3>
       <p className="mt-3 font-body text-[13px] text-muted">{b.descripcion}</p>
 
       {/* Desglose: el asistente ve la tarifa de servicio antes de pagar,
@@ -163,7 +163,7 @@ function Tarjeta({
               : 'border border-white/20 text-bone hover:border-gold hover:text-gold'
           }`}
         >
-          {agotada ? (ventaAbierta ? 'Agotada' : 'Cerrada') : 'Continuar'}
+          {agotada ? (ventaAbierta ? 'Agotada' : 'Cerrada') : 'Confirmar mi lugar'}
         </motion.button>
       </div>
 
@@ -230,15 +230,15 @@ export default function Boletas({ onComprar }: Props) {
             Boletería
           </motion.p>
           <RevealText
-            texto="Asegura tu lugar en la noche"
+            texto="Asegura tu lugar en el Reencuentro de los 80 Años"
             as="h2"
             className="mt-6 font-display text-[clamp(2.2rem,5vw,3.6rem)] font-bold leading-[1.05] tracking-[-0.015em]"
-            acento={[4]}
+            acento={[5]}
           />
           <motion.p variants={subir} initial="oculto" whileInView="visible" viewport={enVista}
                     className="mt-6 font-body text-[15px] leading-relaxed text-bone/60">
-            Máximo {tope} boletas por compra. Cada asistente se registra con
-            nombre y cédula para el ingreso.
+            Máximo {tope} boletas por compra. Registro personal con nombre y
+            cédula para garantizar un acceso ágil.
           </motion.p>
         </div>
 

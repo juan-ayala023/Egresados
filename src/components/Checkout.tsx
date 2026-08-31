@@ -11,12 +11,17 @@ import {
   metodosPago,
   type Boleta,
 } from '@/data';
-import { crearOrden, urlCheckoutWompi, ErrorApi, type AsistenteApi } from '@/lib/api';
+import {
+  crearOrden, urlCheckoutWompi, ErrorApi, TIPOS_DOCUMENTO, ETIQUETA_DOCUMENTO,
+  type AsistenteApi,
+} from '@/lib/api';
 
 type Asistente = AsistenteApi;
 
 const vacio = (): Asistente => ({
   nombre: '',
+  /* CC es el caso de casi todo el mundo; el acta pidió poder elegir NIT. */
+  tipoDocumento: 'CC',
   cedula: '',
   correo: '',
   celular: '',
@@ -181,6 +186,7 @@ export default function Checkout({ boleta, cantidad, onClose }: Props) {
         cantidad,
         comprador: {
           nombre: titular.nombre,
+          tipoDocumento: titular.tipoDocumento,
           cedula: titular.cedula,
           correo: titular.correo,
           celular: titular.celular,
@@ -349,7 +355,22 @@ export default function Checkout({ boleta, cantidad, onClose }: Props) {
                           <Aviso clave={`${i}-nombre`} />
                         </div>
                         <div>
-                          <label className="label">Cédula</label>
+                          <label className="label">Tipo de documento</label>
+                          <select
+                            value={a.tipoDocumento}
+                            onChange={(e) => actualizar(i, 'tipoDocumento', e.target.value)}
+                            className={`field ${clase(`${i}-tipoDocumento`)}`}
+                          >
+                            {TIPOS_DOCUMENTO.map((t) => (
+                              <option key={t} value={t}>
+                                {ETIQUETA_DOCUMENTO[t]}
+                              </option>
+                            ))}
+                          </select>
+                          <Aviso clave={`${i}-tipoDocumento`} />
+                        </div>
+                        <div>
+                          <label className="label">Número de documento</label>
                           <input
                             value={a.cedula}
                             onChange={(e) => actualizar(i, 'cedula', e.target.value.replace(/\D/g, ''))}
@@ -389,7 +410,10 @@ export default function Checkout({ boleta, cantidad, onClose }: Props) {
                             className={`field ${clase(`${i}-promocion`)}`}
                           >
                             <option value="">Año de grado</option>
-                            <option value="no-egresado">No soy egresado</option>
+                            {/* Solo los acompañantes pueden no ser egresados. El
+                                colegio exige que QUIEN COMPRA sí lo sea, y el
+                                backend lo verifica contra la base de mercadeo. */}
+                            {i !== 0 && <option value="no-egresado">No es egresado</option>}
                             {anosGraduacion.map((y) => (
                               <option key={y} value={String(y)}>
                                 {y}
