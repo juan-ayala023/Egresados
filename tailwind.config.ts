@@ -17,6 +17,7 @@ const config: Config = {
            tocado 86 usos en los componentes sin ganar claridad. */
         gold: 'rgb(var(--gold) / <alpha-value>)',
         goldSoft: 'rgb(var(--gold-soft) / <alpha-value>)',
+        goldDeep: 'rgb(var(--gold-deep) / <alpha-value>)',
         bone: 'rgb(var(--bone) / <alpha-value>)',
         muted: 'rgb(var(--muted) / <alpha-value>)',
         grayBrand: 'rgb(var(--gray-brand) / <alpha-value>)',

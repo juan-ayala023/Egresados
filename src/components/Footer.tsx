@@ -1,188 +1,138 @@
 'use client';
 
-import Image from 'next/image';
-
-import { Instagram, Mail, Phone, MapPin, Clock, Sparkles } from 'lucide-react';
+import { Instagram, Mail, Phone, MapPin, CalendarDays, Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { cierre, contacto, evento, imagenes } from '@/data';
+import { cierre, contacto, evento } from '@/data';
 import RevealText from './RevealText';
 import Magnetic from './Magnetic';
-import Aurora from './Aurora';
-import LineaAgua from './LineaAgua';
 import { enVista, subir } from '@/lib/motion';
+
+/* EL PIE VA EN CLARO, como historia y boletería.
+   Es el último empujón a la compra y también la letra chica legal: las dos
+   cosas se leen mejor sobre claro. Sobre --bone el 139C no contrasta como
+   letra, así que los textos dorados van en --gold-deep y el 139C se queda
+   donde es relleno: el botón y el punto de la línea de urgencia. */
 
 export default function Footer() {
   return (
-    <footer className="relative overflow-hidden border-t border-white/[0.08] bg-surface/30">
-      {/* Cierre.
-          Antes esto era texto suelto sobre un rectángulo vacío. Ahora tiene
-          tres capas de profundidad: la foto del salón al fondo muy apagada,
-          la luz ambiental encima, y el contenido flotando sobre ambas. */}
-      <div className="relative">
-        <div aria-hidden className="absolute inset-0">
-          <Image
-            src={imagenes.hero}
-            alt=""
-            fill
-            sizes="100vw"
-            className="scale-105 object-cover opacity-[0.18] blur-[2px]"
-          />
-          {/* Degradados que funden la foto con el fondo por los cuatro lados,
-              para que no se vea un recorte rectangular pegado. */}
-          <div className="absolute inset-0 bg-gradient-to-b from-surface via-ink/85 to-surface" />
-          <div className="absolute inset-0 bg-[radial-gradient(75%_60%_at_50%_50%,transparent,rgb(var(--ink)/0.9))]" />
-        </div>
+    <footer className="relative bg-bone">
+      <div className="mx-auto max-w-3xl px-6 py-24 text-center md:py-28">
+        <RevealText
+          texto={cierre.titulo}
+          as="h2"
+          className="font-display text-[clamp(1.9rem,4.4vw,3rem)] font-bold leading-[1.12] tracking-[-0.02em] text-brand"
+          acento={[9]}
+          claseAcento="text-goldDeep"
+          gap={0.07}
+        />
 
-        <Aurora variante="mixta" intensidad={1.1} />
+        <motion.p
+          variants={subir}
+          initial="oculto"
+          whileInView="visible"
+          viewport={enVista}
+          className="mx-auto mt-5 max-w-xl font-body text-[15px] leading-relaxed text-grayBrand"
+        >
+          {cierre.subtitulo}
+        </motion.p>
 
-        <div className="relative mx-auto max-w-4xl px-6 py-28 text-center md:py-36">
-          {/* El "80 YEARS" como marca de agua gigante detrás del titular */}
-          <motion.div
-            aria-hidden
-            initial={{ opacity: 0, scale: 1.08 }}
-            whileInView={{ opacity: 0.07, scale: 1 }}
-            viewport={enVista}
-            transition={{ duration: 1.8, ease: [0.16, 1, 0.3, 1] }}
-            className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2"
-          >
-            <Image
-              src={imagenes.logoVertical}
-              alt=""
-              width={562}
-              height={670}
-              className="mx-auto h-64 w-auto md:h-80"
-            />
-          </motion.div>
+        {/* Los datos duros del evento en una pastilla, no en una línea corrida
+            de texto gris: es el último sitio donde alguien confirma cuándo y
+            dónde antes de comprar. */}
+        <motion.div
+          variants={subir}
+          initial="oculto"
+          whileInView="visible"
+          viewport={enVista}
+          className="mx-auto mt-7 inline-flex flex-col items-center gap-y-2.5 rounded-2xl border border-brand/12 bg-white px-6 py-3.5 font-body text-[13.5px] font-medium text-brand sm:flex-row sm:gap-x-5"
+        >
+          <span className="flex items-center gap-2">
+            <CalendarDays size={15} className="shrink-0 text-goldDeep" strokeWidth={1.75} />
+            {evento.fechaTexto}
+          </span>
+          <span aria-hidden className="hidden h-3.5 w-px bg-brand/15 sm:block" />
+          <span className="flex items-center gap-2">
+            <MapPin size={15} className="shrink-0 text-goldDeep" strokeWidth={1.75} />
+            {evento.lugar}
+          </span>
+          <span aria-hidden className="hidden h-3.5 w-px bg-brand/15 sm:block" />
+          <span className="flex items-center gap-2">
+            <Clock size={15} className="shrink-0 text-goldDeep" strokeWidth={1.75} />
+            {evento.horaTexto}
+          </span>
+        </motion.div>
 
-          <div className="relative">
-            <motion.p variants={subir} initial="oculto" whileInView="visible" viewport={enVista} className="eyebrow">
-              {evento.fechaTexto}
-            </motion.p>
+        <motion.div
+          variants={subir}
+          initial="oculto"
+          whileInView="visible"
+          viewport={enVista}
+          className="mt-9"
+        >
+          <Magnetic href="#boletas" className="btn-gold">
+            {cierre.cta}
+          </Magnetic>
+        </motion.div>
 
-            {/* El titular pasó de tres palabras a una frase larga: a 4.5rem
-                ocupaba cuatro renglones. Cuerpo más bajo y sin salto forzado,
-                que ahora parte solo donde le corresponde. */}
-            <RevealText
-              texto={cierre.titulo}
-              as="h2"
-              className="mt-6 font-display text-[clamp(2rem,4.6vw,3.4rem)] font-bold leading-[1.08] tracking-[-0.02em]"
-              acento={[9]}
-              gap={0.07}
-            />
-
-            <motion.p
-              variants={subir}
-              initial="oculto"
-              whileInView="visible"
-              viewport={enVista}
-              className="mx-auto mt-6 max-w-xl font-body text-[15px] leading-relaxed text-bone/65"
-            >
-              {cierre.subtitulo}
-            </motion.p>
-
-            <LineaAgua className="mx-auto mt-8 max-w-sm" />
-
-            {/* Los datos duros, separados y legibles, en vez de una sola
-                línea corrida de texto gris. */}
-            <motion.div
-              variants={subir}
-              initial="oculto"
-              whileInView="visible"
-              viewport={enVista}
-              className="mt-8 flex flex-wrap items-center justify-center gap-x-7 gap-y-3 font-body text-[13px] text-bone/70"
-            >
-              <span className="flex items-center gap-2">
-                <MapPin size={14} className="text-gold" strokeWidth={1.5} />
-                {evento.direccion}
-              </span>
-              <span aria-hidden className="hidden h-3 w-px bg-white/15 sm:block" />
-              <span className="flex items-center gap-2">
-                <Clock size={14} className="text-gold" strokeWidth={1.5} />
-                {evento.horaTexto}
-              </span>
-              <span aria-hidden className="hidden h-3 w-px bg-white/15 sm:block" />
-              <span className="flex items-center gap-2">
-                <Sparkles size={14} className="text-gold" strokeWidth={1.5} />
-                {evento.codigoVestuario}
-              </span>
-            </motion.div>
-
-            <motion.div variants={subir} initial="oculto" whileInView="visible" viewport={enVista} className="mt-11">
-              <Magnetic href="#boletas" className="btn-gold">
-                {cierre.cta}
-              </Magnetic>
-            </motion.div>
-
-            <motion.p
-              variants={subir}
-              initial="oculto"
-              whileInView="visible"
-              viewport={enVista}
-              className="mt-6 font-body text-[12px] uppercase tracking-[0.16em] text-gold/70"
-            >
-              {evento.urgencia}
-            </motion.p>
-          </div>
-        </div>
+        <motion.p
+          variants={subir}
+          initial="oculto"
+          whileInView="visible"
+          viewport={enVista}
+          className="mt-6 flex items-center justify-center gap-2.5 font-body text-[12px] font-semibold uppercase tracking-[0.16em] text-goldDeep"
+        >
+          <span aria-hidden className="relative flex h-2.5 w-2.5 shrink-0">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-gold opacity-60" />
+            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-gold" />
+          </span>
+          {evento.urgencia}
+        </motion.p>
       </div>
 
-      <motion.div
-        initial={{ scaleX: 0 }}
-        whileInView={{ scaleX: 1 }}
-        viewport={enVista}
-        transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
-        className="gold-rule origin-center"
-      />
-
-      {/* Datos */}
-      <div className="mx-auto max-w-7xl px-6 py-12">
-        <div className="flex flex-col items-center justify-between gap-8 md:flex-row md:items-start">
+      {/* Datos.
+          Sin logotipo: el único archivo que hay es la versión sobre fondo
+          oscuro y aquí desaparecería. Va el lockup escrito, que es lo que
+          pide la referencia. */}
+      <div className="mx-auto max-w-7xl px-6">
+        <div className="flex flex-col items-center justify-between gap-6 border-t border-brand/10 py-8 md:flex-row md:items-start">
           <div className="text-center md:text-left">
-            {/* El lockup ya dice el nombre del colegio, así que la línea de
-                texto que lo repetía sobraba. Va en horizontal por pedido del
-                colegio; la marca de agua de arriba sigue siendo la vertical,
-                que es la que cabe en ese espacio alto y centrado. */}
-            <Image
-              src={imagenes.logoHorizontal}
-              alt={`${evento.titulo} · ${evento.colegio}`}
-              width={1880}
-              height={659}
-              className="mx-auto h-14 w-auto md:mx-0"
-            />
-            <p className="mt-5 font-body text-[12px] text-muted">{contacto.comite}</p>
+            <p className="font-display text-[12.5px] font-bold uppercase tracking-[0.16em] text-brand">
+              {evento.colegio} {evento.aniversario} Years
+            </p>
+            <p className="mt-1.5 font-body text-[13px] text-grayBrand">{contacto.comite}</p>
           </div>
 
-          <div className="flex flex-col items-center gap-3 md:items-end">
+          <div className="flex flex-col items-center gap-2.5 md:items-end">
             {contacto.correo && (
               <a
                 href={`mailto:${contacto.correo}`}
-                className="flex items-center gap-2.5 font-body text-[13px] text-bone/60 transition-colors hover:text-gold"
+                className="flex items-center gap-2.5 font-body text-[13px] text-grayBrand transition-colors hover:text-goldDeep"
               >
-                <Mail size={14} strokeWidth={1.5} />
+                <Mail size={14} strokeWidth={1.75} />
                 {contacto.correo}
               </a>
             )}
             {contacto.telefono && (
               <a
                 href={`tel:${contacto.telefono.replace(/\s/g, '')}`}
-                className="flex items-center gap-2.5 font-body text-[13px] text-bone/60 transition-colors hover:text-gold"
+                className="flex items-center gap-2.5 font-body text-[13px] text-grayBrand transition-colors hover:text-goldDeep"
               >
-                <Phone size={14} strokeWidth={1.5} />
+                <Phone size={14} strokeWidth={1.75} />
                 {contacto.telefono}
               </a>
             )}
-            <span className="flex items-center gap-2.5 font-body text-[13px] text-bone/60">
-              <Instagram size={14} strokeWidth={1.5} />
+            <span className="flex items-center gap-2.5 font-body text-[13px] font-medium text-brand">
+              <Instagram size={14} strokeWidth={1.75} />
               {contacto.instagram}
             </span>
           </div>
         </div>
 
-        <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-white/[0.06] pt-8 font-body text-[11px] uppercase tracking-[0.14em] text-muted md:flex-row">
+        <div className="flex flex-col items-center justify-between gap-3 border-t border-brand/10 py-6 font-body text-[11px] uppercase tracking-[0.14em] text-grayBrand md:flex-row">
           <span>
-            © {new Date().getFullYear()} {evento.colegio}
+            © {new Date().getFullYear()} {evento.colegio}. Todos los derechos reservados.
           </span>
-          <span>Pagos procesados por Wompi</span>
+          <span>Pagos procesados de forma segura por Wompi</span>
         </div>
       </div>
     </footer>

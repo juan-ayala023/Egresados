@@ -37,13 +37,18 @@ export const evento = {
   ciudad: 'Medellín, Antioquia',
   // PENDIENTE: el aforo real no lo confirmó el colegio. 500 viene del boceto.
   cuposTotales: 500,
-  // PENDIENTE: no está en el documento. Ojo, las fotos de la edición
-  // anterior son de una fiesta temática, no de gala.
+  /* YA NO SE PINTA en ninguna parte: salió del pie al rediseñarlo y el dato
+     de vestuario lo da la pregunta frecuente, que sí viene del colegio
+     ("Estilo Coctel"). Este valor venía del boceto y nadie lo validó. Se
+     conserva por si el colegio quiere volver a mostrarlo, pero NO lo uses
+     sin confirmar cuál de los dos es el bueno. */
   codigoVestuario: 'Elegante de noche',
 };
 
 export const historia = {
-  eyebrow: 'El reencuentro',
+  /* La bajada del lockup del logo: es la que pidió el colegio para esta
+     sección, en vez de un título de sección genérico. */
+  eyebrow: 'To relive · To remember',
   titulo: 'Ocho décadas construyendo la comunidad TCS.',
   /* Subtitular: es la línea destacada, en cuerpo más alto que el resto. */
   entrada:
@@ -52,14 +57,12 @@ export const historia = {
     'Caminar de nuevo por el campus, escuchar la música de tu época y abrazar a las personas con las que creciste. Cumplir 80 años no pasa todos los días: esta noche celebramos nuestro pasado, nuestro presente y la huella que cada promoción dejó en la historia del colegio.',
   ],
   cierre: '¡Asegura tu boleta, invita a tus compañeros y celebremos juntos este gran legado!',
-  cta: 'Conoce más',
-  /* El colegio pidió quitar "500 cupos disponibles": anunciar el aforo invita
-     a esperar. PENDIENTE: de las dos que quedan, solo la de 80 está
-     confirmada; 62 viene del boceto y nadie la ha validado. */
-  stats: [
-    { valor: 80, sufijo: '', label: 'Años de historia' },
-    { valor: 62, sufijo: '', label: 'Promociones convocadas' },
-  ],
+  /* Dejó de ser "Conoce más": la sección ahora cierra con la compra, no con
+     otra invitación a seguir leyendo. */
+  cta: 'Asegura tu lugar en la celebración',
+  /* Las cifras 80 / 62 salieron de esta sección por pedido del colegio. De
+     paso resuelve el pendiente: la de 62 promociones venía del boceto y
+     nadie la había validado. */
 };
 
 /* ---- SECCIÓN 3: la noche. Texto entregado por el colegio. ----
@@ -68,36 +71,49 @@ export const historia = {
    tiene que poder editarlo alguien que no programa. Los iconos son de línea
    sin relleno, que es lo único que autoriza el manual de marca. */
 export const noche = {
-  eyebrow: 'La noche',
+  eyebrow: 'La noche de celebración',
   titulo: 'Una noche para volver, reencontrarnos y celebrar',
   intro:
     'Prepárate para una celebración pensada para disfrutar, recordar y crear nuevos momentos junto a quienes hicieron parte de tu historia.',
+  /* Cada bloque lleva una `etiqueta`: la palabra corta que va en el distintivo
+     de la esquina. Es lo que diferencia de un vistazo los cuatro cuadros
+     cuando el visitante no se detiene a leer los textos. */
   bloques: [
     {
       icono: 'bar' as const,
-      titulo: 'Bar',
+      titulo: 'Bar Abierto & Coctelería',
+      etiqueta: 'Premium',
       texto:
-        'Cócteles y bebidas cuidadosamente seleccionadas para brindar y celebrar durante toda la noche.',
+        'Cócteles y bebidas cuidadosamente seleccionados para brindar y celebrar durante toda la noche.',
     },
     {
       icono: 'gastronomia' as const,
-      titulo: 'Experiencia gastronómica',
+      titulo: 'Gastronomía Gourmet',
+      /* El proveedor es "Marmoleo", confirmado por el colegio. El boceto de
+         diseño lo escribía "Marmolejo": esa grafía es la equivocada. */
+      etiqueta: 'Marmoleo',
       texto:
         'Una propuesta gastronómica impecable para disfrutar con amigos, de la mano de Marmoleo.',
     },
     {
       icono: 'musica' as const,
-      titulo: 'Música en vivo',
+      titulo: 'Música & Shows en Vivo',
+      etiqueta: 'En tarima',
       texto:
         'Banda completa en vivo con Felipe Ángel, un show de Jessi Uribe de "Yo Me Llamo" y las mejores canciones para bailar sin parar a cargo de DJ ALEX.',
     },
     {
       icono: 'sorpresas' as const,
-      titulo: 'Sorpresas y espacios de reencuentro',
+      titulo: 'Sorpresas & Reencuentro',
+      etiqueta: 'TCS 80',
       texto:
         'Espacios para fotos, diferentes experiencias y momentos especiales para recordar tu paso por el colegio.',
     },
   ],
+  /* Antesala de las tarimas y cierre de la sección */
+  eyebrowTarima: 'En tarima · Shows en vivo',
+  ctaPregunta: '¿Listo para vivir la noche del año?',
+  cta: 'Asegura tu lugar en la celebración',
 };
 
 export const artistas = [
@@ -109,16 +125,19 @@ export const artistas = [
      así que cierra.) */
   {
     nombre: 'DJ Alex',
+    etiqueta: 'Crossover',
     horario: '11:30 p.m.',
     imagen: '/images/artistas/dj-alex.jpg',
   },
   {
     nombre: 'Yo Me Llamo Jessi Uribe',
+    etiqueta: 'Show especial',
     horario: '1:00 a.m.',
     imagen: '/images/artistas/yo-me-llamo-jessi-uribe.jpg',
   },
   {
     nombre: 'Banda Felipe Ángel',
+    etiqueta: 'Banda completa',
     horario: '2:00 a.m.',
     imagen: '/images/artistas/felipe-angel-banda.jpg',
   },
@@ -132,7 +151,10 @@ export const galeria = {
   /* El cierre de la galería es pregunta + botón, en una línea: la pregunta
      es la que empuja, el botón solo dice qué pasa al hacer clic. */
   ctaPregunta: '¿Listo para reencontrarte?',
-  cta: 'Asegurar mi entrada',
+  cta: 'Quiero estar en la foto de este año',
+  /* Pie del carrusel: sin esto nadie descubre que hay más fotos a la
+     derecha, porque en escritorio no hay barra de desplazamiento. */
+  pistaCarrusel: 'Desliza para ver más recuerdos de ediciones anteriores',
   /* Fotos reales del colegio. Todas vienen de cámara en 3:2, así que las
      proporciones de abajo se mantienen cerca de esa relación: forzar
      verticales recortaría medio encuadre. El orden cuenta la noche:
@@ -166,6 +188,17 @@ export type Boleta = {
   descripcion: string;
   incluye: string[];
   destacada: boolean;
+};
+
+/* Encabezado de la sección de boletería. Estaba quemado en el componente,
+   contra la regla de este archivo: todo lo que el cliente puede querer
+   cambiar vive aquí. */
+export const boleteria = {
+  eyebrow: 'Boletería oficial',
+  titulo: 'Asegura tu lugar en la Celebración de los 80 Años',
+  /* {max} lo reemplaza el componente con el tope por compra que manda el
+     backend, que es quien manda sobre ese número. */
+  nota: 'Máximo {max} boletas por compra. Registro personal con nombre y cédula para garantizar un acceso ágil el día del evento.',
 };
 
 export const boletas: Boleta[] = [
@@ -210,12 +243,17 @@ export const metodosPago = [
    no de redacción:
      · Las boletas ya NO son reembolsables. Antes se ofrecía 80% hasta 15
        días antes del evento.
-     · La respuesta de vestuario dice "Estilo Coctel", pero el pie del sitio
-       sigue diciendo "Elegante de noche" (evento.codigoVestuario). Se dejó
-       así a propósito: el colegio no pidió cambiar el pie. */
+     · La respuesta de vestuario dice "Estilo Coctel". Era la contradicción
+       con "Elegante de noche" del pie; se resolvió sola al rediseñar el pie,
+       que ya no pinta evento.codigoVestuario. Esta respuesta es ahora la
+       única fuente de vestuario del sitio. */
+/* Cada categoría nombra su icono con una llave, igual que los bloques de la
+   noche: data.ts no importa componentes. Son iconos de línea, no emoji: el
+   manual de marca no autoriza pictogramas de relleno. */
 export const faq = [
   {
     categoria: 'Alimentos y Bebidas',
+    icono: 'bebidas' as const,
     preguntas: [
       {
         pregunta: '¿Habrá venta de comida y bebidas durante el evento?',
@@ -231,6 +269,7 @@ export const faq = [
   },
   {
     categoria: 'Boletas y Registro',
+    icono: 'boletas' as const,
     preguntas: [
       {
         pregunta: '¿Quiénes pueden asistir al evento?',
@@ -256,6 +295,7 @@ export const faq = [
   },
   {
     categoria: 'Logística y Acceso',
+    icono: 'acceso' as const,
     preguntas: [
       {
         pregunta: '¿Cuál es el código de vestimenta (Dress Code)?',

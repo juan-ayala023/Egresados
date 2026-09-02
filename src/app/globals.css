@@ -37,6 +37,11 @@
   --brand: 0 73 144;         /* #004990  Azul Pantone 280C     */
   --gold: 200 138 18;        /* #C88A12  Amarillo Pantone 139C */
   --gold-soft: 236 170 44;   /* #ECAA2C  139C aclarado, hover  */
+  /* 139C bajado de luminosidad, conservando el matiz (43°), para las
+     secciones de fondo claro: el 139C puro sobre --bone da 2.7:1 y no
+     alcanza ni el mínimo de texto grande. Este da 4.1:1. Mismo criterio
+     con el que --ink es el 280C oscurecido. */
+  --gold-deep: 160 110 14;   /* #A06E0E  139C sobre fondo claro   */
 
   /* Texto */
   --bone: 242 247 251;       /* #F2F7FB  texto principal       */
@@ -108,6 +113,12 @@ body::after {
     @apply font-body text-[11px] uppercase tracking-eyebrow text-gold/70;
   }
 
+  /* Misma etiqueta para las secciones de fondo claro: el 139C al 70% sobre
+     --bone se borra, así que va el dorado profundo y sin transparencia. */
+  .eyebrow-claro {
+    @apply font-body text-[11px] uppercase tracking-eyebrow text-goldDeep;
+  }
+
   .gold-rule {
     @apply h-px w-full bg-gradient-to-r from-transparent via-gold/40 to-transparent;
   }
@@ -153,6 +164,17 @@ body::after {
   }
 
   /* Tratamiento unificado de fotografía */
+  /* Carril de desplazamiento sin barra visible: la barra global del sitio
+     mide 10px y dentro de un carrusel se lee como un error de maquetación.
+     El carrusel ya se anuncia con los puntos y el pie de "desliza". */
+  .sin-barra {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .sin-barra::-webkit-scrollbar {
+    display: none;
+  }
+
   .photo-treat {
     @apply grayscale-[52%] contrast-[1.12] brightness-[0.82] transition-all duration-700;
   }

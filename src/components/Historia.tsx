@@ -1,33 +1,20 @@
 'use client';
 
-import { motion, useInView, animate, useScroll, useTransform, useReducedMotion } from 'framer-motion';
-import { useEffect, useRef, useState } from 'react';
+import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion';
+import { useRef, useState } from 'react';
 import Photo from './Photo';
 import Reveal from './Reveal';
 import RevealText from './RevealText';
 import Magnetic from './Magnetic';
-import Aurora from './Aurora';
-import LineaAgua from './LineaAgua';
-import { dur, ease, enVista, subir, escalonar } from '@/lib/motion';
+import { dur, enVista, subir, escalonar } from '@/lib/motion';
 import { historia, evento, imagenes } from '@/data';
 
-function Contador({ valor }: { valor: number }) {
-  const ref = useRef<HTMLSpanElement>(null);
-  const visto = useInView(ref, { once: true, margin: '-80px' });
-  const [n, setN] = useState(0);
-
-  useEffect(() => {
-    if (!visto) return;
-    const control = animate(0, valor, {
-      duration: 1.8,
-      ease: [0.16, 1, 0.3, 1],
-      onUpdate: (v) => setN(Math.round(v)),
-    });
-    return () => control.stop();
-  }, [visto, valor]);
-
-  return <span ref={ref}>{n}</span>;
-}
+/* ESTA SECCIÓN VA EN CLARO, a propósito.
+   Es la única franja clara entre el hero y el resto del sitio, que es navy.
+   Funciona como respiro: el texto largo de la sección es lo que más se lee
+   del sitio y en oscuro cansa. Sobre --bone el dorado 139C no contrasta
+   (2.7:1), así que aquí el acento es --gold-deep y los cuerpos van en el
+   gris de marca, que es justo para lo que el manual lo autoriza. */
 
 /* Cinta infinita de promociones. El movimiento continuo hace que 62 años
    se lean como un flujo y no como una lista. */
@@ -43,10 +30,14 @@ function CintaPromociones() {
         transition={{ duration: 55, repeat: Infinity, ease: 'linear' }}
         className="flex shrink-0 gap-8 pr-8"
       >
+        {/* Alternan azul y dorado, como en la referencia. Sobre claro la
+            cinta ya no es una textura al 16%: se lee como una fila de años. */}
         {[...anos, ...anos].map((a, i) => (
           <span
             key={`${a}-${i}`}
-            className="shrink-0 cursor-default font-display font-bold text-2xl tabular-nums text-bone/[0.16] transition-colors duration-200 hover:text-gold sm:text-3xl"
+            className={`shrink-0 cursor-default font-display font-bold text-2xl tabular-nums transition-colors duration-200 hover:text-goldDeep sm:text-3xl ${
+              a % 2 === 0 ? 'text-brand/55' : 'text-goldDeep/60'
+            }`}
           >
             {a}
           </span>
@@ -63,13 +54,16 @@ function CintaPromociones() {
       transition={{ duration: dur.slow }}
       onMouseEnter={() => setPausa(true)}
       onMouseLeave={() => setPausa(false)}
-      className="relative mt-24 space-y-4 py-6"
+      className="relative mt-20 space-y-4 border-t border-brand/10 pt-10"
     >
-      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-40 bg-gradient-to-r from-ink to-transparent" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-40 bg-gradient-to-l from-ink to-transparent" />
+      {/* Los veladores de los bordes tiñen del color de ESTA sección, no del
+          --ink del resto del sitio: en claro un degradado a navy dejaría dos
+          manchas oscuras en las puntas. */}
+      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r from-bone to-transparent sm:w-40" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-bone to-transparent sm:w-40" />
       <Fila dir={1} />
       <Fila dir={-1} />
-      <p className="pt-6 text-center font-body text-[11px] uppercase tracking-eyebrow text-muted">
+      <p className="pt-6 text-center font-body text-[11px] uppercase tracking-eyebrow text-grayBrand">
         Cada promoción que salió por esa puerta
       </p>
     </motion.div>
@@ -83,144 +77,104 @@ export default function Historia() {
   const fotoY = useTransform(scrollYProgress, [0, 1], ['-8%', '8%']);
 
   return (
-    <section id="evento" className="relative overflow-hidden">
-      <Aurora variante="agua" intensidad={0.5} />
-      <div className="relative mx-auto max-w-7xl px-6 py-28 md:py-40">
-        <LineaAgua className="mb-14 max-w-md opacity-80" />
-      <div ref={ref} className="grid items-center gap-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-20">
-        <div>
-          <motion.p
-            variants={subir}
-            initial="oculto"
-            whileInView="visible"
-            viewport={enVista}
-            className="eyebrow"
-          >
-            {historia.eyebrow}
-          </motion.p>
-
-          <RevealText
-            texto={historia.titulo}
-            as="h2"
-            className="mt-6 font-display text-[clamp(2.2rem,5vw,4rem)] font-bold leading-[1.03] tracking-[-0.015em]"
-            acento={[0]}
-          />
-
-          <motion.div
-            variants={escalonar(0.25, 0.12)}
-            initial="oculto"
-            whileInView="visible"
-            viewport={enVista}
-            className="mt-8 space-y-5"
-          >
+    <section id="evento" className="relative overflow-hidden bg-bone">
+      <div className="relative mx-auto max-w-7xl px-6 py-24 md:py-32">
+        <div ref={ref} className="grid items-center gap-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-20">
+          <div>
             <motion.p
               variants={subir}
-              className="max-w-xl font-body text-[17px] font-medium leading-relaxed text-bone"
+              initial="oculto"
+              whileInView="visible"
+              viewport={enVista}
+              className="eyebrow-claro"
             >
-              {historia.entrada}
+              {historia.eyebrow}
             </motion.p>
 
-            {historia.parrafos.map((p, i) => (
+            {/* El acento pasó de la primera palabra a las dos últimas: lo que
+                se destaca es "comunidad TCS.", que es el sujeto de la frase,
+                no "Ocho". */}
+            <RevealText
+              texto={historia.titulo}
+              as="h2"
+              className="mt-5 font-display text-[clamp(2.2rem,5vw,3.6rem)] font-bold leading-[1.05] tracking-[-0.015em] text-brand"
+              acento={[4, 5]}
+              claseAcento="text-goldDeep"
+            />
+
+            <motion.div
+              variants={escalonar(0.25, 0.12)}
+              initial="oculto"
+              whileInView="visible"
+              viewport={enVista}
+              className="mt-7 space-y-5"
+            >
               <motion.p
-                key={i}
                 variants={subir}
-                className="max-w-xl font-body text-[15px] leading-[1.85] text-bone/65"
+                className="max-w-xl font-body text-[17px] font-semibold leading-relaxed text-brand"
               >
-                {p}
+                {historia.entrada}
               </motion.p>
-            ))}
 
-            <motion.p
-              variants={subir}
-              className="max-w-xl font-body text-[15px] leading-[1.85] text-gold"
-            >
-              {historia.cierre}
-            </motion.p>
+              {historia.parrafos.map((p, i) => (
+                <motion.p
+                  key={i}
+                  variants={subir}
+                  className="max-w-xl font-body text-[15px] leading-[1.85] text-grayBrand"
+                >
+                  {p}
+                </motion.p>
+              ))}
 
-            <motion.div variants={subir} className="pt-4">
-              <Magnetic href="#boletas" className="btn-ghost" fuerza={0.2}>
-                {historia.cta}
-              </Magnetic>
-            </motion.div>
-          </motion.div>
-
-          <motion.div
-            initial={{ scaleX: 0 }}
-            whileInView={{ scaleX: 1 }}
-            viewport={enVista}
-            transition={{ duration: dur.reveal, ease: ease.out }}
-            className="mt-14 h-px w-full origin-left bg-white/[0.12]"
-          />
-
-          <motion.div
-            variants={escalonar(0.2, 0.14)}
-            initial="oculto"
-            whileInView="visible"
-            viewport={enVista}
-            /* Las columnas siguen a la cantidad de cifras: al quitar la de
-               cupos quedaron dos, y una rejilla de tres las dejaba apretadas
-               contra la izquierda con un hueco al lado. */
-            className={`grid grid-cols-1 gap-0 pt-10 sm:gap-6 ${
-              historia.stats.length === 2 ? 'sm:grid-cols-2' : 'sm:grid-cols-3'
-            }`}
-          >
-            {/* En móvil las tres cifras en fila quedaban a ~100px cada una y
-                las etiquetas largas se partían en tres renglones. Debajo de
-                640px cada cifra pasa a ser una fila: número a la izquierda,
-                etiqueta a la derecha. Desde sm vuelve a la rejilla de tres. */}
-            {historia.stats.map((s) => (
+              {/* El cierre dejó de ser un renglón dorado más y pasó a caja con
+                  filo: es la frase que empuja a comprar y tenía que separarse
+                  del cuerpo. */}
               <motion.div
-                key={s.label}
                 variants={subir}
-                className="flex items-baseline justify-between gap-4 border-b border-white/[0.07] py-4 sm:block sm:border-0 sm:py-0"
+                className="max-w-xl border-y border-r border-brand/10 border-l-[3px] border-l-gold bg-white px-6 py-5"
               >
-                <div className="font-display font-bold text-4xl leading-none text-gold sm:text-5xl">
-                  <Contador valor={s.valor} />
-                  {s.sufijo}
-                </div>
-                <div className="text-right font-body text-[11px] uppercase leading-relaxed tracking-[0.14em] text-muted sm:mt-3 sm:text-left">
-                  {s.label}
-                </div>
+                <p className="font-body text-[15px] font-semibold leading-relaxed text-brand">
+                  {historia.cierre}
+                </p>
               </motion.div>
-            ))}
-          </motion.div>
+
+              <motion.div variants={subir} className="pt-3">
+                <Magnetic href="#boletas" className="btn-gold">
+                  {historia.cta}
+                </Magnetic>
+              </motion.div>
+            </motion.div>
+          </div>
+
+          <Reveal className="group relative aspect-[4/5] overflow-hidden rounded-xl border border-brand/15">
+            <motion.div
+              style={sinMovimiento ? undefined : { y: fotoY }}
+              className="absolute inset-[-8%] will-change-transform"
+            >
+              <Photo
+                src={imagenes.historia}
+                alt="El público del Homecoming con los brazos arriba"
+                sizes="(max-width: 1024px) 100vw, 45vw"
+              />
+            </motion.div>
+            {/* Duotono de marca, más suave que el del hero: aquí la foto es
+                pequeña y un teñido fuerte le borra el detalle. Ya no lleva el
+                velo oscuro encima: el pie de foto salió de la imagen y se
+                fue a la barra azul, así que nada necesita fondo oscuro. */}
+            <div className="absolute inset-0 bg-brand/35 mix-blend-color" />
+
+            <div className="absolute inset-x-0 bottom-0 flex items-baseline justify-between gap-4 bg-brand px-6 py-4">
+              <p className="font-body text-xs font-semibold uppercase tracking-[0.14em] text-bone">
+                {evento.colegio}
+              </p>
+              <p className="shrink-0 font-display font-bold text-sm tabular-nums text-gold">
+                {evento.fundacion} — {evento.fundacion + evento.aniversario}
+              </p>
+            </div>
+          </Reveal>
         </div>
 
-        <Reveal className="group relative aspect-[4/5] overflow-hidden rounded-sm">
-          <motion.div
-            style={sinMovimiento ? undefined : { y: fotoY }}
-            className="absolute inset-[-8%] will-change-transform"
-          >
-            <Photo
-              src={imagenes.historia}
-              alt="El público del Homecoming con los brazos arriba"
-              sizes="(max-width: 1024px) 100vw, 45vw"
-            />
-          </motion.div>
-          {/* Mismo duotono de marca del hero, un punto más suave: aquí la foto
-              es más pequeña y un teñido fuerte le borra el detalle. */}
-          <div className="absolute inset-0 bg-brand/55 mix-blend-color" />
-          <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/45 to-ink/25" />
-          <div className="absolute inset-0 bg-gold/[0.16] mix-blend-overlay" />
-          <div className="absolute bottom-7 left-7 right-7">
-            <motion.div
-              initial={{ scaleX: 0 }}
-              whileInView={{ scaleX: 1 }}
-              viewport={enVista}
-              transition={{ duration: dur.reveal, ease: ease.out, delay: 0.5 }}
-              className="gold-rule mb-5 origin-left"
-            />
-            <p className="font-display font-bold text-xl text-bone">
-              {evento.fundacion} — {evento.fundacion + evento.aniversario}
-            </p>
-            <p className="mt-1.5 font-body text-xs uppercase tracking-[0.14em] text-muted">
-              {evento.colegio}
-            </p>
-          </div>
-        </Reveal>
-      </div>
-
-      <CintaPromociones />
+        <CintaPromociones />
       </div>
     </section>
   );

@@ -10,6 +10,9 @@ type Props = {
   className?: string;
   /* Palabras que se pintan en dorado, por índice */
   acento?: number[];
+  /* Color de esas palabras. Sobre fondo claro el 139C puro no contrasta:
+     ahí entra 'text-goldDeep'. */
+  claseAcento?: string;
   /* Fuerza un salto de línea después de estos índices */
   saltos?: number[];
   delay?: number;
@@ -23,6 +26,7 @@ export default function RevealText({
   as = 'h2',
   className = '',
   acento = [],
+  claseAcento = 'text-gold',
   saltos = [],
   delay = 0,
   gap = 0.07,
@@ -53,7 +57,7 @@ export default function RevealText({
           >
             <motion.span
               variants={palabra}
-              className={`inline-block ${acento.includes(i) ? 'text-gold' : ''}`}
+              className={`inline-block ${acento.includes(i) ? claseAcento : ''}`}
             >
               {p}
             </motion.span>
