@@ -1,12 +1,12 @@
 'use client';
 
 import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion';
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import Photo from './Photo';
 import Reveal from './Reveal';
 import RevealText from './RevealText';
 import Magnetic from './Magnetic';
-import { dur, enVista, subir, escalonar } from '@/lib/motion';
+import { enVista, subir, escalonar } from '@/lib/motion';
 import { historia, evento, imagenes } from '@/data';
 
 /* ESTA SECCIÓN VA EN CLARO, a propósito.
@@ -16,59 +16,11 @@ import { historia, evento, imagenes } from '@/data';
    (2.7:1), así que aquí el acento es --gold-deep y los cuerpos van en el
    gris de marca, que es justo para lo que el manual lo autoriza. */
 
-/* Cinta infinita de promociones. El movimiento continuo hace que 62 años
-   se lean como un flujo y no como una lista. */
-function CintaPromociones() {
-  const sinMovimiento = useReducedMotion();
-  const anos = Array.from({ length: evento.aniversario - 18 }, (_, i) => evento.fundacion + 18 + i);
-  const [pausa, setPausa] = useState(false);
-
-  const Fila = ({ dir }: { dir: 1 | -1 }) => (
-    <div className="flex overflow-hidden">
-      <motion.div
-        animate={sinMovimiento || pausa ? {} : { x: dir === 1 ? ['0%', '-50%'] : ['-50%', '0%'] }}
-        transition={{ duration: 55, repeat: Infinity, ease: 'linear' }}
-        className="flex shrink-0 gap-8 pr-8"
-      >
-        {/* Alternan azul y dorado, como en la referencia. Sobre claro la
-            cinta ya no es una textura al 16%: se lee como una fila de años. */}
-        {[...anos, ...anos].map((a, i) => (
-          <span
-            key={`${a}-${i}`}
-            className={`shrink-0 cursor-default font-display font-bold text-2xl tabular-nums transition-colors duration-200 hover:text-goldDeep sm:text-3xl ${
-              a % 2 === 0 ? 'text-brand/55' : 'text-goldDeep/60'
-            }`}
-          >
-            {a}
-          </span>
-        ))}
-      </motion.div>
-    </div>
-  );
-
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      whileInView={{ opacity: 1 }}
-      viewport={enVista}
-      transition={{ duration: dur.slow }}
-      onMouseEnter={() => setPausa(true)}
-      onMouseLeave={() => setPausa(false)}
-      className="relative mt-20 space-y-4 border-t border-brand/10 pt-10"
-    >
-      {/* Los veladores de los bordes tiñen del color de ESTA sección, no del
-          --ink del resto del sitio: en claro un degradado a navy dejaría dos
-          manchas oscuras en las puntas. */}
-      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r from-bone to-transparent sm:w-40" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-bone to-transparent sm:w-40" />
-      <Fila dir={1} />
-      <Fila dir={-1} />
-      <p className="pt-6 text-center font-body text-[11px] uppercase tracking-eyebrow text-grayBrand">
-        Cada promoción que salió por esa puerta
-      </p>
-    </motion.div>
-  );
-}
+/* La CINTA DE PROMOCIONES (los anios de 1965 en adelante desfilando, con su
+   linea divisoria y el pie "Cada promocion que salio por esa puerta") se quito
+   el 8 de septiembre de 2026 por pedido del colegio: alargaba la seccion y
+   obligaba a bajar para ver el resto. Si se quiere devolver, esta en el
+   historial de git. */
 
 export default function Historia() {
   const ref = useRef<HTMLDivElement>(null);
@@ -78,8 +30,11 @@ export default function Historia() {
 
   return (
     <section id="evento" className="relative overflow-hidden bg-bone">
-      <div className="relative mx-auto max-w-7xl px-6 py-24 md:py-32">
-        <div ref={ref} className="grid items-center gap-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-20">
+      {/* Respiro recortado: era py-24/py-32 (96 y 128px). El colegio pidió que
+          la sección se vea completa sin bajar, y ese aire de arriba y abajo
+          era lo que la empujaba fuera de pantalla. */}
+      <div className="relative mx-auto max-w-7xl px-6 py-14 md:py-16">
+        <div ref={ref} className="grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
           <div>
             <motion.p
               variants={subir}
@@ -138,7 +93,7 @@ export default function Historia() {
                 </p>
               </motion.div>
 
-              <motion.div variants={subir} className="pt-3">
+              <motion.div variants={subir}>
                 <Magnetic href="#boletas" className="btn-gold">
                   {historia.cta}
                 </Magnetic>
@@ -146,7 +101,12 @@ export default function Historia() {
             </motion.div>
           </div>
 
-          <Reveal className="group relative aspect-[4/5] overflow-hidden rounded-xl border border-brand/15">
+          {/* La foto es lo más alto de la sección y lo que decide si cabe en
+              pantalla. Conserva su 4:5, pero con un techo en altura de
+              ventana: en un portátil bajo se recorta un poco por arriba y
+              por abajo (la imagen va con object-cover) en vez de empujar la
+              sección fuera de la pantalla. */}
+          <Reveal className="group relative aspect-[4/5] overflow-hidden rounded-xl border border-brand/15 lg:max-h-[62vh]">
             <motion.div
               style={sinMovimiento ? undefined : { y: fotoY }}
               className="absolute inset-[-8%] will-change-transform"
@@ -163,18 +123,16 @@ export default function Historia() {
                 fue a la barra azul, así que nada necesita fondo oscuro. */}
             <div className="absolute inset-0 bg-brand/35 mix-blend-color" />
 
-            <div className="absolute inset-x-0 bottom-0 flex items-baseline justify-between gap-4 bg-brand px-6 py-4">
-              <p className="font-body text-xs font-semibold uppercase tracking-[0.14em] text-bone">
+            {/* El rango de años (1947 — 2027) salió por pedido del colegio:
+                el 2027 no es la fecha del evento y confundía. Queda el nombre
+                del colegio solo. */}
+            <div className="absolute inset-x-0 bottom-0 bg-brand px-6 py-4">
+              <p className="font-body text-xs font-bold uppercase tracking-[0.14em] text-bone">
                 {evento.colegio}
-              </p>
-              <p className="shrink-0 font-display font-bold text-sm tabular-nums text-gold">
-                {evento.fundacion} — {evento.fundacion + evento.aniversario}
               </p>
             </div>
           </Reveal>
         </div>
-
-        <CintaPromociones />
       </div>
     </section>
   );

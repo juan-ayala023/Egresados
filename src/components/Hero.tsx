@@ -199,37 +199,41 @@ export default function Hero({ listo }: { listo: boolean }) {
           {/* Fecha, lugar y hora dejaron de ser tres líneas sueltas sobre la
               foto: van en una sola ficha con fondo propio. Con la foto más
               clara, el texto pequeño sin caja se perdía contra el público. */}
+          {/* Ficha de FONDO CLARO, como la pidió el colegio: sobre la foto
+              teñida de navy es lo que más resalta de toda la columna.
+              Los iconos van en --gold-deep y no en --gold: el 139C puro sobre
+              un fondo claro da 2.7:1 y no pasa AA; el oscurecido sí.
+              Sin la dirección ("Alto de las Palmas") para que los tres datos
+              quepan en un solo renglón, que era el motivo del cambio. */}
           <motion.div
             variants={subir}
-            className="mt-[clamp(1rem,2.6vh,1.5rem)] inline-flex flex-col gap-y-2.5 rounded-2xl border border-white/10 bg-ink/55 px-5 py-3.5 font-body text-sm text-bone/85 backdrop-blur-sm sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-6"
+            className="mt-[clamp(1rem,2.6vh,1.5rem)] inline-flex flex-col gap-y-2.5 rounded-2xl bg-bone px-5 py-3.5 font-body text-sm font-semibold text-ink shadow-[0_18px_40px_-18px_rgba(0,0,0,0.7)] sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-6"
           >
             <span className="flex items-center gap-2.5">
-              <CalendarDays size={16} className="shrink-0 text-gold" strokeWidth={1.5} />
+              <CalendarDays size={16} className="shrink-0 text-goldDeep" strokeWidth={2} />
               {evento.fechaTexto}
             </span>
-            <span className="hidden h-4 w-px bg-white/15 sm:block" />
+            <span className="hidden h-4 w-px bg-ink/15 sm:block" />
             <span className="flex items-center gap-2.5">
-              <MapPin size={16} className="shrink-0 text-gold" strokeWidth={1.5} />
-              {evento.lugar} ({evento.direccion})
+              <MapPin size={16} className="shrink-0 text-goldDeep" strokeWidth={2} />
+              {evento.lugar}
             </span>
-            <span className="hidden h-4 w-px bg-white/15 sm:block" />
+            <span className="hidden h-4 w-px bg-ink/15 sm:block" />
             <span className="flex items-center gap-2.5">
-              <Clock size={16} className="shrink-0 text-gold" strokeWidth={1.5} />
+              <Clock size={16} className="shrink-0 text-goldDeep" strokeWidth={2} />
               {evento.horaTexto}
             </span>
           </motion.div>
 
-          {/* Apilados en móvil y a lo ancho: el CTA principal es largo y en una
-              fila de dos se partía en dos renglones. */}
+          {/* Un solo botón: el colegio pidió quitar "Ver detalles de la noche"
+              para que la única acción del hero sea comprar. A esa sección se
+              sigue llegando desde el menú de arriba. */}
           <motion.div
             variants={subir}
             className="mt-[clamp(1.1rem,3vh,1.75rem)] flex flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4"
           >
             <Magnetic href="#boletas" className="btn-gold">
               {evento.ctaPrincipal}
-            </Magnetic>
-            <Magnetic href="#artistas" className="btn-ghost" fuerza={0.2}>
-              {evento.ctaSecundario}
             </Magnetic>
           </motion.div>
 
@@ -245,17 +249,21 @@ export default function Hero({ listo }: { listo: boolean }) {
             velo. La tarjeta con fondo propio lo separa del público de la foto,
             que ahora se ve mucho más. */}
         <motion.div variants={sello} className="order-1 w-full lg:order-2 lg:justify-self-end">
-          <div className="mx-auto w-full max-w-[420px] rounded-3xl border border-gold/25 bg-ink/55 p-6 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.85)] backdrop-blur-md sm:p-8 lg:mx-0">
+          {/* Tarjeta y sello más grandes: sobraba espacio a la derecha y el
+              sello es la firma de la pieza. Debajo va la fecha, no la frase
+              de "80 años de historia": el dato que la gente necesita ver dos
+              veces es cuándo es. */}
+          <div className="mx-auto w-full max-w-[520px] rounded-3xl border border-gold/25 bg-ink/55 p-7 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.85)] backdrop-blur-md sm:p-9 lg:mx-0">
             <Image
               src={imagenes.selloBlanco}
               alt="Sello TCS Homecoming Party"
               width={3174}
               height={881}
               priority
-              className="mx-auto h-auto w-full max-w-[300px] -rotate-2 drop-shadow-[0_10px_26px_rgba(0,0,0,0.5)]"
+              className="mx-auto h-auto w-full max-w-[400px] -rotate-2 drop-shadow-[0_10px_26px_rgba(0,0,0,0.5)]"
             />
-            <p className="mt-6 border-t border-white/10 pt-5 text-center font-body text-[10px] uppercase leading-relaxed tracking-[0.24em] text-bone/60">
-              {evento.aniversario} años de historia &amp; reencuentro
+            <p className="mt-7 border-t border-white/10 pt-5 text-center font-body text-[13px] font-bold uppercase leading-relaxed tracking-[0.16em] text-bone/85">
+              {evento.fechaTexto}
             </p>
           </div>
         </motion.div>
@@ -268,12 +276,20 @@ export default function Hero({ listo }: { listo: boolean }) {
         className="relative z-10 border-t border-white/[0.08] bg-ink/50 backdrop-blur-sm"
       >
         <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-4 px-6 py-[clamp(0.9rem,2vh,1.5rem)] md:flex-row md:items-center md:gap-6">
-          {/* gap-7 con 4 unidades y etiquetas de tracking ancho sumaba más
+          {/* Los cuatro números no decían qué eran. El rótulo lo aclara sin
+              tener que leer "Días / Horas / Min / Seg" y deducirlo.
+
+              gap-7 con 4 unidades y etiquetas de tracking ancho sumaba más
               de 330px: se desbordaba en iPhone SE. Escala con la pantalla. */}
-          <div className="flex w-full items-end justify-between gap-3 sm:w-auto sm:justify-start sm:gap-7">
-            {unidades.map((u) => (
-              <Unidad key={u.l} valor={u.v} label={u.l} />
-            ))}
+          <div className="w-full sm:w-auto">
+            <p className="mb-2.5 font-body text-[10px] font-bold uppercase tracking-eyebrow text-gold">
+              Conteo regresivo
+            </p>
+            <div className="flex w-full items-end justify-between gap-3 sm:w-auto sm:justify-start sm:gap-7">
+              {unidades.map((u) => (
+                <Unidad key={u.l} valor={u.v} label={u.l} />
+              ))}
+            </div>
           </div>
 
           <div className="flex items-center gap-4">

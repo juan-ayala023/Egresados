@@ -184,7 +184,7 @@ function Tarjeta({
               : 'border border-brand/30 text-brand hover:border-gold hover:text-goldDeep'
           }`}
         >
-          {agotada ? (ventaAbierta ? 'Agotada' : 'Cerrada') : 'Confirmar mi lugar'}
+          {agotada ? (ventaAbierta ? 'Agotada' : 'Cerrada') : 'Compra tu entrada aquí'}
         </motion.button>
       </div>
     </motion.div>
@@ -232,7 +232,7 @@ export default function Boletas({ onComprar }: Props) {
   const tope = boletas[0]?.maxPorCompra ?? 4;
 
   return (
-    <section id="boletas" className="relative overflow-hidden bg-bone py-24 md:py-32">
+    <section id="boletas" className="relative overflow-hidden bg-bone py-14 md:py-16">
       {/* Encabezado y tarjeta comparten el mismo ancho: era el pedido, y es
           lo que deja el titular en un solo renglón. El cuerpo del titular
           está atado a 3.6vw justamente para que no se parta en escritorio. */}
@@ -266,9 +266,18 @@ export default function Boletas({ onComprar }: Props) {
           </motion.p>
         </div>
 
+        {/* Con una sola boleta la tarjeta se estiraba a los 1024px del
+            contenedor y quedaba una caja larguísima con mucho aire adentro.
+            El colegio pidió angostarla: con `max-w-2xl` centrada, la ficha de
+            precios y la lista de beneficios quedan a un ancho de lectura
+            normal. Con dos o tres boletas se reparten el ancho y no aplica. */}
         <div
           className={`mt-14 grid items-stretch gap-6 ${
-            boletas.length === 1 ? '' : boletas.length === 2 ? 'sm:grid-cols-2' : 'lg:grid-cols-3'
+            boletas.length === 1
+              ? 'mx-auto max-w-2xl'
+              : boletas.length === 2
+              ? 'sm:grid-cols-2'
+              : 'lg:grid-cols-3'
           }`}
         >
           {boletas.map((b, i) => (

@@ -1,0 +1,35 @@
+{
+  "name": "back-homeparty",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Backend de venta de boletas - Homecoming 80 Anios (The Columbus School)",
+  "type": "module",
+  "main": "src/server.js",
+  "engines": {
+    "node": ">=18.17"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "seed": "node scripts/seed.js",
+    "test": "node --test tests/*.test.js",
+    "importar-egresados": "node scripts/importar-egresados.js",
+    "generar-qr-secret": "node scripts/generar-qr-secret.js",
+    "probar-siesa": "node scripts/probar-siesa.js",
+    "revisar-produccion": "node scripts/revisar-produccion.js",
+    "facturar": "node scripts/facturar.js",
+    "respaldo": "node scripts/respaldo.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.10.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "mssql": "^12.7.0",
+    "nodemailer": "^6.10.0",
+    "pdfkit": "^0.15.2",
+    "qrcode": "^1.5.4",
+    "soap": "^1.11.0",
+    "ulid": "^2.3.0"
+  }
+}

@@ -1,0 +1,26 @@
+node_modules/
+
+# Secretos. NUNCA subir este archivo.
+.env
+
+# Base de datos, correos guardados en desarrollo y archivos temporales de SQLite.
+datos/
+*.db
+*.db-wal
+*.db-shm
+
+# Sistema operativo / editores
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log
+
+# Respaldos del .env. Un `cp .env .env.bak` deja un archivo con TODAS las
+# credenciales que .gitignore no atrapaba: el 9 de septiembre de 2026 uno de
+# estos estuvo a punto de subirse a GitHub con las llaves de Wompi, la clave
+# del SQL del colegio y los tokens del panel.
+.env.*
+!.env.example
+*.bak
+*.bak-*

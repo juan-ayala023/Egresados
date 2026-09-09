@@ -1,0 +1,69 @@
+# -----------------------------------------------------------------------------
+# Front de Homecoming (Next.js, puerto 3000).
+#
+# ESTE ARCHIVO NO EXISTE EN LOS OTROS EVENTOS, y vale la pena entender por que.
+#
+# Los sitios de Run, Teatro y Camp estan hechos con React y Vite: se compilan a
+# una carpeta dist con HTML, CSS y JS sueltos, y nginx los sirve como archivos.
+# No hay ningun proceso corriendo.
+#
+# Homecoming esta hecho con Next.js sin exportacion estatica, asi que necesita
+# su propio proceso Node vivo, igual que el backend. Son dos servicios, no uno.
+#
+# Instalacion (TI):
+#   sudo cp homecoming-web.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now homecoming-web
+# -----------------------------------------------------------------------------
+[Unit]
+Description=Homecoming 80 Anios - sitio publico
+After=network.target homecoming-api.service
+# Solo un orden de arranque comodo: el front no se cae si la API no esta, pinta
+# la pagina y muestra el error cuando alguien intenta comprar.
+Wants=homecoming-api.service
+
+[Service]
+Type=simple
+User=eventos
+Group=eventos
+WorkingDirectory=/home/eventos/homecoming
+
+Environment=NODE_ENV=production
+Environment=PORT=3000
+
+# OJO: NEXT_PUBLIC_API_URL no se pone aqui y no es un olvido.
+#
+# Next.js incrusta las variables NEXT_PUBLIC_* dentro del JavaScript cuando se
+# compila, no las lee al arrancar. Definirla en este archivo no haria nada y
+# costaria una tarde de "por que no toma la variable".
+#
+# Va en el .env.local del front ANTES de npm run build. Y lo correcto en este
+# despliegue es dejarla VACIA:
+#
+#   NEXT_PUBLIC_API_URL=
+#
+# porque el codigo hace (process.env.NEXT_PUBLIC_API_URL ?? '') y con eso las
+# llamadas quedan relativas: /api/evento en vez de https://.../api/evento. Como
+# nginx sirve el front y la API en el mismo dominio, funciona solo, no hay CORS
+# de por medio, y el dominio no queda quemado dentro del bundle -- si algun dia
+# cambia, no hay que recompilar.
+
+# npm run build ANTES de arrancar esto, o no hay .next que servir.
+ExecStart=/usr/bin/npx next start -p 3000
+
+Restart=always
+RestartSec=5
+StartLimitBurst=5
+StartLimitIntervalSec=120
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=homecoming-web
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=false
+
+[Install]
+WantedBy=multi-user.target

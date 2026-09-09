@@ -21,7 +21,7 @@ export default function FAQ() {
   const [abierta, setAbierta] = useState<string | null>(faq[0].preguntas[0].pregunta);
 
   return (
-    <section id="faq" className="mx-auto max-w-4xl px-6 py-24 md:py-32">
+    <section id="faq" className="mx-auto max-w-4xl px-6 py-14 md:py-16">
       {/* Todo el bloque vive dentro de un panel: las preguntas pasaron de ser
           renglones separados por líneas a tarjetas blancas, y sin un fondo
           propio esas tarjetas quedaban flotando sueltas sobre la página. */}
@@ -122,9 +122,24 @@ export default function FAQ() {
                               transition={{ duration: 0.5, ease: ease.out }}
                               className="overflow-hidden"
                             >
-                              <p className="border-t border-brand/10 px-5 pb-5 pt-4 font-body text-[14px] leading-[1.8] text-grayBrand">
-                                {f.respuesta}
-                              </p>
+                              {/* La respuesta puede ser un párrafo o una lista.
+                                  Cuando son varias cosas concretas —lo que
+                                  incluye la boleta, por ejemplo— en un párrafo
+                                  corrido nadie las cuenta. */}
+                              <div className="border-t border-brand/10 px-5 pb-5 pt-4 font-body text-[14px] leading-[1.8] text-grayBrand">
+                                {Array.isArray(f.respuesta) ? (
+                                  <ul className="space-y-2">
+                                    {f.respuesta.map((punto) => (
+                                      <li key={punto} className="flex gap-2.5">
+                                        <span aria-hidden className="mt-[0.6em] h-1 w-1 shrink-0 rounded-full bg-goldDeep" />
+                                        <span>{punto}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                ) : (
+                                  f.respuesta
+                                )}
+                              </div>
                             </motion.div>
                           )}
                         </AnimatePresence>

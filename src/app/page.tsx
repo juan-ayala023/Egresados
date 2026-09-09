@@ -14,7 +14,6 @@ import Boletas from '@/components/Boletas';
 import Checkout from '@/components/Checkout';
 import FAQ from '@/components/FAQ';
 import Footer from '@/components/Footer';
-import BotonWhatsApp from '@/components/BotonWhatsApp';
 import { ease } from '@/lib/motion';
 import type { Boleta } from '@/data';
 
@@ -64,7 +63,10 @@ export default function Home() {
 
       <Footer />
 
-      <BotonWhatsApp />
+      {/* El botón flotante de WhatsApp lo quitó el colegio el 8 de septiembre
+          de 2026. El componente sigue en src/components/BotonWhatsApp.tsx por
+          si se quiere devolver; para eso hace falta además un número real en
+          `contacto.whatsapp` de data.ts, que hoy es de relleno. */}
 
       <Checkout
         boleta={seleccion?.boleta ?? null}

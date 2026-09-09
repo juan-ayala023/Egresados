@@ -12,7 +12,7 @@ import {
   type Boleta,
 } from '@/data';
 import {
-  crearOrden, urlCheckoutWompi, ErrorApi, TIPOS_DOCUMENTO, ETIQUETA_DOCUMENTO,
+  crearOrden, obtenerEvento, urlCheckoutWompi, ErrorApi, TIPOS_DOCUMENTO, ETIQUETA_DOCUMENTO,
   type AsistenteApi,
 } from '@/lib/api';
 
@@ -55,6 +55,26 @@ export default function Checkout({ boleta, cantidad, onClose }: Props) {
   const [errorGeneral, setErrorGeneral] = useState('');
   const [procesando, setProcesando] = useState(false);
   const [sentido, setSentido] = useState(1);
+  /* Enlaces a la política de datos y a los términos. Los publica el colegio y
+     el backend los expone en /api/evento; mientras no existan llegan en null y
+     las casillas se muestran como texto plano, igual que hasta ahora. */
+  const [legales, setLegales] = useState<{ datos: string | null; terminos: string | null }>({
+    datos: null, terminos: null,
+  });
+
+  /* Se piden al abrir el checkout. Si la consulta falla no se avisa nada: son
+     un adorno del texto, no un requisito para comprar, y un error aquí no
+     puede impedir una venta. */
+  useEffect(() => {
+    if (!boleta) return;
+    let vigente = true;
+    obtenerEvento()
+      .then((e) => {
+        if (vigente) setLegales({ datos: e.politicaDatosUrl, terminos: e.terminosUrl });
+      })
+      .catch(() => {});
+    return () => { vigente = false; };
+  }, [boleta]);
 
   useEffect(() => {
     if (boleta) {
@@ -126,7 +146,25 @@ export default function Checkout({ boleta, cantidad, onClose }: Props) {
     });
 
     setErrores(nuevos);
+    if (Object.keys(nuevos).length) irAlPrimerError();
     return Object.keys(nuevos).length === 0;
+  };
+
+  /* Lleva la vista al primer error.
+     Sin esto, alguien que no marcó las casillas de aceptación aprieta "Pagar"
+     y no pasa nada: el aviso sale al final del formulario, fuera de la
+     pantalla, y no hay forma de saber que hay que bajar. El botón parece
+     roto. Pasó en la primera prueba real.
+
+     Se busca en el DOM y no en el objeto de errores porque así se respeta el
+     orden en que están los campos en pantalla, y no el orden en que se
+     escribieron las validaciones. Va en el fotograma siguiente porque los
+     avisos todavía no existen cuando se llama a setErrores. */
+  const irAlPrimerError = () => {
+    requestAnimationFrame(() => {
+      const primero = document.querySelector('[data-error]');
+      primero?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
   };
 
   const validarPago = () => {
@@ -136,6 +174,7 @@ export default function Checkout({ boleta, cantidad, onClose }: Props) {
     if (!aceptaDatos) nuevos['aceptaDatos'] = 'Debes aceptar el tratamiento de datos.';
     if (!aceptaTerminos) nuevos['aceptaTerminos'] = 'Debes aceptar los términos.';
     setErrores(nuevos);
+    if (Object.keys(nuevos).length) irAlPrimerError();
     return Object.keys(nuevos).length === 0;
   };
 
@@ -244,9 +283,17 @@ export default function Checkout({ boleta, cantidad, onClose }: Props) {
   const clase = (clave: string) =>
     errores[clave] ? 'border-red-400/60 bg-red-400/[0.04]' : '';
 
+  /* El `data-error` es lo que permite encontrarlos después: al fallar la
+     validación se busca el primero que exista en la página y se lleva al
+     usuario hasta él. */
   const Aviso = ({ clave }: { clave: string }) =>
     errores[clave] ? (
-      <p className="mt-1.5 font-body text-[11.5px] leading-snug text-red-400/90">{errores[clave]}</p>
+      <p
+        data-error={clave}
+        className="mt-1.5 font-body text-[11.5px] leading-snug text-red-400/90"
+      >
+        {errores[clave]}
+      </p>
     ) : null;
 
   return (
@@ -538,8 +585,21 @@ export default function Checkout({ boleta, cantidad, onClose }: Props) {
                         className="mt-0.5 h-4 w-4 shrink-0 accent-[rgb(var(--gold))]"
                       />
                       <span className="font-body text-[12.5px] leading-relaxed text-muted">
-                        Autorizo el tratamiento de mis datos personales para la gestión del
-                        ingreso y la facturación del evento.
+                        Autorizo el{' '}
+                        {legales.datos ? (
+                          <a
+                            href={legales.datos}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="text-bone underline underline-offset-2 transition-colors hover:text-gold"
+                          >
+                            tratamiento de mis datos personales
+                          </a>
+                        ) : (
+                          'tratamiento de mis datos personales'
+                        )}{' '}
+                        para la gestión del ingreso y la facturación del evento.
                       </span>
                     </label>
                     <Aviso clave="aceptaDatos" />
@@ -552,7 +612,21 @@ export default function Checkout({ boleta, cantidad, onClose }: Props) {
                         className="mt-0.5 h-4 w-4 shrink-0 accent-[rgb(var(--gold))]"
                       />
                       <span className="font-body text-[12.5px] leading-relaxed text-muted">
-                        Acepto los términos y condiciones de la venta.
+                        Acepto los{' '}
+                        {legales.terminos ? (
+                          <a
+                            href={legales.terminos}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="text-bone underline underline-offset-2 transition-colors hover:text-gold"
+                          >
+                            términos y condiciones
+                          </a>
+                        ) : (
+                          'términos y condiciones'
+                        )}{' '}
+                        de la venta.
                       </span>
                     </label>
                     <Aviso clave="aceptaTerminos" />

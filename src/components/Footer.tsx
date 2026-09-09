@@ -16,7 +16,7 @@ import { enVista, subir } from '@/lib/motion';
 export default function Footer() {
   return (
     <footer className="relative bg-bone">
-      <div className="mx-auto max-w-3xl px-6 py-24 text-center md:py-28">
+      <div className="mx-auto max-w-3xl px-6 py-14 text-center md:py-16">
         <RevealText
           texto={cierre.titulo}
           as="h2"
@@ -128,12 +128,12 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="flex flex-col items-center justify-between gap-3 border-t border-brand/10 py-6 font-body text-[11px] uppercase tracking-[0.14em] text-grayBrand md:flex-row">
-          <span>
-            © {new Date().getFullYear()} {evento.colegio}. Todos los derechos reservados.
-          </span>
-          <span>Pagos procesados de forma segura por Wompi</span>
-        </div>
+        {/* La franja de copyright y la mención a la pasarela las quitó el
+            colegio el 8 de septiembre de 2026.
+
+            OJO SI SE VA A DEVOLVER: los contratos de pasarela suelen exigir
+            mostrar la marca en el sitio donde se cobra. Si tesorería confirma
+            que el de Wompi lo pide, esto vuelve tal cual. */}
       </div>
     </footer>
   );

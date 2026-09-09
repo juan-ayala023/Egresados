@@ -1,0 +1,55 @@
+# -----------------------------------------------------------------------------
+# Backend de Homecoming (Node, puerto 4000).
+#
+# Calcado del gunicorn.service que el colegio ya usa en /home/eventos.
+#
+# Instalacion (TI):
+#   sudo cp homecoming-api.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now homecoming-api
+#
+# Ver que esta haciendo:
+#   sudo systemctl status homecoming-api
+#   sudo journalctl -u homecoming-api -f
+# -----------------------------------------------------------------------------
+[Unit]
+Description=Homecoming 80 Anios - API de boleteria
+After=network.target
+# La base de SQLite es un archivo local, no hay que esperar a SQL Server.
+
+[Service]
+Type=simple
+User=eventos
+Group=eventos
+WorkingDirectory=/home/eventos/homecoming/back-homeparty-main
+
+# El .env se lee con dotenv desde el WorkingDirectory. NO se pone
+# EnvironmentFile aqui a proposito: el .env tiene comentarios y systemd no los
+# entiende igual que dotenv, y duplicar la fuente de la verdad termina en dos
+# configuraciones que se contradicen.
+ExecStart=/usr/bin/node src/server.js
+
+Restart=always
+RestartSec=5
+
+# Si el proceso se cae en bucle, systemd deja de reintentarlo y queda en
+# failed, que es lo que uno quiere ver en el status. Sin esto, un .env mal
+# puesto se reintenta para siempre y nadie se entera.
+StartLimitBurst=5
+StartLimitIntervalSec=120
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=homecoming-api
+
+# --- Endurecimiento -----------------------------------------------------------
+# El backend solo necesita escribir en su carpeta de datos (SQLite, respaldos y
+# los correos que guarda en disco cuando no hay SMTP).
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=false
+ReadWritePaths=/home/eventos/homecoming/back-homeparty-main/datos
+
+[Install]
+WantedBy=multi-user.target

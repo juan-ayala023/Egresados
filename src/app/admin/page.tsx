@@ -14,8 +14,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   leerToken, guardarToken, olvidarToken,
-  obtenerAlertas, buscarOrdenes, obtenerFicha, reenviarBoletas, anularOrden, descargarCsv,
-  type Alertas, type OrdenBuscada, type FichaOrden,
+  obtenerAlertas, atenderAlerta, obtenerVentas, buscarOrdenes, obtenerFicha, reenviarBoletas, anularOrden, descargarCsv,
+  type Alertas, type Venta, type OrdenBuscada, type FichaOrden,
 } from '@/lib/admin';
 import { ErrorApi } from '@/lib/api';
 
@@ -32,6 +32,7 @@ export default function Panel() {
   const [error, setError] = useState('');
 
   const [alertas, setAlertas] = useState<Alertas | null>(null);
+  const [ventas, setVentas] = useState<Venta[]>([]);
   const [cargando, setCargando] = useState(false);
 
   const [texto, setTexto] = useState('');
@@ -43,7 +44,11 @@ export default function Panel() {
     setCargando(true);
     setError('');
     try {
-      setAlertas(await obtenerAlertas(t));
+      /* En paralelo: son dos llamadas independientes y en serie el panel
+         tarda el doble en pintar. */
+      const [al, ve] = await Promise.all([obtenerAlertas(t), obtenerVentas(t, 25)]);
+      setAlertas(al);
+      setVentas(ve.ventas);
       setEntrado(true);
       guardarToken(t);
     } catch (e) {
@@ -66,7 +71,10 @@ export default function Panel() {
   /* Se refresca solo cada minuto: es un panel que se deja abierto. */
   useEffect(() => {
     if (!entrado) return;
-    const id = setInterval(() => { obtenerAlertas(token).then(setAlertas).catch(() => {}); }, 60_000);
+    const id = setInterval(() => {
+      obtenerAlertas(token).then(setAlertas).catch(() => {});
+      obtenerVentas(token, 25).then((v) => setVentas(v.ventas)).catch(() => {});
+    }, 60_000);
     return () => clearInterval(id);
   }, [entrado, token]);
 
@@ -101,6 +109,17 @@ export default function Panel() {
       setFicha(await obtenerFicha(token, referencia));
     } catch (e) {
       setAviso(e instanceof ErrorApi ? e.message : 'No pudimos abrir la orden.');
+    }
+  };
+
+  /* Esconde una alerta del panel. Se refrescan las alertas de una para que
+     desaparezca al instante, en vez de esperar al refresco del minuto. */
+  const atender = async (tipo: string, referencia?: string | null) => {
+    try {
+      await atenderAlerta(token, tipo, referencia);
+      setAlertas(await obtenerAlertas(token));
+    } catch (e) {
+      setAviso(e instanceof ErrorApi ? e.message : 'No se pudo marcar la alerta.');
     }
   };
 
@@ -193,10 +212,15 @@ export default function Panel() {
 
       {/* --- aforo --- */}
       {a && (
-        <section className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-5">
+        <section className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {[
             ['Aforo', a.aforo.aforo],
             ['Vendidas', a.aforo.vendidas],
+            /* El número que el comité pregunta primero y que antes no estaba
+               en ninguna parte: había que abrir el CSV y sumar en Excel.
+               Viene de la BASE, sobre todas las órdenes pagadas -- no de sumar
+               las filas visibles, que con 500 ventas daría un total falso. */
+            ['Recaudado', `$${a.aforo.recaudadoCop.toLocaleString('es-CO')}`],
             ['Reservadas', a.aforo.reservadas],
             ['Disponibles', a.aforo.disponibles],
             ['Sobreventa', a.aforo.sobreventa],
@@ -231,6 +255,15 @@ export default function Panel() {
 
         {a && a.alertas.length === 0 && (
           <p className="mt-3 font-body text-sm text-muted">Nada que reportar.</p>
+        )}
+
+        {/* Las atendidas no se borran: se esconden. Se dice cuántas hay para
+            que nadie piense que una alerta desapareció sola. */}
+        {!!a?.atendidas && (
+          <p className="mt-2 font-body text-xs text-muted">
+            {a.atendidas} alerta{a.atendidas === 1 ? '' : 's'} escondida
+            {a.atendidas === 1 ? '' : 's'} porque alguien ya se hizo cargo.
+          </p>
         )}
 
         <div className="mt-4 space-y-3">
@@ -273,17 +306,113 @@ export default function Panel() {
                 <p className="mt-2 font-body text-xs text-muted">→ {al.accion}</p>
               )}
 
-              {al.referencia && al.tipo === 'CORREO_NO_ENVIADO' && (
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                {al.referencia && al.tipo === 'CORREO_NO_ENVIADO' && (
+                  <button
+                    onClick={() => reenviar(al.referencia!)}
+                    className="btn-gold !px-5 !py-2 !text-xs"
+                  >
+                    Reenviar ahora
+                  </button>
+                )}
+
+                {/* Esconde la alerta del panel. NO arregla el problema ni toca
+                    la orden: es "ya me hice cargo de esto".
+                    Sin este botón las alertas se acumulan para siempre, y un
+                    tablero que solo crece deja de mirarse -- que es peor que
+                    no tenerlo, porque la alerta que sí importa se pierde entre
+                    las viejas. */}
                 <button
-                  onClick={() => reenviar(al.referencia!)}
-                  className="btn-gold mt-3 !px-5 !py-2 !text-xs"
+                  onClick={() => atender(al.tipo, al.referencia)}
+                  className="font-body text-xs text-muted underline underline-offset-4 transition-colors hover:text-bone"
                 >
-                  Reenviar ahora
+                  Ya me hice cargo
                 </button>
-              )}
+              </div>
             </article>
           ))}
         </div>
+      </section>
+
+      {/* --- últimas ventas ---
+          La razón de existir de esta tabla: antes solo había buscador, y para
+          buscar hay que saber a quién. Quien entraba a ver cómo va la venta no
+          veía ninguna. Ahora lo primero que se ve es la venta pasando. */}
+      <section className="mt-12">
+        <div className="flex flex-wrap items-baseline justify-between gap-3">
+          <h2 className="font-display text-lg text-bone">Últimas ventas</h2>
+          <span className="font-body text-xs text-muted">
+            Las {ventas.length} más recientes · pagadas
+          </span>
+        </div>
+
+        {ventas.length === 0 ? (
+          <p className="mt-3 font-body text-sm text-muted">
+            Todavía no hay ventas pagadas.
+          </p>
+        ) : (
+          /* El contenedor scrollea solo: en móvil la tabla no cabe y sin esto
+             empuja la página entera de lado. */
+          <div className="mt-4 overflow-x-auto rounded-lg border border-white/[0.08]">
+            <table className="w-full min-w-[720px] border-collapse font-body text-sm">
+              <thead>
+                <tr className="border-b border-white/[0.08] text-left text-[11px] uppercase tracking-[0.14em] text-muted">
+                  <th className="px-4 py-3 font-medium">Referencia</th>
+                  <th className="px-4 py-3 font-medium">Comprador</th>
+                  <th className="px-4 py-3 font-medium">Promoción</th>
+                  <th className="px-4 py-3 text-center font-medium">Boletas</th>
+                  <th className="px-4 py-3 text-right font-medium">Total</th>
+                  <th className="px-4 py-3 font-medium">Pagada</th>
+                  <th className="px-4 py-3 font-medium">Correo</th>
+                </tr>
+              </thead>
+              <tbody>
+                {ventas.map((v) => (
+                  <tr
+                    key={v.referencia}
+                    className="border-b border-white/[0.05] last:border-0 transition-colors hover:bg-white/[0.03]"
+                  >
+                    <td className="px-4 py-3">
+                      <button
+                        onClick={() => abrir(v.referencia)}
+                        className="text-gold underline underline-offset-4"
+                      >
+                        {v.referencia}
+                      </button>
+                    </td>
+                    <td className="px-4 py-3 text-bone">
+                      {v.nombre}
+                      <span className="block text-xs text-muted">
+                        {v.cedula} · {v.correo}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-bone/80">{v.promocion ?? '—'}</td>
+                    <td className="px-4 py-3 text-center tabular-nums text-bone">{v.cantidad}</td>
+                    <td className="px-4 py-3 text-right tabular-nums text-bone">
+                      ${(v.total_centavos / 100).toLocaleString('es-CO')}
+                    </td>
+                    <td className="px-4 py-3 text-xs text-muted">
+                      {v.pagada_en
+                        ? new Date(v.pagada_en).toLocaleString('es-CO', {
+                            day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit',
+                          })
+                        : '—'}
+                    </td>
+                    {/* Que el correo salió es lo que decide si esa persona
+                        tiene su QR. Si está vacío, no le llegó nada. */}
+                    <td className="px-4 py-3 text-xs">
+                      {v.correo_enviado_a ? (
+                        <span className="text-emerald-400/90">enviado</span>
+                      ) : (
+                        <span className="text-red-400/90">sin enviar</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
 
       {/* --- búsqueda --- */}

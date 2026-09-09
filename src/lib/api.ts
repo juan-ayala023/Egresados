@@ -23,6 +23,11 @@ export type EventoApi = {
   aforo: number;
   cierreVenta: string;
   estadoVenta: EstadoVenta;
+  /* Documentos legales que el comprador acepta en el checkout. Llegan en null
+     mientras el colegio no los publique (POLITICA_DATOS_URL y TERMINOS_URL del
+     backend). El checkout los convierte en enlace cuando existen. */
+  politicaDatosUrl: string | null;
+  terminosUrl: string | null;
 };
 
 export type BoletaApi = {

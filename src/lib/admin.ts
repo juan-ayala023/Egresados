@@ -83,6 +83,10 @@ export type Aforo = {
   disponibles: number;
   sobreventa: number;
   evento?: string;
+  /* Plata recaudada, en pesos. La calcula la BASE sobre todas las órdenes
+     pagadas: sumar en el navegador solo lo visible daría un total falso en
+     cuanto haya más ventas que filas en pantalla. */
+  recaudadoCop: number;
 };
 
 export type Alerta = {
@@ -103,6 +107,9 @@ export type Alertas = {
   generadoEn: string;
   total: number;
   criticas: number;
+  /* Cuántas se escondieron por estar atendidas. Se muestra en el panel para
+     que nadie crea que una alerta se perdió sola. */
+  atendidas: number;
   aforo: Aforo;
   alertas: Alerta[];
 };
@@ -150,6 +157,44 @@ export type FichaOrden = {
 
 export const obtenerAlertas = (token: string) =>
   pedirAdmin<Alertas>('/api/admin/alertas', token);
+
+/* Esconde una alerta del panel. No arregla el problema ni toca la orden: es
+   una anotación de "ya me hice cargo". Sin esto las alertas se acumulan para
+   siempre, y un tablero que solo crece deja de mirarse. */
+export const atenderAlerta = (token: string, tipo: string, referencia?: string | null) =>
+  pedirAdmin<{ tipo: string }>('/api/admin/alertas/atender', token, {
+    method: 'POST',
+    body: JSON.stringify({ tipo, referencia: referencia ?? '' }),
+  });
+
+/* Una venta de la tabla del panel. Es la vista de "cómo va la venta": solo
+   pagadas, la más reciente primero. */
+export type Venta = {
+  id: number;
+  referencia: string;
+  estado: string;
+  cantidad: number;
+  total_centavos: number;
+  creada_en: string;
+  pagada_en: string | null;
+  metodo_pago: string | null;
+  correo_enviado_a: string | null;
+  siesa_factura: string | null;
+  nombre: string;
+  cedula: string;
+  correo: string;
+  celular: string | null;
+  promocion: string | null;
+};
+
+/* Las últimas ventas, sin tener que buscar a nadie.
+   El panel solo tenía buscador, y para usarlo hay que saber a quién buscar:
+   quien entraba a ver cómo va la venta no veía ninguna. */
+export const obtenerVentas = (token: string, limite = 25) =>
+  pedirAdmin<{ total: number; ventas: Venta[] }>(
+    `/api/admin/ventas?limite=${limite}`,
+    token
+  );
 
 export const obtenerAforo = (token: string) =>
   pedirAdmin<Aforo & { estadoVenta: string }>('/api/admin/aforo', token);

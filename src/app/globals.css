@@ -75,6 +75,23 @@ body {
   background-color: rgb(var(--ink));
   color: rgb(var(--bone));
   overflow-x: hidden;
+  /* El colegio pidio "todos los textos en negrilla para que se lean mejor".
+     Se sube el cuerpo de 400 a 600 en vez de 700: sobre el fondo azul oscuro
+     el texto claro ya se ve mas grueso de lo que es (halacion), y a 700 los
+     parrafos largos se emplastan y compiten con los titulos, que son los que
+     el manual de marca reserva para el Bold.
+     Si se quiere el Bold puro, este 600 pasa a 700 y ya. */
+  font-weight: 600;
+}
+
+/* Todo lo que se pueda pulsar avisa que se puede pulsar. Los <a> con href ya
+   lo hacen solos; los <button> y los elementos con rol de boton no. */
+button:not(:disabled),
+[role='button'],
+label,
+summary,
+select {
+  cursor: pointer;
 }
 
 /* Grano sutil sobre todo el sitio: le quita el look plano de plantilla */
@@ -110,13 +127,13 @@ body::after {
 
 @layer components {
   .eyebrow {
-    @apply font-body text-[11px] uppercase tracking-eyebrow text-gold/70;
+    @apply font-body text-[11px] font-bold uppercase tracking-eyebrow text-gold/70;
   }
 
   /* Misma etiqueta para las secciones de fondo claro: el 139C al 70% sobre
      --bone se borra, así que va el dorado profundo y sin transparencia. */
   .eyebrow-claro {
-    @apply font-body text-[11px] uppercase tracking-eyebrow text-goldDeep;
+    @apply font-body text-[11px] font-bold uppercase tracking-eyebrow text-goldDeep;
   }
 
   .gold-rule {
@@ -124,16 +141,16 @@ body::after {
   }
 
   .btn-gold {
-    @apply inline-flex items-center justify-center gap-2 rounded-full bg-gold px-8 py-4
-           font-body text-sm font-semibold uppercase tracking-[0.12em] text-ink
+    @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-full bg-gold px-8 py-4
+           font-body text-sm font-bold uppercase tracking-[0.12em] text-ink
            transition-all duration-300 hover:bg-goldSoft hover:shadow-[0_0_40px_-8px_rgb(var(--gold)/0.6)]
            focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4
            focus-visible:outline-gold disabled:pointer-events-none disabled:opacity-40;
   }
 
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-full border border-white/20
-           px-8 py-4 font-body text-sm font-semibold uppercase tracking-[0.12em] text-bone
+    @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-full border border-white/20
+           px-8 py-4 font-body text-sm font-bold uppercase tracking-[0.12em] text-bone
            transition-all duration-300 hover:border-gold/60 hover:text-gold
            focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4
            focus-visible:outline-gold;

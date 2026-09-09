@@ -101,9 +101,9 @@ export default function Navbar({ listo }: { listo: boolean }) {
           <div className="flex items-center gap-3">
             <a
               href="#boletas"
-              className="rounded-full bg-gold px-4 py-2 font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-ink transition-all hover:bg-goldSoft sm:px-5 sm:py-2.5 sm:text-[12px] sm:tracking-[0.16em]"
+              className="cursor-pointer whitespace-nowrap rounded-full bg-gold px-4 py-2 font-body text-[11px] font-bold uppercase tracking-[0.1em] text-ink transition-all hover:bg-goldSoft sm:px-5 sm:py-2.5 sm:text-[12px] sm:tracking-[0.12em]"
             >
-              Comprar Boleta
+              Compra tu entrada aquí
             </a>
 
             {/* Área táctil de 44px, el mínimo recomendado para el pulgar. */}
@@ -200,7 +200,7 @@ export default function Navbar({ listo }: { listo: boolean }) {
                   onClick={() => setMenu(false)}
                   className="btn-gold w-full"
                 >
-                  Comprar Boleta
+                  Compra tu entrada aquí
                 </a>
                 <p className="mt-4 text-center font-body text-[11px] uppercase tracking-[0.16em] text-muted">
                   {evento.fechaTexto}

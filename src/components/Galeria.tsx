@@ -105,7 +105,7 @@ export default function Galeria() {
   }, [abierta, cerrar, mover]);
 
   return (
-    <section id="galeria" className="mx-auto max-w-7xl px-6 py-28 md:py-36">
+    <section id="galeria" className="mx-auto max-w-7xl px-6 py-14 md:py-16">
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
           <motion.p
@@ -128,7 +128,11 @@ export default function Galeria() {
             initial="oculto"
             whileInView="visible"
             viewport={enVista}
-            className="mt-6 max-w-xl font-body text-[15px] leading-relaxed text-bone/65"
+            /* El colegio lo pidió en un solo renglón. El ancho lo daba el
+               max-w-xl (576px) y el texto mide unos 840px: soltando el tope
+               en pantallas grandes entra de una línea, y en móvil sigue
+               fluyendo en varias, que es lo único que cabe ahí. */
+            className="mt-6 max-w-xl font-body text-[15px] font-bold leading-relaxed text-bone/85 lg:max-w-none"
           >
             {galeria.subtitulo}
           </motion.p>
@@ -167,7 +171,7 @@ export default function Galeria() {
         onPointerDown={() => {
           ultimoGesto.current = Date.now();
         }}
-        className="relative mt-14"
+        className="relative mt-10"
       >
         {/* Las flechas son solo un atajo de escritorio: en táctil se desliza,
             y ocupando espacio sobre la foto estorbarían. */}
@@ -253,7 +257,7 @@ export default function Galeria() {
         initial="oculto"
         whileInView="visible"
         viewport={enVista}
-        className="mt-14 flex flex-col items-center justify-center gap-5 border-t border-white/[0.08] pt-12 sm:flex-row sm:gap-7"
+        className="mt-8 flex flex-col items-center justify-center gap-5 border-t border-white/[0.08] pt-8 sm:flex-row sm:gap-7"
       >
         <p className="text-center font-display text-xl font-bold text-bone sm:text-2xl">
           {galeria.ctaPregunta}

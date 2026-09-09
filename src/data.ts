@@ -15,13 +15,17 @@ export const evento = {
      El título dejó de nombrar el evento, así que el nombre se movió al
      eyebrow: si no, el visitante no sabe a qué llegó. */
   eyebrowHero: 'Homecoming 80 Años · The Columbus School',
-  /* Una línea por renglón: el hero las anima por separado, con máscara. */
-  tituloHero: ['Volver a donde', 'las mejores historias', 'comenzaron.'],
+  /* Una línea por renglón: el hero las anima por separado, con máscara.
+     En dos renglones y no en tres, para aprovechar el ancho de la columna.
+     La ÚLTIMA línea es la que el hero pinta en dorado. */
+  tituloHero: ['Volver a donde las mejores', 'historias comenzaron.'],
   descripcion:
     '80 años de legado, amistades inolvidables y momentos compartidos. Este es el reencuentro de la gran familia Columbus School. ¿Vas a dejar que te lo cuenten?',
-  ctaPrincipal: 'Asegura tu lugar en el Reencuentro',
-  /* Lleva a #artistas: es donde está "lo que vamos a ofrecer" (los shows y
-     sus horarios), no a la sección de concepto. */
+  ctaPrincipal: 'Compra tu entrada aquí',
+  /* SIN USAR desde el 8 de septiembre de 2026: el colegio pidió quitar el
+     segundo botón del hero para dejar una sola acción. Se conserva el texto
+     por si se quiere devolver; el menú de arriba sigue llevando a esa
+     sección. */
   ctaSecundario: 'Ver detalles de la noche',
   urgencia: '¡Cupos limitados! No te quedes por fuera',
   /* Tal cual lo entregó el colegio:
@@ -50,16 +54,19 @@ export const historia = {
      sección, en vez de un título de sección genérico. */
   eyebrow: 'To relive · To remember',
   titulo: 'Ocho décadas construyendo la comunidad TCS.',
-  /* Subtitular: es la línea destacada, en cuerpo más alto que el resto. */
+  /* Subtitular: es la línea destacada, en cuerpo más alto que el resto.
+     Redacción del colegio, 8 de septiembre de 2026. */
   entrada:
-    'El tiempo pasa, pero lo que viviste en las aulas y campos de TCS te acompaña para siempre.',
+    'El tiempo pasa, pero lo que viviste durante tus años en TCS te acompaña para siempre.',
+  /* Partido en dos párrafos, como lo pidió el colegio: la idea del reencuentro
+     y la del aniversario son dos cosas y en un solo bloque se leían corridas.
+     "cada generación" y no "cada promoción", también por pedido suyo. */
   parrafos: [
-    'Caminar de nuevo por el campus, escuchar la música de tu época y abrazar a las personas con las que creciste. Cumplir 80 años no pasa todos los días: esta noche celebramos nuestro pasado, nuestro presente y la huella que cada promoción dejó en la historia del colegio.',
+    'Caminar de nuevo por el campus, escuchar la música de tu época y abrazar a las personas con las que creciste.',
+    'Cumplir 80 años no pasa todos los días: esta noche celebramos nuestro pasado, nuestro presente y la huella que cada generación dejó en la historia del colegio.',
   ],
   cierre: '¡Asegura tu boleta, invita a tus compañeros y celebremos juntos este gran legado!',
-  /* Dejó de ser "Conoce más": la sección ahora cierra con la compra, no con
-     otra invitación a seguir leyendo. */
-  cta: 'Asegura tu lugar en la celebración',
+  cta: 'Compra tu entrada aquí',
   /* Las cifras 80 / 62 salieron de esta sección por pedido del colegio. De
      paso resuelve el pendiente: la de 62 promociones venía del boceto y
      nadie la había validado. */
@@ -78,33 +85,42 @@ export const noche = {
   /* Cada bloque lleva una `etiqueta`: la palabra corta que va en el distintivo
      de la esquina. Es lo que diferencia de un vistazo los cuatro cuadros
      cuando el visitante no se detiene a leer los textos. */
+  /* ORDEN Y TEXTOS del colegio, 8 de septiembre de 2026. El orden es
+     deliberado: la música va de primera porque es el gancho de la noche.
+     `nota` es la advertencia de que ese consumo NO va incluido en la boleta;
+     solo la llevan los dos que se venden aparte. */
   bloques: [
     {
-      icono: 'bar' as const,
-      titulo: 'Bar Abierto & Coctelería',
-      etiqueta: 'Premium',
-      texto:
-        'Cócteles y bebidas cuidadosamente seleccionados para brindar y celebrar durante toda la noche.',
-    },
-    {
-      icono: 'gastronomia' as const,
-      titulo: 'Gastronomía Gourmet',
-      /* El proveedor es "Marmoleo", confirmado por el colegio. El boceto de
-         diseño lo escribía "Marmolejo": esa grafía es la equivocada. */
-      etiqueta: 'Marmoleo',
-      texto:
-        'Una propuesta gastronómica impecable para disfrutar con amigos, de la mano de Marmoleo.',
-    },
-    {
       icono: 'musica' as const,
-      titulo: 'Música & Shows en Vivo',
+      titulo: 'Música en vivo',
       etiqueta: 'En tarima',
       texto:
         'Banda completa en vivo con Felipe Ángel, un show de Jessi Uribe de "Yo Me Llamo" y las mejores canciones para bailar sin parar a cargo de DJ ALEX.',
     },
     {
+      icono: 'bar' as const,
+      titulo: 'Bar',
+      etiqueta: 'Premium',
+      texto:
+        'Cócteles y bebidas seleccionados para brindar y celebrar durante toda la noche.',
+      nota: 'Disponible para la venta',
+    },
+    {
+      icono: 'gastronomia' as const,
+      titulo: 'Experiencia gastronómica',
+      /* El proveedor es "Marmoleo", confirmado por el colegio. El boceto de
+         diseño lo escribía "Marmolejo": esa grafía es la equivocada.
+         `logo` reemplaza la etiqueta de texto por la marca del aliado; el
+         texto se queda como alternativa para lectores de pantalla. */
+      etiqueta: 'Marmoleo',
+      logo: '/images/logos/marmoleo-color.png',
+      texto:
+        'Una propuesta gastronómica impecable para disfrutar con amigos, de la mano de Marmoleo.',
+      nota: 'Disponible para la venta',
+    },
+    {
       icono: 'sorpresas' as const,
-      titulo: 'Sorpresas & Reencuentro',
+      titulo: 'Sorpresas y espacios de reencuentro',
       etiqueta: 'TCS 80',
       texto:
         'Espacios para fotos, diferentes experiencias y momentos especiales para recordar tu paso por el colegio.',
@@ -113,7 +129,7 @@ export const noche = {
   /* Antesala de las tarimas y cierre de la sección */
   eyebrowTarima: 'En tarima · Shows en vivo',
   ctaPregunta: '¿Listo para vivir la noche del año?',
-  cta: 'Asegura tu lugar en la celebración',
+  cta: 'Compra tu entrada aquí',
 };
 
 export const artistas = [
@@ -134,12 +150,18 @@ export const artistas = [
     etiqueta: 'Show especial',
     horario: '1:00 a.m.',
     imagen: '/images/artistas/yo-me-llamo-jessi-uribe.jpg',
+    /* Video del artista. La tarjeta muestra la foto con un botón de play y
+       SOLO descarga el video cuando alguien lo pide: este pesa 8,7 MB y el de
+       la banda 16,7 MB. Cargarlos solos serían 25 MB de datos para quien entra
+       desde el celular a comprar una boleta. */
+    video: '/videos/jessi-uribe.mp4',
   },
   {
     nombre: 'Banda Felipe Ángel',
     etiqueta: 'Banda completa',
     horario: '2:00 a.m.',
     imagen: '/images/artistas/felipe-angel-banda.jpg',
+    video: '/videos/banda-felipe-angel.mp4',
   },
 ];
 
@@ -151,7 +173,7 @@ export const galeria = {
   /* El cierre de la galería es pregunta + botón, en una línea: la pregunta
      es la que empuja, el botón solo dice qué pasa al hacer clic. */
   ctaPregunta: '¿Listo para reencontrarte?',
-  cta: 'Quiero estar en la foto de este año',
+  cta: 'Compra tu entrada aquí',
   /* Pie del carrusel: sin esto nadie descubre que hay más fotos a la
      derecha, porque en escritorio no hay barra de desplazamiento. */
   pistaCarrusel: 'Desliza para ver más recuerdos de ediciones anteriores',
@@ -206,22 +228,25 @@ export const boletas: Boleta[] = [
     id: 'homecoming-80',
     nombre: 'Pase Individual Homecoming 80 Años',
     precio: 80000,
-    /* El comprador paga la tarifa de servicio: $80.000 + $6.634 = $86.634.
-       (Antes iba en 0 porque el acta del comite decia que el colegio asumia
-       los costos financieros; se cambio por pedido del colegio.)
-       Este valor es solo el respaldo que se pinta mientras responde la API; si
-       no coincide con BOLETA_TARIFA_COP del backend, el usuario ve un precio
-       y despues otro. */
-    tarifaServicio: 6634,
+    /* El comprador paga la tarifa de servicio: $80.000 + $7.000 = $87.000.
+       REDONDEADO el 8 de septiembre de 2026 por pedido del colegio: antes eran
+       $6.634, que daban un total de $86.634 y se leía como un precio raro.
+       (Y antes de eso iba en 0, porque el acta del comité decía que el colegio
+       asumía los costos financieros; se cambió por pedido del colegio.)
+
+       OJO: este valor es solo el respaldo que se pinta mientras responde la
+       API. El que se COBRA es BOLETA_TARIFA_COP del backend. Si los dos no
+       coinciden, el usuario ve un precio en la tarjeta y otro en el checkout. */
+    tarifaServicio: 7000,
     personas: 1,
     descripcion: 'Experiencia completa de reencuentro y celebración',
     /* Lista validada por el colegio. Se cayeron a propósito el coctel de
        bienvenida y la estación de comida nocturna, que venían del boceto:
        la boleta no promete consumo. */
     incluye: [
-      'Acceso exclusivo a la Gran Fiesta Homecoming 80 Años',
-      'Música en vivo & DJ Set (Hits generacionales de tus años escolares)',
-      'Parqueadero interno en el campus incluido',
+      'Acceso exclusivo a la fiesta del Homecoming TCS.',
+      'Banda completa con Felipe Ángel + Show de Jessi Uribe (Yo Me Llamo) + Set de DJ ALEX.',
+      'Parqueadero interno en las instalaciones del colegio.',
     ],
     destacada: true,
   },
@@ -271,15 +296,18 @@ export const faq = [
     categoria: 'Boletas y Registro',
     icono: 'boletas' as const,
     preguntas: [
-      {
-        pregunta: '¿Quiénes pueden asistir al evento?',
-        respuesta:
-          'El evento es exclusivo para la comunidad de egresados de The Columbus School.',
-      },
+      /* "¿Quiénes pueden asistir al evento?" la quitó el colegio el 8 de
+         septiembre de 2026. */
       {
         pregunta: '¿Qué incluye el valor de mi boleta?',
-        respuesta:
-          'Tu entrada incluye el acceso general a la fiesta, parqueadero en el campus, shows y la presentación de la orquesta en vivo para celebrar nuestros 80 años.',
+        /* En lista y no en párrafo: son tres cosas concretas y en un solo
+           renglón corrido nadie las cuenta. Es la misma lista que la tarjeta
+           de la boleta, y tienen que decir lo mismo. */
+        respuesta: [
+          'Acceso exclusivo a la fiesta del Homecoming TCS.',
+          'Banda completa con Felipe Ángel + Show de Jessi Uribe (Yo Me Llamo) + Set de DJ ALEX.',
+          'Parqueadero interno en las instalaciones del colegio.',
+        ],
       },
       {
         pregunta: '¿Puedo comprar la boleta en la entrada el día del evento?',
@@ -299,7 +327,9 @@ export const faq = [
     preguntas: [
       {
         pregunta: '¿Cuál es el código de vestimenta (Dress Code)?',
-        respuesta: 'Estilo Coctel. ¡Ven cómodo y listo para bailar toda la noche!',
+        /* El colegio cambió "Estilo Coctel" por esto el 8 de septiembre de
+           2026: deja de fijar un código y lo vuelve una invitación. */
+        respuesta: 'Ponte tu mejor pinta para celebrar.',
       },
       {
         pregunta: '¿Qué debo presentar en la entrada para ingresar?',
@@ -315,26 +345,24 @@ export const cierre = {
   titulo: 'Hay lugares a los que siempre vale la pena regresar.',
   subtitulo:
     'No dejes que te lo cuenten por fotos. Vuelve a vivir la experiencia The Columbus School.',
-  cta: 'Comprar mi boleta ahora',
+  cta: 'Compra tu entrada aquí',
 };
 
 export const contacto = {
   comite: 'Comité Organizador Homecoming 80 Años',
-  /* Instagram y sitio salen del manual de marca. Correo y WhatsApp de soporte
-     al comprador NO están en ningún documento entregado: quedan vacíos a
-     propósito. El Footer oculta solo las filas vacías, así que nadie ve un
-     dato de contacto inventado. */
-  correo: '',
+  /* Instagram y sitio salen del manual de marca.
+     El correo lo definió el colegio el 8 de septiembre de 2026: es el ÚNICO
+     canal de atención. Se descartó WhatsApp a propósito, así que este correo
+     es lo único que tiene alguien cuyo pago no pasó o a quien no le llegó la
+     boleta. Tiene que ser el mismo que SOPORTE_CORREO en el .env del backend,
+     que es el que sale en el pie de los correos y de los PDF. */
+  correo: 'HomecomingTCS@columbus.edu.co',
   telefono: '',
-  /* WhatsApp del botón flotante. Formato internacional, solo dígitos, con
-     indicativo y sin el '+': para Colombia es 57 + el celular.
-     Vacío = el botón no se pinta.
-
-     PROVISIONAL: número de relleno para poder ver el botón mientras el comité
-     define el WhatsApp de soporte. Es una secuencia de ceros a propósito, no
-     un celular real: WhatsApp responde "número no válido" en vez de abrirle
-     el chat a un desconocido. REEMPLAZAR antes de publicar. */
-  whatsapp: '573000000000',
+  /* VACÍO A PROPÓSITO. El colegio decidió el 8 de septiembre de 2026 no usar
+     WhatsApp como canal de atención y centralizar todo en el correo de arriba.
+     El botón flotante ya salió de la página; esto queda vacío para que nadie
+     lo devuelva sin que sea una decisión. */
+  whatsapp: '',
   instagram: '@thecolumbusschool',
   web: 'thecolumbus.school',
 };
@@ -361,6 +389,13 @@ export const imagenes = {
   selloDorado: '/images/piezas/sello-tcs-dorado.png',
   logoHorizontal: '/images/logos/logo_horizontal.png',
   logoVertical: '/images/logos/logo_vertical.png',
+  /* Marmoleo, el aliado gastronómico. A color y con fondo transparente, así
+     que solo sirve sobre superficies claras: su lettering es café oscuro y
+     sobre el navy del sitio desaparecería.
+     El archivo es cuadrado (1080x1080) y el logotipo ocupa solo la banda del
+     centro: por eso donde se usa va recortado, o se vería diminuto rodeado
+     de aire. */
+  logoMarmoleo: '/images/logos/marmoleo-color.png',
   fallback: 'https://placehold.co/800x600/002E5C/C88A12?text=Homecoming',
 };
 
