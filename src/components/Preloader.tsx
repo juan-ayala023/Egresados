@@ -15,6 +15,11 @@ export default function Preloader({ onDone }: { onDone: () => void }) {
   const [saliendo, setSaliendo] = useState(false);
   const [fuera, setFuera] = useState(false);
 
+  /* La cuenta llego a su tope: es el momento del relevo -- el numero se apaga
+     y el logo ocupa su lugar. Se nombra una sola vez porque de esto dependen
+     tres cosas (el numero, el logo y la bajada) y tenian que cambiar juntas. */
+  const llego = n >= evento.aniversario;
+
   useEffect(() => {
     if (sinMovimiento) {
       setFuera(true);
@@ -90,39 +95,50 @@ export default function Preloader({ onDone }: { onDone: () => void }) {
             transition={{ duration: 0.45, ease: ease.out }}
             className="absolute inset-0 z-10 flex flex-col items-center justify-center"
           >
-            {/* Logo del colegio, que entra cuando la cuenta llega a 80.
-                El alto se reserva desde el primer frame aunque este invisible:
-                si apareciera de golpe empujaria el numero hacia abajo y el
-                salto se nota justo en el momento que se quiere lucir. */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{
-                opacity: n >= evento.aniversario ? 1 : 0,
-                y: n >= evento.aniversario ? 0 : 10,
-              }}
-              transition={{ duration: 0.7, ease: ease.out }}
-              className="mb-7 h-[clamp(2rem,5.5vw,3.5rem)]"
-            >
-              <Image
-                src={imagenes.logoHorizontal}
-                alt="The Columbus School"
-                width={1880}
-                height={659}
-                priority
-                className="h-full w-auto"
-              />
-            </motion.div>
+            {/* LA CUENTA SE VE, y al llegar a 80 el numero NO se pinta: en su
+                lugar aparece el logo. Es el remate -- el visitante ve subir los
+                años y lo que cierra la cuenta es la marca del colegio, no un
+                número más.
 
-            <span className="lining font-display font-bold text-[clamp(5rem,20vw,13rem)] leading-none tabular-nums text-bone">
-              {String(n).padStart(2, '0')}
-            </span>
+                Los dos van SUPERPUESTOS en la misma caja (grid + place-items),
+                no uno debajo del otro: así el cambio ocurre en el mismo sitio
+                de la pantalla y nada se mueve al hacer el relevo. La caja
+                reserva el alto del logo desde el primer frame, que es el más
+                alto de los dos. */}
+            <div className="grid w-[min(78vw,720px)] place-items-center">
+              {/* La cuenta. Se apaga justo cuando el logo entra. */}
+              <motion.span
+                animate={{ opacity: llego ? 0 : 1, scale: llego ? 0.9 : 1 }}
+                transition={{ duration: 0.45, ease: ease.out }}
+                className="lining col-start-1 row-start-1 font-display font-bold text-[clamp(5rem,20vw,13rem)] leading-none tabular-nums text-bone"
+              >
+                {String(n).padStart(2, '0')}
+              </motion.span>
+
+              {/* El logo, que ocupa el lugar del "80" que nunca se dibuja. */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.92 }}
+                animate={{ opacity: llego ? 1 : 0, scale: llego ? 1 : 0.92 }}
+                transition={{ duration: 0.9, ease: ease.out, delay: 0.15 }}
+                className="col-start-1 row-start-1 w-full"
+              >
+                <Image
+                  src={imagenes.logoHorizontal}
+                  alt="The Columbus School"
+                  width={1880}
+                  height={659}
+                  priority
+                  className="h-auto w-full"
+                />
+              </motion.div>
+            </div>
             <motion.span
               initial={{ opacity: 0 }}
-              animate={{ opacity: n >= evento.aniversario ? 1 : 0 }}
+              animate={{ opacity: llego ? 1 : 0 }}
               transition={{ duration: 0.4 }}
-              className="mt-6 font-body text-[11px] uppercase tracking-eyebrow text-gold"
+              className="mt-7 font-body text-xs font-bold uppercase tracking-eyebrow text-gold"
             >
-              Años de historia
+              {evento.aniversario} años de historia
             </motion.span>
           </motion.div>
         </div>

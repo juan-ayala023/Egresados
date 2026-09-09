@@ -75,7 +75,7 @@ function Unidad({ valor, label }: { valor: number; label: string }) {
           <Digito key={i} valor={d} />
         ))}
       </div>
-      <div className="mt-2 font-body text-[9px] uppercase tracking-[0.18em] text-muted sm:text-[10px] sm:tracking-eyebrow">{label}</div>
+      <div className="mt-2 font-body text-[9px] font-bold uppercase tracking-[0.18em] text-muted sm:text-[10px] sm:tracking-eyebrow">{label}</div>
     </div>
   );
 }
@@ -207,7 +207,7 @@ export default function Hero({ listo }: { listo: boolean }) {
               quepan en un solo renglón, que era el motivo del cambio. */}
           <motion.div
             variants={subir}
-            className="mt-[clamp(1rem,2.6vh,1.5rem)] inline-flex flex-col gap-y-2.5 rounded-2xl bg-bone px-5 py-3.5 font-body text-sm font-semibold text-ink shadow-[0_18px_40px_-18px_rgba(0,0,0,0.7)] sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-6"
+            className="mt-[clamp(1rem,2.6vh,1.5rem)] inline-flex flex-col gap-y-2.5 rounded-2xl bg-bone px-5 py-3.5 font-body text-sm font-bold text-ink shadow-[0_18px_40px_-18px_rgba(0,0,0,0.7)] sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-6"
           >
             <span className="flex items-center gap-2.5">
               <CalendarDays size={16} className="shrink-0 text-goldDeep" strokeWidth={2} />
@@ -297,7 +297,7 @@ export default function Hero({ listo }: { listo: boolean }) {
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-gold opacity-60" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-gold" />
             </span>
-            <span className="font-body text-xs uppercase tracking-[0.18em] text-bone/70">
+            <span className="font-body text-xs font-bold uppercase tracking-[0.18em] text-bone/70">
               {evento.urgencia}
             </span>
           </div>

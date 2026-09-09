@@ -329,7 +329,7 @@ export default function Checkout({ boleta, cantidad, onClose }: Props) {
                   </button>
                 )}
                 <div>
-                  <p className="font-body text-[10px] uppercase tracking-eyebrow text-gold/70">
+                  <p className="font-body text-[10px] font-bold uppercase tracking-eyebrow text-gold/70">
                     Paso {paso + 1} de {PASOS.length}
                   </p>
                   <h3 className="mt-1 font-display font-bold text-xl text-bone">{PASOS[paso]}</h3>
@@ -384,7 +384,7 @@ export default function Checkout({ boleta, cantidad, onClose }: Props) {
                         <span className="font-display font-bold text-lg text-gold">
                           {String(i + 1).padStart(2, '0')}
                         </span>
-                        <span className="font-body text-[11px] uppercase tracking-[0.16em] text-muted">
+                        <span className="font-body text-[11px] font-bold uppercase tracking-[0.16em] text-muted">
                           {i === 0 ? 'Titular de la compra' : `Acompañante ${i}`}
                         </span>
                         <div className="h-px flex-1 bg-white/[0.08]" />
@@ -482,7 +482,7 @@ export default function Checkout({ boleta, cantidad, onClose }: Props) {
                       piden por asistente: son del responsable del pago. */}
                   <div>
                     <div className="mb-4 flex items-center gap-3">
-                      <span className="font-body text-[11px] uppercase tracking-[0.16em] text-muted">
+                      <span className="font-body text-[11px] font-bold uppercase tracking-[0.16em] text-muted">
                         Datos de facturación
                       </span>
                       <div className="h-px flex-1 bg-white/[0.08]" />
@@ -551,7 +551,7 @@ export default function Checkout({ boleta, cantidad, onClose }: Props) {
                     )}
 
                     <div className="flex items-baseline justify-between">
-                      <span className="font-body text-[11px] uppercase tracking-[0.16em] text-muted">
+                      <span className="font-body text-[11px] font-bold uppercase tracking-[0.16em] text-muted">
                         Total a pagar
                       </span>
                       <span className="lining font-display font-bold text-3xl text-gold">{formatoCOP(total)}</span>

@@ -233,7 +233,7 @@ export default function Panel() {
                   : 'border-white/10 bg-white/[0.03]'
               }`}
             >
-              <div className="font-body text-[11px] uppercase tracking-[0.16em] text-muted">
+              <div className="font-body text-[11px] font-bold uppercase tracking-[0.16em] text-muted">
                 {etiqueta}
               </div>
               <div className="mt-1 font-display text-2xl text-bone tabular-nums">{valor}</div>
@@ -277,7 +277,7 @@ export default function Panel() {
               }`}
             >
               <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                <span className="font-body text-[11px] uppercase tracking-[0.16em] text-muted">
+                <span className="font-body text-[11px] font-bold uppercase tracking-[0.16em] text-muted">
                   {al.nivel === 'critico' ? 'Crítico' : 'Aviso'}
                 </span>
                 <span className="font-body text-sm font-semibold text-bone">{al.tipo}</span>
@@ -356,7 +356,7 @@ export default function Panel() {
           <div className="mt-4 overflow-x-auto rounded-lg border border-white/[0.08]">
             <table className="w-full min-w-[720px] border-collapse font-body text-sm">
               <thead>
-                <tr className="border-b border-white/[0.08] text-left text-[11px] uppercase tracking-[0.14em] text-muted">
+                <tr className="border-b border-white/[0.08] text-left text-[11px] font-bold uppercase tracking-[0.14em] text-muted">
                   <th className="px-4 py-3 font-medium">Referencia</th>
                   <th className="px-4 py-3 font-medium">Comprador</th>
                   <th className="px-4 py-3 font-medium">Promoción</th>
@@ -444,7 +444,7 @@ export default function Panel() {
           <div className="mt-5 overflow-x-auto">
             <table className="w-full min-w-[640px] border-collapse font-body text-sm">
               <thead>
-                <tr className="border-b border-white/10 text-left text-[11px] uppercase tracking-[0.16em] text-muted">
+                <tr className="border-b border-white/10 text-left text-[11px] font-bold uppercase tracking-[0.16em] text-muted">
                   <th className="py-2 pr-4">Referencia</th>
                   <th className="py-2 pr-4">Comprador</th>
                   <th className="py-2 pr-4">Estado</th>
@@ -516,7 +516,7 @@ export default function Panel() {
             </p>
           )}
 
-          <h3 className="mt-6 font-body text-[11px] uppercase tracking-[0.16em] text-muted">
+          <h3 className="mt-6 font-body text-[11px] font-bold uppercase tracking-[0.16em] text-muted">
             Asistentes y boletas
           </h3>
           <ul className="mt-2 space-y-1 font-body text-sm text-bone/80">

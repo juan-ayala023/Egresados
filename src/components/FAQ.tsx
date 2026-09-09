@@ -157,12 +157,24 @@ export default function FAQ() {
           nada y un enlace mailto vacío: misma regla que el Footer y el botón
           de WhatsApp, antes un hueco que un dato inventado. */}
       {contacto.correo && (
-        <p className="mt-10 text-center font-body text-[13px] text-muted">
-          ¿Otra pregunta? Escríbenos a{' '}
-          <a href={`mailto:${contacto.correo}`} className="text-gold underline-offset-4 hover:underline">
+        /* Grande a propósito: este correo es el ÚNICO canal de atención
+           -- el colegio descartó WhatsApp -- así que es lo único que tiene
+           alguien cuyo pago no pasó o a quien no le llegó la boleta. En
+           letra chica de pie de página nadie lo encontraba. */
+        <div className="mx-auto mt-12 max-w-2xl rounded-lg border border-gold/25 bg-gold/[0.06] px-6 py-7 text-center">
+          <p className="font-display text-lg font-bold text-bone sm:text-xl">
+            ¿Tienes otra pregunta?
+          </p>
+          <p className="mt-2 font-body text-sm text-bone/70">
+            Escríbenos y te respondemos.
+          </p>
+          <a
+            href={`mailto:${contacto.correo}`}
+            className="mt-4 inline-block font-body text-base font-bold text-gold underline decoration-gold/40 underline-offset-[6px] transition-colors hover:text-goldSoft sm:text-lg"
+          >
             {contacto.correo}
           </a>
-        </p>
+        </div>
       )}
     </section>
   );

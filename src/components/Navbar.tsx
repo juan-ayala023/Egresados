@@ -89,7 +89,7 @@ export default function Navbar({ listo }: { listo: boolean }) {
               <li key={l.href}>
                 <a
                   href={l.href}
-                  className="group relative font-body text-[13px] font-medium uppercase tracking-[0.14em] text-white/90 transition-colors hover:text-gold"
+                  className="group relative font-body text-[13px] font-bold uppercase tracking-[0.14em] text-white/90 transition-colors hover:text-gold"
                 >
                   {l.label}
                   <span className="absolute -bottom-1.5 left-0 h-px w-full origin-right scale-x-0 bg-gold transition-transform duration-500 ease-out group-hover:origin-left group-hover:scale-x-100" />
@@ -103,7 +103,7 @@ export default function Navbar({ listo }: { listo: boolean }) {
               href="#boletas"
               className="cursor-pointer whitespace-nowrap rounded-full bg-gold px-4 py-2 font-body text-[11px] font-bold uppercase tracking-[0.1em] text-ink transition-all hover:bg-goldSoft sm:px-5 sm:py-2.5 sm:text-[12px] sm:tracking-[0.12em]"
             >
-              Compra tu entrada aquí
+              Compra tu boleta aquí
             </a>
 
             {/* Área táctil de 44px, el mínimo recomendado para el pulgar. */}
@@ -200,9 +200,9 @@ export default function Navbar({ listo }: { listo: boolean }) {
                   onClick={() => setMenu(false)}
                   className="btn-gold w-full"
                 >
-                  Compra tu entrada aquí
+                  Compra tu boleta aquí
                 </a>
-                <p className="mt-4 text-center font-body text-[11px] uppercase tracking-[0.16em] text-muted">
+                <p className="mt-4 text-center font-body text-[11px] font-bold uppercase tracking-[0.16em] text-muted">
                   {evento.fechaTexto}
                 </p>
               </motion.div>

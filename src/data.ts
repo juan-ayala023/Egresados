@@ -21,7 +21,7 @@ export const evento = {
   tituloHero: ['Volver a donde las mejores', 'historias comenzaron.'],
   descripcion:
     '80 años de legado, amistades inolvidables y momentos compartidos. Este es el reencuentro de la gran familia Columbus School. ¿Vas a dejar que te lo cuenten?',
-  ctaPrincipal: 'Compra tu entrada aquí',
+  ctaPrincipal: 'Compra tu boleta aquí',
   /* SIN USAR desde el 8 de septiembre de 2026: el colegio pidió quitar el
      segundo botón del hero para dejar una sola acción. Se conserva el texto
      por si se quiere devolver; el menú de arriba sigue llevando a esa
@@ -66,7 +66,7 @@ export const historia = {
     'Cumplir 80 años no pasa todos los días: esta noche celebramos nuestro pasado, nuestro presente y la huella que cada generación dejó en la historia del colegio.',
   ],
   cierre: '¡Asegura tu boleta, invita a tus compañeros y celebremos juntos este gran legado!',
-  cta: 'Compra tu entrada aquí',
+  cta: 'Compra tu boleta aquí',
   /* Las cifras 80 / 62 salieron de esta sección por pedido del colegio. De
      paso resuelve el pendiente: la de 62 promociones venía del boceto y
      nadie la había validado. */
@@ -95,7 +95,7 @@ export const noche = {
       titulo: 'Música en vivo',
       etiqueta: 'En tarima',
       texto:
-        'Banda completa en vivo con Felipe Ángel, un show de Jessi Uribe de "Yo Me Llamo" y las mejores canciones para bailar sin parar a cargo de DJ ALEX.',
+        'Banda completa en vivo de Felipe Ángel, show de Jessi Uribe de "Yo Me Llamo" y las mejores canciones para bailar sin parar a cargo de DJ ALEX.',
     },
     {
       icono: 'bar' as const,
@@ -129,7 +129,7 @@ export const noche = {
   /* Antesala de las tarimas y cierre de la sección */
   eyebrowTarima: 'En tarima · Shows en vivo',
   ctaPregunta: '¿Listo para vivir la noche del año?',
-  cta: 'Compra tu entrada aquí',
+  cta: 'Compra tu boleta aquí',
 };
 
 export const artistas = [
@@ -173,7 +173,7 @@ export const galeria = {
   /* El cierre de la galería es pregunta + botón, en una línea: la pregunta
      es la que empuja, el botón solo dice qué pasa al hacer clic. */
   ctaPregunta: '¿Listo para reencontrarte?',
-  cta: 'Compra tu entrada aquí',
+  cta: 'Compra tu boleta aquí',
   /* Pie del carrusel: sin esto nadie descubre que hay más fotos a la
      derecha, porque en escritorio no hay barra de desplazamiento. */
   pistaCarrusel: 'Desliza para ver más recuerdos de ediciones anteriores',
@@ -317,7 +317,7 @@ export const faq = [
       {
         pregunta: '¿Puedo transferir mi boleta si no puedo asistir?',
         respuesta:
-          'Las boletas no son reembolsables. Sin embargo, si necesitas transferir tu entrada a otro egresado, puedes contactar al equipo de soporte oficial con anticipación para actualizar los datos de ingreso.',
+          'Las boletas no son reembolsables. Sin embargo, si necesitas transferir tu boleta a otro egresado, puedes contactar al equipo de soporte oficial con anticipación para actualizar los datos de ingreso.',
       },
     ],
   },
@@ -345,7 +345,7 @@ export const cierre = {
   titulo: 'Hay lugares a los que siempre vale la pena regresar.',
   subtitulo:
     'No dejes que te lo cuenten por fotos. Vuelve a vivir la experiencia The Columbus School.',
-  cta: 'Compra tu entrada aquí',
+  cta: 'Compra tu boleta aquí',
 };
 
 export const contacto = {

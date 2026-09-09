@@ -1,12 +1,12 @@
 'use client';
 
 import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import Photo from './Photo';
 import Reveal from './Reveal';
 import RevealText from './RevealText';
 import Magnetic from './Magnetic';
-import { enVista, subir, escalonar } from '@/lib/motion';
+import { dur, enVista, subir, escalonar } from '@/lib/motion';
 import { historia, evento, imagenes } from '@/data';
 
 /* ESTA SECCIÓN VA EN CLARO, a propósito.
@@ -22,6 +22,63 @@ import { historia, evento, imagenes } from '@/data';
    obligaba a bajar para ver el resto. Si se quiere devolver, esta en el
    historial de git. */
 
+/* Cinta de años: una fila corre hacia la izquierda y la otra hacia la derecha.
+   El colegio pidió CONSERVARLA -- se había borrado por error al recortar los
+   espacios de la sección, y lo que se pedía era recortar, no quitar.
+
+   Se pausa con el cursor encima para poder buscar tu año, y con
+   `prefers-reduced-motion` no se mueve. Los márgenes van recortados respecto
+   al diseño original para que la sección entre completa sin hacer scroll. */
+function CintaPromociones() {
+  const sinMovimiento = useReducedMotion();
+  const anos = Array.from({ length: evento.aniversario - 18 }, (_, i) => evento.fundacion + 18 + i);
+  const [pausa, setPausa] = useState(false);
+
+  const Fila = ({ dir }: { dir: 1 | -1 }) => (
+    <div className="flex overflow-hidden">
+      <motion.div
+        animate={sinMovimiento || pausa ? {} : { x: dir === 1 ? ['0%', '-50%'] : ['-50%', '0%'] }}
+        transition={{ duration: 55, repeat: Infinity, ease: 'linear' }}
+        className="flex shrink-0 gap-7 pr-7"
+      >
+        {[...anos, ...anos].map((a, i) => (
+          <span
+            key={`${a}-${i}`}
+            /* Azul de marca al 22%, NO bone: esta seccion es de fondo claro y
+               la cinta venia disenada de cuando era oscura -- los anios eran
+               blanco sobre blanco y no se veia ninguno. */
+            className="shrink-0 cursor-default font-display font-bold text-xl tabular-nums text-brand/[0.22] transition-colors duration-200 hover:text-goldDeep sm:text-2xl"
+          >
+            {a}
+          </span>
+        ))}
+      </motion.div>
+    </div>
+  );
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={enVista}
+      transition={{ duration: dur.slow }}
+      onMouseEnter={() => setPausa(true)}
+      onMouseLeave={() => setPausa(false)}
+      className="relative mt-6 space-y-1.5 py-1.5"
+    >
+      {/* Desvanecido en los bordes, del color DE ESTA seccion. Con from-ink
+          se pintaban dos franjas oscuras sobre el fondo claro. */}
+      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r from-bone to-transparent sm:w-40" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-bone to-transparent sm:w-40" />
+      <Fila dir={1} />
+      <Fila dir={-1} />
+      <p className="pt-3 text-center font-body text-[10.5px] font-bold uppercase tracking-eyebrow text-grayBrand">
+        Cada promoción que salió por esa puerta
+      </p>
+    </motion.div>
+  );
+}
+
 export default function Historia() {
   const ref = useRef<HTMLDivElement>(null);
   const sinMovimiento = useReducedMotion();
@@ -33,8 +90,15 @@ export default function Historia() {
       {/* Respiro recortado: era py-24/py-32 (96 y 128px). El colegio pidió que
           la sección se vea completa sin bajar, y ese aire de arriba y abajo
           era lo que la empujaba fuera de pantalla. */}
-      <div className="relative mx-auto max-w-7xl px-6 py-14 md:py-16">
-        <div ref={ref} className="grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
+      {/* Cierra mas apretado de lo que abre: arriba respira donde arranca el
+          titular, abajo ya no hay nada que respire -- solo la cinta y el borde
+          con la siguiente seccion. Es lo que permite ver la seccion entera de
+          un vistazo, sin scroll. */}
+      <div className="relative mx-auto max-w-7xl px-6 pt-10 pb-6 md:pt-12 md:pb-8">
+        <div ref={ref} /* La foto se lleva MÁS columna que el texto (antes era al revés). El
+           colegio veía un vacío a la derecha: los años que llenaban ese lado se
+           habían quitado y la foto quedaba corta para el espacio que le tocaba. */
+        className="grid items-center gap-8 lg:grid-cols-[1.15fr_1fr] lg:gap-12">
           <div>
             <motion.p
               variants={subir}
@@ -52,7 +116,7 @@ export default function Historia() {
             <RevealText
               texto={historia.titulo}
               as="h2"
-              className="mt-5 font-display text-[clamp(2.2rem,5vw,3.6rem)] font-bold leading-[1.05] tracking-[-0.015em] text-brand"
+              className="mt-4 font-display text-[clamp(2rem,4.2vw,3rem)] font-bold leading-[1.05] tracking-[-0.015em] text-brand"
               acento={[4, 5]}
               claseAcento="text-goldDeep"
             />
@@ -62,11 +126,11 @@ export default function Historia() {
               initial="oculto"
               whileInView="visible"
               viewport={enVista}
-              className="mt-7 space-y-5"
+              className="mt-5 space-y-4"
             >
               <motion.p
                 variants={subir}
-                className="max-w-xl font-body text-[17px] font-semibold leading-relaxed text-brand"
+                className="max-w-xl font-body text-[16px] font-bold leading-relaxed text-brand lg:max-w-none"
               >
                 {historia.entrada}
               </motion.p>
@@ -75,7 +139,7 @@ export default function Historia() {
                 <motion.p
                   key={i}
                   variants={subir}
-                  className="max-w-xl font-body text-[15px] leading-[1.85] text-grayBrand"
+                  className="max-w-xl font-body text-[14.5px] leading-[1.75] text-grayBrand lg:max-w-none"
                 >
                   {p}
                 </motion.p>
@@ -86,9 +150,9 @@ export default function Historia() {
                   del cuerpo. */}
               <motion.div
                 variants={subir}
-                className="max-w-xl border-y border-r border-brand/10 border-l-[3px] border-l-gold bg-white px-6 py-5"
+                className="max-w-xl border-y border-r border-brand/10 border-l-[3px] border-l-gold bg-white px-5 py-4 lg:max-w-none"
               >
-                <p className="font-body text-[15px] font-semibold leading-relaxed text-brand">
+                <p className="font-body text-[14.5px] font-bold leading-snug text-brand">
                   {historia.cierre}
                 </p>
               </motion.div>
@@ -106,7 +170,15 @@ export default function Historia() {
               ventana: en un portátil bajo se recorta un poco por arriba y
               por abajo (la imagen va con object-cover) en vez de empujar la
               sección fuera de la pantalla. */}
-          <Reveal className="group relative aspect-[4/5] overflow-hidden rounded-xl border border-brand/15 lg:max-h-[62vh]">
+          <Reveal /* TECHO DE ALTO, y es lo que hace que la seccion quepa en una pantalla.
+              La foto es 4:5: en una columna de 600px mide 750px de alto, mas que
+              la pantalla ella sola, y empujaba la cinta fuera de vista.
+
+              Con el techo la caja se vuelve mas baja que 4:5 y `object-cover`
+              recorta arriba y abajo -- NO deja aire a los lados, que era lo que
+              el colegio veia antes: eso lo causaba el reparto de columnas, ya
+              corregido. */
+            className="group relative aspect-[4/5] overflow-hidden rounded-xl border border-brand/15 lg:aspect-auto lg:h-[54vh] lg:min-h-[380px]">
             <motion.div
               style={sinMovimiento ? undefined : { y: fotoY }}
               className="absolute inset-[-8%] will-change-transform"
@@ -134,6 +206,8 @@ export default function Historia() {
           </Reveal>
         </div>
       </div>
+
+        <CintaPromociones />
     </section>
   );
 }

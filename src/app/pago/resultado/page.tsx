@@ -224,7 +224,7 @@ export default function ResultadoPago() {
                     href={b.pdfUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-3 inline-flex items-center gap-2 font-body text-[11px] uppercase tracking-[0.14em] text-muted transition-colors hover:text-gold"
+                    className="mt-3 inline-flex items-center gap-2 font-body text-[11px] font-bold uppercase tracking-[0.14em] text-muted transition-colors hover:text-gold"
                   >
                     <Download size={13} strokeWidth={1.5} />
                     Descargar
@@ -242,7 +242,7 @@ export default function ResultadoPago() {
                 ['Lugar', evento.lugar],
               ].map(([k, v]) => (
                 <div key={k} className="flex justify-between gap-4">
-                  <span className="font-body text-[11px] uppercase tracking-[0.14em] text-muted">{k}</span>
+                  <span className="font-body text-[11px] font-bold uppercase tracking-[0.14em] text-muted">{k}</span>
                   <span className="text-right font-body text-[13px] text-bone/85">{v}</span>
                 </div>
               ))}
@@ -275,7 +275,7 @@ export default function ResultadoPago() {
                 ? 'Pasaron más de 20 minutos sin confirmar el pago y liberamos los cupos. Puedes volver a intentarlo.'
                 : 'No se hizo ningún cobro. Puedes intentar de nuevo con otro medio de pago.'}
             </p>
-            <p className="mt-5 font-body text-[11px] uppercase tracking-[0.14em] text-muted">
+            <p className="mt-5 font-body text-[11px] font-bold uppercase tracking-[0.14em] text-muted">
               Orden {orden.referencia}
             </p>
           </>
@@ -292,7 +292,7 @@ export default function ResultadoPago() {
               Tu pago puede estar en proceso. Si se aprueba te llega el correo con las
               boletas. Guarda esta referencia por si necesitas escribirnos.
             </p>
-            <p className="mt-5 font-body text-[11px] uppercase tracking-[0.14em] text-gold">
+            <p className="mt-5 font-body text-[11px] font-bold uppercase tracking-[0.14em] text-gold">
               {referencia.current}
             </p>
             <button onClick={reintentar} className="btn-ghost mt-7 !py-3 !text-[11px]">
@@ -331,7 +331,7 @@ export default function ResultadoPago() {
 
         <a
           href="/"
-          className="mt-9 inline-flex items-center gap-2 font-body text-[11px] uppercase tracking-[0.14em] text-muted transition-colors hover:text-gold"
+          className="mt-9 inline-flex items-center gap-2 font-body text-[11px] font-bold uppercase tracking-[0.14em] text-muted transition-colors hover:text-gold"
         >
           <ArrowLeft size={13} strokeWidth={1.5} />
           Volver al inicio

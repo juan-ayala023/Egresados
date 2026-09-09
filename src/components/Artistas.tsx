@@ -93,7 +93,7 @@ function Tarjeta({ a, i }: { a: (typeof artistas)[number]; i: number }) {
               <div className="absolute -inset-x-full top-0 h-full -translate-x-full skew-x-[-18deg] bg-gradient-to-r from-transparent via-gold/15 to-transparent transition-transform duration-[1100ms] ease-out group-hover:translate-x-full" />
             </div>
 
-            <span className="absolute left-4 top-4 rounded-sm bg-bone/90 px-2.5 py-1 font-body text-[10px] font-semibold uppercase tracking-[0.14em] text-brand">
+            <span className="absolute left-4 top-4 rounded-sm bg-bone/90 px-2.5 py-1 font-body text-[10px] font-bold uppercase tracking-[0.14em] text-brand">
               {a.etiqueta}
             </span>
 
@@ -228,7 +228,7 @@ export default function Artistas() {
                     </span>
                   ) : (
                     <span
-                      className={`shrink-0 rounded-sm px-2 py-1 font-body text-[9px] font-semibold uppercase tracking-[0.14em] ${c.chip}`}
+                      className={`shrink-0 rounded-sm px-2 py-1 font-body text-[9px] font-bold uppercase tracking-[0.14em] ${c.chip}`}
                     >
                       {b.etiqueta}
                     </span>

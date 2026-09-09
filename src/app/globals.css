@@ -81,7 +81,12 @@ body {
      parrafos largos se emplastan y compiten con los titulos, que son los que
      el manual de marca reserva para el Bold.
      Si se quiere el Bold puro, este 600 pasa a 700 y ya. */
-  font-weight: 600;
+  /* NEGRILLA PLENA en todo el cuerpo. Iba en 600 (semi) y el colegio veia los
+     parrafos apagados frente a los titulares. Al subir esto hubo que subir
+     tambien los `font-semibold` sueltos de las secciones: si no, lo que estaba
+     marcado como MAS destacado quedaba mas claro que el parrafo normal y la
+     jerarquia se invertia. */
+  font-weight: 700;
 }
 
 /* Todo lo que se pueda pulsar avisa que se puede pulsar. Los <a> con href ya
@@ -127,13 +132,18 @@ body::after {
 
 @layer components {
   .eyebrow {
-    @apply font-body text-[11px] font-bold uppercase tracking-eyebrow text-gold/70;
+    /* Dorado ENTERO, no al 70%: el colegio los veía apagados. Ya estaban en
+       negrilla -- lo que los hacía desaparecer era la transparencia. */
+    @apply font-body text-[11.5px] font-bold uppercase tracking-eyebrow text-gold;
   }
 
   /* Misma etiqueta para las secciones de fondo claro: el 139C al 70% sobre
      --bone se borra, así que va el dorado profundo y sin transparencia. */
   .eyebrow-claro {
-    @apply font-body text-[11px] font-bold uppercase tracking-eyebrow text-goldDeep;
+    /* Mismo cuerpo que .eyebrow: son la misma pieza, solo cambia el fondo.
+       Dejarlos de distinto tamano se notaba al pasar de una seccion oscura a
+       una clara. */
+    @apply font-body text-[11.5px] font-bold uppercase tracking-eyebrow text-goldDeep;
   }
 
   .gold-rule {

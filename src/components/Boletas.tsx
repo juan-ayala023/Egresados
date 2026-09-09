@@ -91,12 +91,12 @@ function Tarjeta({
       />
 
       {b.destacada && !agotada && (
-        <span className="absolute -top-3 left-8 rounded-full bg-gold px-4 py-1 font-body text-[10px] font-semibold uppercase tracking-[0.14em] text-ink">
+        <span className="absolute -top-3 left-8 rounded-full bg-gold px-4 py-1 font-body text-[10px] font-bold uppercase tracking-[0.14em] text-ink">
           Más elegida
         </span>
       )}
       {agotada && (
-        <span className="absolute -top-3 left-8 rounded-full border border-brand/20 bg-bone px-4 py-1 font-body text-[10px] font-semibold uppercase tracking-[0.14em] text-grayBrand">
+        <span className="absolute -top-3 left-8 rounded-full border border-brand/20 bg-bone px-4 py-1 font-body text-[10px] font-bold uppercase tracking-[0.14em] text-grayBrand">
           {ventaAbierta ? 'Agotada' : 'Venta cerrada'}
         </span>
       )}
@@ -112,7 +112,7 @@ function Tarjeta({
         <span className="lining font-display font-bold text-[2.6rem] leading-none text-brand">
           {formatoCOP(totalPorBoleta(b))}
         </span>
-        <span className="ml-2 font-body text-xs uppercase tracking-[0.14em] text-grayBrand">
+        <span className="ml-2 font-body text-xs font-bold uppercase tracking-[0.14em] text-grayBrand">
           {b.personas > 1 ? `/ ${b.personas} personas` : '/ persona'}
         </span>
 
@@ -126,7 +126,7 @@ function Tarjeta({
               <dt className="text-grayBrand">Tarifa de servicio</dt>
               <dd className="tabular-nums text-brand/80">{formatoCOP(b.tarifaServicio)}</dd>
             </div>
-            <div className="flex justify-between gap-4 border-t border-brand/10 pt-2.5 font-semibold">
+            <div className="flex justify-between gap-4 border-t border-brand/10 pt-2.5 font-bold">
               <dt className="text-brand">Total a pagar</dt>
               <dd className="tabular-nums text-brand">{formatoCOP(totalPorBoleta(b))}</dd>
             </div>
@@ -138,7 +138,7 @@ function Tarjeta({
         {b.incluye.map((item) => (
           <li
             key={item}
-            className="flex items-start gap-3 font-body text-[14px] font-medium leading-snug text-brand/90"
+            className="flex items-start gap-3 font-body text-[14px] font-bold leading-snug text-brand/90"
           >
             <Check size={15} className="mt-0.5 shrink-0 text-goldDeep" strokeWidth={2.5} />
             {item}
@@ -159,7 +159,7 @@ function Tarjeta({
           >
             <Minus size={14} strokeWidth={2} />
           </button>
-          <span className="w-8 text-center font-body text-sm font-semibold tabular-nums text-brand">
+          <span className="w-8 text-center font-body text-sm font-bold tabular-nums text-brand">
             {cantidad}
           </span>
           <button
@@ -176,7 +176,7 @@ function Tarjeta({
           whileTap={agotada ? undefined : { scale: 0.97 }}
           onClick={() => onComprar(b, cantidad)}
           disabled={agotada}
-          className={`flex-1 rounded-full px-6 py-4 font-body text-[12px] font-semibold uppercase tracking-[0.12em] transition-all duration-300 ${
+          className={`flex-1 rounded-full px-6 py-4 font-body text-[12px] font-bold uppercase tracking-[0.12em] transition-all duration-300 ${
             agotada
               ? 'cursor-not-allowed border border-brand/15 text-grayBrand'
               : b.destacada
@@ -184,7 +184,7 @@ function Tarjeta({
               : 'border border-brand/30 text-brand hover:border-gold hover:text-goldDeep'
           }`}
         >
-          {agotada ? (ventaAbierta ? 'Agotada' : 'Cerrada') : 'Compra tu entrada aquí'}
+          {agotada ? (ventaAbierta ? 'Agotada' : 'Cerrada') : 'Compra tu boleta aquí'}
         </motion.button>
       </div>
     </motion.div>

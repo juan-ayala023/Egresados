@@ -1,93 +1,26 @@
 'use client';
 
 import { Instagram, Mail, Phone, MapPin, CalendarDays, Clock } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { cierre, contacto, evento } from '@/data';
-import RevealText from './RevealText';
-import Magnetic from './Magnetic';
-import { enVista, subir } from '@/lib/motion';
+import { contacto, evento } from '@/data';
 
 /* EL PIE VA EN CLARO, como historia y boletería.
-   Es el último empujón a la compra y también la letra chica legal: las dos
-   cosas se leen mejor sobre claro. Sobre --bone el 139C no contrasta como
-   letra, así que los textos dorados van en --gold-deep y el 139C se queda
-   donde es relleno: el botón y el punto de la línea de urgencia. */
+   Desde el 9 de septiembre de 2026 es SOLO datos de contacto y letra chica
+   legal: el bloque de cierre con el titular y el botón se quitó porque
+   repetía lo que ya está arriba. La página cierra en las preguntas.
+
+   Sobre --bone el 139C no contrasta como letra, así que los textos dorados
+   van en --gold-deep. */
 
 export default function Footer() {
   return (
     <footer className="relative bg-bone">
-      <div className="mx-auto max-w-3xl px-6 py-14 text-center md:py-16">
-        <RevealText
-          texto={cierre.titulo}
-          as="h2"
-          className="font-display text-[clamp(1.9rem,4.4vw,3rem)] font-bold leading-[1.12] tracking-[-0.02em] text-brand"
-          acento={[9]}
-          claseAcento="text-goldDeep"
-          gap={0.07}
-        />
+      {/* SIN bloque de cierre. El colegio lo pidió quitar el 9 de septiembre de
+          2026: repetía el titular, la promesa y el mismo botón que ya están
+          arriba, y la página terminaba diciendo dos veces lo mismo. Ahora
+          cierra en las preguntas frecuentes y el pie queda solo con los datos.
 
-        <motion.p
-          variants={subir}
-          initial="oculto"
-          whileInView="visible"
-          viewport={enVista}
-          className="mx-auto mt-5 max-w-xl font-body text-[15px] leading-relaxed text-grayBrand"
-        >
-          {cierre.subtitulo}
-        </motion.p>
-
-        {/* Los datos duros del evento en una pastilla, no en una línea corrida
-            de texto gris: es el último sitio donde alguien confirma cuándo y
-            dónde antes de comprar. */}
-        <motion.div
-          variants={subir}
-          initial="oculto"
-          whileInView="visible"
-          viewport={enVista}
-          className="mx-auto mt-7 inline-flex flex-col items-center gap-y-2.5 rounded-2xl border border-brand/12 bg-white px-6 py-3.5 font-body text-[13.5px] font-medium text-brand sm:flex-row sm:gap-x-5"
-        >
-          <span className="flex items-center gap-2">
-            <CalendarDays size={15} className="shrink-0 text-goldDeep" strokeWidth={1.75} />
-            {evento.fechaTexto}
-          </span>
-          <span aria-hidden className="hidden h-3.5 w-px bg-brand/15 sm:block" />
-          <span className="flex items-center gap-2">
-            <MapPin size={15} className="shrink-0 text-goldDeep" strokeWidth={1.75} />
-            {evento.lugar}
-          </span>
-          <span aria-hidden className="hidden h-3.5 w-px bg-brand/15 sm:block" />
-          <span className="flex items-center gap-2">
-            <Clock size={15} className="shrink-0 text-goldDeep" strokeWidth={1.75} />
-            {evento.horaTexto}
-          </span>
-        </motion.div>
-
-        <motion.div
-          variants={subir}
-          initial="oculto"
-          whileInView="visible"
-          viewport={enVista}
-          className="mt-9"
-        >
-          <Magnetic href="#boletas" className="btn-gold">
-            {cierre.cta}
-          </Magnetic>
-        </motion.div>
-
-        <motion.p
-          variants={subir}
-          initial="oculto"
-          whileInView="visible"
-          viewport={enVista}
-          className="mt-6 flex items-center justify-center gap-2.5 font-body text-[12px] font-semibold uppercase tracking-[0.16em] text-goldDeep"
-        >
-          <span aria-hidden className="relative flex h-2.5 w-2.5 shrink-0">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-gold opacity-60" />
-            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-gold" />
-          </span>
-          {evento.urgencia}
-        </motion.p>
-      </div>
+          Los textos siguen en `cierre` dentro de data.ts por si se quiere
+          devolver; no se borran de ahí para no perder la redacción. */}
 
       {/* Datos.
           Sin logotipo: el único archivo que hay es la versión sobre fondo
@@ -121,7 +54,7 @@ export default function Footer() {
                 {contacto.telefono}
               </a>
             )}
-            <span className="flex items-center gap-2.5 font-body text-[13px] font-medium text-brand">
+            <span className="flex items-center gap-2.5 font-body text-[13px] font-bold text-brand">
               <Instagram size={14} strokeWidth={1.75} />
               {contacto.instagram}
             </span>

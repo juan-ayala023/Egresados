@@ -216,12 +216,10 @@ export default function Galeria() {
               <div className="absolute inset-0 bg-gold/[0.08] mix-blend-overlay" />
               <div className="absolute inset-0 border border-white/10 transition-colors duration-500 group-hover:border-gold/40" />
 
-              {/* Pie que sube al pasar el cursor */}
-              <span className="absolute inset-x-0 bottom-0 translate-y-full bg-gradient-to-t from-ink/95 to-transparent px-4 pb-4 pt-10 text-left transition-transform duration-500 ease-out group-hover:translate-y-0 [@media(hover:none)]:translate-y-0">
-                <span className="block font-body text-[11px] uppercase leading-relaxed tracking-[0.14em] text-bone/85">
-                  {f.alt}
-                </span>
-              </span>
+              {/* SIN pie de foto al pasar el cursor: el colegio lo pidió quitar,
+                  quiere la foto sola. El texto de `alt` sigue existiendo en la
+                  imagen para lectores de pantalla y para el visor, así que no
+                  se pierde la descripción, solo deja de taparla. */}
 
               <span className="absolute right-3 top-3 flex h-8 w-8 scale-75 items-center justify-center rounded-full bg-ink/70 opacity-0 backdrop-blur-sm transition-all duration-500 group-hover:scale-100 group-hover:opacity-100">
                 <Expand size={14} className="text-gold" strokeWidth={1.5} />
@@ -245,7 +243,7 @@ export default function Galeria() {
                 />
               ))}
             </div>
-            <p className="font-body text-[11px] uppercase tracking-[0.14em] text-muted">
+            <p className="font-body text-[11px] font-bold uppercase tracking-[0.14em] text-bone/90">
               {galeria.pistaCarrusel}
             </p>
           </div>
@@ -340,7 +338,7 @@ export default function Galeria() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2, duration: dur.base, ease: ease.out }}
-                className="mt-4 flex items-center justify-between gap-4 font-body text-xs uppercase tracking-[0.14em] text-muted"
+                className="mt-4 flex items-center justify-between gap-4 font-body text-xs font-bold uppercase tracking-[0.14em] text-muted"
               >
                 <span>{galeria.fotos[abierta].alt}</span>
                 <span className="shrink-0 tabular-nums text-gold">

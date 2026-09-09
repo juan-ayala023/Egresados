@@ -244,11 +244,11 @@ export default function Puerta() {
 
         <div className="mt-4 flex flex-wrap gap-3">
           <button onClick={bajarLista} type="button"
-            className="rounded-full border border-white/30 px-5 py-2 font-body text-xs uppercase tracking-[0.12em] text-white">
+            className="rounded-full border border-white/30 px-5 py-2 font-body text-xs font-bold uppercase tracking-[0.12em] text-white">
             Descargar lista
           </button>
           <button onClick={subirCola} type="button"
-            className="rounded-full border border-white/30 px-5 py-2 font-body text-xs uppercase tracking-[0.12em] text-white">
+            className="rounded-full border border-white/30 px-5 py-2 font-body text-xs font-bold uppercase tracking-[0.12em] text-white">
             Subir escaneos ({cola})
           </button>
         </div>
