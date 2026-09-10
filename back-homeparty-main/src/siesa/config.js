@@ -57,7 +57,7 @@ let pool = null
  * Se reusa un solo pool porque abrir una conexion a SQL Server es caro y en
  * temporada de venta esto se llamaria una vez por factura.
  */
-async function conectar() {
+export async function conectar() {
   if (pool?.connected) return pool
 
   const { host, puerto, baseDatos, usuario, clave } = config.siesa

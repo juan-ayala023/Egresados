@@ -21,6 +21,7 @@ import { config } from '../src/config.js'
 import { buscarPorReferencia, compradorDe } from '../src/servicios/ordenes.js'
 import { leerConfiguracionSiesa, cerrarConexion } from '../src/siesa/config.js'
 import { armarFactura, armarRecibo, facturar, ErrorSiesaFactura } from '../src/siesa/facturacion.js'
+import { armarTercero, armarCliente, armarCriterio, consultarTercero } from '../src/siesa/terceros.js'
 
 const referencia = process.argv[2]
 const enviar = process.argv.includes('--enviar')
@@ -70,13 +71,32 @@ try {
   console.log(`  Wompi      ${orden.wompi_transaction_id ?? '(sin id)'}`)
   console.log('')
   console.log(`  El TERCERO en SIESA sera la cedula: ${comprador.cedula}`)
-  console.log('  Tiene que existir en t200_mm_terceros o el ERP no encontrara a quien facturarle.')
+  try {
+    const t = await consultarTercero(comprador.cedula)
+    if (!t.existe) {
+      console.log('  NO existe en t200_mm_terceros: se va a crear antes de facturar.')
+    } else if (!t.sucursales.includes(config.siesa.sucursal)) {
+      console.log(`  Ya existe (id ${t.tercero}) pero SIN la sucursal ${config.siesa.sucursal}: se crea solo la sucursal.`)
+    } else {
+      console.log(`  Ya existe en el ERP (id ${t.tercero}). No se le toca nada.`)
+    }
+  } catch (e) {
+    console.log(`  No se pudo consultar si existe (${e.message}).`)
+    console.log('  Sin esa consulta el envio real se detiene: crear a ciegas sobrescribiria a alguien.')
+  }
 
   const configuracion = await leerConfiguracionSiesa()
 
   if (!enviar || config.siesa.ensayo) {
     const factura = await armarFactura(orden, comprador, { configuracion })
     const recibo = await armarRecibo(orden, comprador, 'PENDIENTE', { configuracion })
+
+    mostrar('TERCERO - Tercero', armarTercero(comprador))
+    mostrar('CLIENTE (sucursal) - Clientes', armarCliente(comprador, configuracion))
+    const criterio = armarCriterio(comprador)
+    if (criterio) mostrar('CRITERIO - Criterios_Clientes', criterio)
+    else console.log('
+  CRITERIO: apagado (SIESA_PLAN_CRITERIOS vacio).')
 
     mostrar('FACTURA (FES) - Financiera_Factura', factura)
     mostrar('RECIBO DE CAJA (RCV) - Recibo_de_caja', recibo)
@@ -88,6 +108,8 @@ try {
   } else {
     console.log('\n  ENVIANDO AL ERP...\n')
     const r = await facturar(orden, comprador)
+    if (r.tercero?.existia === false) console.log(`  Tercero creado:   ${r.tercero.tercero}`)
+    else if (r.tercero) console.log(`  Tercero:          ${r.tercero.tercero} (ya existia)`)
     console.log(`  Factura emitida:  ${r.numeroFactura}`)
     console.log(`  Recibo emitido:   ${r.numeroRecibo}`)
     console.log('\n  Anotalos: son los consecutivos con los que contabilidad rastrea la venta.\n')

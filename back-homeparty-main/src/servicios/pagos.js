@@ -11,6 +11,7 @@
 // se quedaria sin una comprobacion. Esta funcion es la unica que decide.
 // -----------------------------------------------------------------------------
 import { confirmarPago, buscarPorReferencia, enviarCorreoDeOrden } from './ordenes.js'
+import { facturarOrden, facturacionActiva } from './facturacion.js'
 
 /**
  * Franquicias que el comite pidio no aceptar por su costo financiero.
@@ -115,6 +116,29 @@ export function despacharCorreo(ordenId) {
   setImmediate(() => {
     enviarCorreoDeOrden(ordenId).catch((e) =>
       console.error('[correo] Fallo el correo de la orden', ordenId, e.message))
+  })
+}
+
+/**
+ * Manda la factura a SIESA fuera del ciclo de la peticion.
+ *
+ * Mismo trato que el correo, y por el mismo motivo: la venta ya esta hecha y
+ * el egresado ya tiene sus QR. Que el ERP este caido, o que no haya VPN, o que
+ * contabilidad todavia no haya prendido el interruptor, no puede afectar en
+ * nada al que acaba de pagar.
+ *
+ * Es lo mismo que hace la plataforma del colegio con teatro y carreras: marca
+ * el pago, intenta facturar, y si falla lo anota y sigue.
+ *
+ * Nunca lanza. facturarOrden() ya atrapa todo y guarda el error en la orden;
+ * el catch de aqui es por si acaso, para que un fallo raro no tumbe el proceso.
+ */
+export function despacharFactura(ordenId) {
+  if (!ordenId) return
+  if (!facturacionActiva()) return   // sin WSDL configurado no hay nada que intentar
+  setImmediate(() => {
+    facturarOrden(ordenId).catch((e) =>
+      console.error('[siesa] Fallo inesperado facturando la orden', ordenId, e.message))
   })
 }
 

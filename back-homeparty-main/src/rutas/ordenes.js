@@ -13,7 +13,7 @@ import { asyncHandler, limitar } from '../middleware/index.js'
 import {
   crearOrden, buscarPorReferencia, vistaPublica, enviarCorreoDeOrden, compradorDe,
 } from '../servicios/ordenes.js'
-import { despacharCorreo } from '../servicios/pagos.js'
+import { despacharCorreo, despacharFactura } from '../servicios/pagos.js'
 import { reconciliarPorRedirect } from '../servicios/reconciliacion.js'
 
 export const rutasOrdenes = Router()
@@ -86,6 +86,7 @@ rutasOrdenes.post('/ordenes/:referencia/verificar', limiteConsulta, asyncHandler
   if (!r.encontrada) throw errores.noEncontrado('La orden')
 
   despacharCorreo(r.correoPara)
+  despacharFactura(r.correoPara)
 
   // Se responde la vista publica completa: el front ya la sabe pintar y se
   // ahorra una vuelta de polling.

@@ -18,6 +18,7 @@
     "probar-siesa": "node scripts/probar-siesa.js",
     "revisar-produccion": "node scripts/revisar-produccion.js",
     "facturar": "node scripts/facturar.js",
+    "listar-siesa": "node scripts/listar-siesa.js",
     "respaldo": "node scripts/respaldo.js"
   },
   "dependencies": {

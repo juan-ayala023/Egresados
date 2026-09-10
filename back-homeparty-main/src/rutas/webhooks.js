@@ -23,7 +23,7 @@ import { db } from '../db/index.js'
 import { config } from '../config.js'
 import { ahora } from '../lib/fechas.js'
 import { verificarEventoEntrante, datosDelEvento } from '../pagos/index.js'
-import { aplicarPago, despacharCorreo } from '../servicios/pagos.js'
+import { aplicarPago, despacharCorreo, despacharFactura } from '../servicios/pagos.js'
 import { buscarPorReferencia } from '../servicios/ordenes.js'
 
 export const rutasWebhooks = Router()
@@ -117,6 +117,7 @@ rutasWebhooks.post('/webhooks/wompi', (req, res) => {
   const { status, cuerpo, correoPara } = procesarEvento(req.body ?? {})
   res.status(status).json(cuerpo)
   despacharCorreo(correoPara)
+  despacharFactura(correoPara)
 })
 
 // -----------------------------------------------------------------------------
@@ -169,4 +170,5 @@ rutasWebhooks.post('/simulacion/pagar', (req, res) => {
   const { status, cuerpo, correoPara } = procesarEvento(evento)
   res.status(status).json({ simulado: true, ...cuerpo })
   despacharCorreo(correoPara)
+  despacharFactura(correoPara)
 })

@@ -23,10 +23,10 @@
 // cedula del comprador.
 //
 // OJO CON ESO: el tercero tiene que EXISTIR en SIESA (tabla t200_mm_terceros).
-// La plataforma del colegio solo le factura a gente que ya esta ahi. Un
-// egresado del 2004 probablemente no. Si SIESA no crea el tercero solo al
-// recibir una cedula desconocida, hay que crearlos antes. Es la unica pregunta
-// que queda abierta y la responde contabilidad.
+// La plataforma del colegio solo le factura a gente que ya esta ahi, porque le
+// vende a familias que ya son terceros. Un egresado del 2004 no lo es. De eso
+// se encarga terceros.js: consulta la cedula y, si no aparece, la da de alta
+// junto con su sucursal antes de facturar.
 //
 // POR ESO ARRANCA EN MODO ENSAYO: con SIESA_ENSAYO=true arma los documentos y
 // los deja en el log sin mandarlos. Una factura mal emitida en un sistema
@@ -287,9 +287,18 @@ export async function facturar(orden, comprador) {
   const configuracion = await leerConfiguracionSiesa()
   const factura = await armarFactura(orden, comprador, { configuracion })
 
+  // El comprador tiene que EXISTIR en el ERP antes de que se le pueda
+  // facturar. Va aqui y no en el checkout a proposito: solo se da de alta a
+  // quien efectivamente pago, no a todo el que abrio el formulario.
+  //
+  // El import es dinamico porque terceros.js necesita de aqui limpiarTexto,
+  // fechaSiesa y el error. Cargarlo cuando se usa evita el enredo circular.
+  const { asegurarTercero } = await import('./terceros.js')
+  const tercero = await asegurarTercero(comprador, { configuracion })
+
   if (config.siesa.ensayo) {
     // Ni se carga el WSDL: en ensayo no se toca el ERP ni de lejos.
-    return { ensayo: true, factura, recibo: null, numeroFactura: null, numeroRecibo: null }
+    return { ensayo: true, tercero, factura, recibo: null, numeroFactura: null, numeroRecibo: null }
   }
 
   const cli = await obtenerCliente()
@@ -326,5 +335,5 @@ export async function facturar(orden, comprador) {
     )
   }
 
-  return { ensayo: false, factura, recibo, numeroFactura, numeroRecibo }
+  return { ensayo: false, tercero, factura, recibo, numeroFactura, numeroRecibo }
 }

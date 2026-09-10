@@ -8,7 +8,7 @@ import { liberarReservasVencidas, disponibilidad, estadoVenta } from './servicio
 import { totalEgresados } from './servicios/egresados.js'
 import { barrer } from './servicios/reconciliacion.js'
 import { reintentarPendientes } from './servicios/correos.js'
-import { despacharCorreo } from './servicios/pagos.js'
+import { despacharCorreo, despacharFactura } from './servicios/pagos.js'
 
 // Se revisa ANTES de abrir el puerto: mas vale no arrancar que arrancar mal.
 revisarConfiguracion()
@@ -57,15 +57,26 @@ const limpieza = setInterval(() => {
 // 10 minutos pendientes. Es la red para cuando el webhook se pierde: sin esto,
 // alguien puede pagar y quedarse sin boleta sin que nadie se entere.
 //
-// Diez minutos de gracia porque antes de eso el usuario probablemente sigue
-// escribiendo la tarjeta, y no tiene sentido gastarle consultas a Wompi.
-// En modo simulacion no corre: no hay a quien preguntarle.
+// UN MINUTO, no cinco, y un minuto de gracia en vez de diez.
+//
+// Antes daba hasta 15 minutos de espera. El colegio lo puso claro: la gente
+// paga, ve "aprobado" y espera su boleta AHI MISMO -- nadie le da a "volver al
+// comercio", y quince minutos en blanco se leen como que algo fallo.
+//
+// Con esto la boleta llega en uno o dos minutos aunque cierren la pestana.
+// Instantaneo solo lo da el webhook, y esa URL la tiene la plataforma del
+// colegio; mientras tanto, esto es lo mas cerca que se puede estar.
+//
+// El costo es alguna consulta de mas a Wompi mientras alguien todavia escribe
+// su tarjeta: la orden sale PENDING y no se hace nada. Con 500 boletas eso no
+// se nota en ninguna cuota.
 // -----------------------------------------------------------------------------
-const CADA_5_MINUTOS = 5 * 60_000
+const CADA_MINUTO = 60_000
+const MINUTOS_DE_GRACIA = 1
 
 async function correrBarrido() {
   try {
-    const c = await barrer()
+    const c = await barrer({ minutosDeGracia: MINUTOS_DE_GRACIA })
     if (!c.revisadas) return
 
     console.log(
@@ -74,14 +85,21 @@ async function correrBarrido() {
       + `${c.siguenPendientes} sigue(n) en la pasarela, `
       + `${c.sinTransaccion} sin id de transaccion, ${c.errores} con error`,
     )
-    for (const ordenId of c.correos) despacharCorreo(ordenId)
+    for (const ordenId of c.correos) {
+      despacharCorreo(ordenId)
+      despacharFactura(ordenId)
+    }
   } catch (e) {
     // Nunca puede tumbar el servidor: es una tarea de fondo.
     console.error('[reconciliacion] Fallo el barrido:', e.message)
   }
 }
 
-const barrido = setInterval(correrBarrido, CADA_5_MINUTOS)
+/* Una pasada al arrancar: si el servidor se cayo o se reinicio mientras
+   alguien pagaba, esa orden no espera al primer intervalo. */
+correrBarrido()
+
+const barrido = setInterval(correrBarrido, CADA_MINUTO)
 barrido.unref?.()
 
 // -----------------------------------------------------------------------------

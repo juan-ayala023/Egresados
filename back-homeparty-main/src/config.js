@@ -216,6 +216,36 @@ export const config = {
     // factura igual. No se pierde a quien le vendimos: nombre, cedula,
     // direccion y ciudad quedan guardados en la orden y salen en el reporte.
     terceroGenerico: texto('SIESA_TERCERO_GENERICO', ''),
+
+    // --- Creacion del tercero --------------------------------------------
+    // El comprador tiene que EXISTIR en SIESA antes de facturarle. Un egresado
+    // del 2004 no esta. Estos son los datos que SIESA pide y que el checkout
+    // no puede preguntar sin volverse un formulario de banco.
+    //
+    // La ciudad viene como texto libre ("Medellin", "envigado", "MDE") y SIESA
+    // la quiere en codigos DANE. No hay tabla para traducir eso, asi que se
+    // usan estos por defecto y el texto que escribio la persona queda en la
+    // orden. Son los mismos codigos de los ejemplos que mando el colegio.
+    pais: texto('SIESA_ID_PAIS', '169'),        // Colombia
+    departamento: texto('SIESA_ID_DEPTO', '05'), // Antioquia
+    ciudad: texto('SIESA_ID_CIUDAD', '400'),     // Medellin
+
+    // Tipo de cliente y vendedor con los que se da de alta la sucursal del
+    // comprador. Si se dejan vacios se usan los de la fila 465, que son con
+    // los que se factura. Existen aparte por si contabilidad quiere separar a
+    // los compradores de Homecoming del resto.
+    tipoCliente: texto('SIESA_ID_TIPO_CLI', ''),
+    vendedor: texto('SIESA_ID_VENDEDOR', ''),
+    condicionPago: texto('SIESA_ID_COND_PAGO', ''),
+
+    // Plan de criterios (Criterios_Clientes). El colegio clasifica asi a sus
+    // terceros; en los ejemplos van "ANE" y "TIC". Vacio = no se manda.
+    planCriterios: texto('SIESA_PLAN_CRITERIOS', ''),
+    criterioMayor: texto('SIESA_CRITERIO_MAYOR', ''),
+
+    // Servidor enlazado de SQL Server por donde se ve la base del ERP.
+    // Es el mismo nombre que usa la plataforma del colegio en sus OPENQUERY.
+    servidorErp: texto('SIESA_LINKED_SERVER', 'CSERPDB'),
   },
 }
 
