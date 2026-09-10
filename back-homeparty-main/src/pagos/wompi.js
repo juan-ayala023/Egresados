@@ -130,6 +130,70 @@ export class ErrorPasarela extends Error {
  * @param {string} id id de transaccion de Wompi (el que vuelve en el redirect)
  * @returns {Promise<object>} la transaccion cruda, tal como la manda Wompi
  */
+/**
+ * Busca la transaccion de una orden POR SU REFERENCIA.
+ *
+ * ES LA PIEZA QUE HACE QUE LA BOLETA NO DEPENDA DEL COMPRADOR.
+ *
+ * El problema: el id de transaccion de Wompi solo nos llega de dos formas, y
+ * ninguna esta garantizada. Por el webhook -- que apunta a la plataforma del
+ * colegio, no a nosotros -- o porque la persona le da a "volver al comercio".
+ * Quien paga y cierra la pestana se quedaba sin boleta, y el barrido de
+ * reconciliacion no podia rescatarlo porque tampoco tenia el id que consultar.
+ *
+ * Buscando por referencia se cierra ese circulo: la referencia SIEMPRE la
+ * tenemos, es nuestra.
+ *
+ * OJO: este listado exige la llave PRIVADA. La publica devuelve
+ * "Solicitud no autorizada". Es la unica cosa para la que este backend la
+ * necesita, y por eso dejo de estar vacia.
+ *
+ * @returns {Promise<object|null>} la transaccion mas reciente, o null
+ */
+export async function buscarPorReferencia(referencia, { timeoutMs = 10_000 } = {}) {
+  if (!config.wompi.apiUrl) {
+    throw new ErrorPasarela('WOMPI_API_URL no esta configurada', { tipo: 'sin_configurar' })
+  }
+  if (!config.wompi.privateKey) {
+    throw new ErrorPasarela(
+      'Falta WOMPI_PRIVATE_KEY: sin ella no se puede buscar por referencia y quien no vuelva al sitio se queda sin boleta',
+      { tipo: 'sin_configurar' },
+    )
+  }
+  if (!referencia) {
+    throw new ErrorPasarela('Se pidio buscar sin referencia', { tipo: 'sin_configurar' })
+  }
+
+  const url = `${config.wompi.apiUrl.replace(/\/$/, '')}/transactions?reference=${encodeURIComponent(referencia)}`
+
+  let respuesta
+  try {
+    respuesta = await fetch(url, {
+      headers: { Authorization: `Bearer ${config.wompi.privateKey}` },
+      signal: AbortSignal.timeout(timeoutMs),
+    })
+  } catch (e) {
+    throw new ErrorPasarela(`No se pudo consultar Wompi: ${e.message}`, { tipo: 'red' })
+  }
+
+  if (!respuesta.ok) {
+    throw new ErrorPasarela(`Wompi respondio ${respuesta.status} al buscar por referencia`, {
+      tipo: respuesta.status === 401 ? 'sin_configurar' : 'red',
+    })
+  }
+
+  const cuerpo = await respuesta.json().catch(() => null)
+  const lista = Array.isArray(cuerpo?.data) ? cuerpo.data : []
+  if (!lista.length) return null
+
+  /* Puede haber varios intentos sobre la misma referencia: alguien que puso mal
+     la tarjeta, reintento y luego pago. Gana el APROBADO -- si existe uno, esa
+     persona pago y tiene derecho a su boleta, sin importar cuantos intentos
+     fallidos haya antes. */
+  const aprobada = lista.find((t) => t.status === 'APPROVED')
+  return aprobada ?? lista[lista.length - 1]
+}
+
 export async function consultarTransaccion(id, { timeoutMs = 10_000 } = {}) {
   if (!config.wompi.apiUrl) {
     throw new ErrorPasarela('WOMPI_API_URL no esta configurada', { tipo: 'sin_configurar' })

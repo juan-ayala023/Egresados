@@ -24,7 +24,9 @@
 // gritadas en el log para revisarlas a mano en el panel de Wompi.
 // -----------------------------------------------------------------------------
 import { config } from '../config.js'
-import { consultarPago, ErrorPasarela, enSimulacion } from '../pagos/index.js'
+import {
+  consultarPago, buscarPagoPorReferencia, ErrorPasarela, enSimulacion,
+} from '../pagos/index.js'
 import { enMinutos } from '../lib/fechas.js'
 import { aplicarPago } from './pagos.js'
 import {
@@ -43,11 +45,31 @@ export async function reconciliarOrden(orden) {
     return { consultada: false, estado: orden.estado, correoPara: null, motivo: 'ya no esta pendiente' }
   }
 
-  const idTransaccion = orden.wompi_transaction_id
+  /* SIN ID DE TRANSACCION NO ERA EL FINAL DEL CAMINO.
+     Antes se rendia aqui, y ahi estaba el hueco: el id solo llega por el
+     webhook -- que apunta a la plataforma del colegio -- o porque la persona
+     vuelve al sitio. Quien pagaba y cerraba la pestana se quedaba sin boleta y
+     este barrido no podia rescatarlo, porque tampoco tenia que consultar.
+
+     La referencia SI la tenemos siempre: es nuestra. Se busca por ella. */
+  let idTransaccion = orden.wompi_transaction_id
   if (!idTransaccion) {
-    // No hay a quien preguntarle. No es un error nuestro ni del usuario: es el
-    // limite de la API. Se reporta para que quede en el conteo del barrido.
-    return { consultada: false, estado: null, correoPara: null, motivo: 'SIN_TRANSACCION' }
+    try {
+      const encontrada = await buscarPagoPorReferencia(orden.referencia)
+      if (!encontrada) {
+        // Nadie llego a pagar: se abrio el checkout y se abandono. Normal.
+        return { consultada: false, estado: null, correoPara: null, motivo: 'SIN_TRANSACCION' }
+      }
+      idTransaccion = encontrada.idTransaccion
+    } catch (e) {
+      // Si falta la llave privada o Wompi no responde, no se puede rescatar.
+      // Se reporta como error, no como "sin transaccion": son cosas distintas
+      // y quien lea el log tiene que poder distinguirlas.
+      return {
+        consultada: false, estado: null, correoPara: null,
+        motivo: 'SIN_TRANSACCION', detalle: e.message,
+      }
+    }
   }
 
   let pago

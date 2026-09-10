@@ -13,6 +13,7 @@ import {
   datosCheckout,
   verificarChecksumWebhook,
   consultarTransaccion,
+  buscarPorReferencia,
   normalizar,
   ErrorPasarela,
 } from './wompi.js'
@@ -59,4 +60,20 @@ export function datosDelEvento(evento) {
 export async function consultarPago(idTransaccion) {
   const transaccion = await consultarTransaccion(idTransaccion)
   return normalizar(transaccion)
+}
+
+/**
+ * Busca el pago de una orden por SU REFERENCIA, sin conocer el id de Wompi.
+ *
+ * Es lo que permite rescatar a quien pago y cerro la pestana sin volver al
+ * sitio: la referencia siempre la tenemos porque la generamos nosotros.
+ *
+ * En simulacion devuelve null: no hay a quien preguntarle.
+ *
+ * @returns {Promise<object|null>} el pago normalizado, o null si nadie pago
+ */
+export async function buscarPagoPorReferencia(referencia) {
+  if (enSimulacion()) return null
+  const transaccion = await buscarPorReferencia(referencia)
+  return transaccion ? normalizar(transaccion) : null
 }

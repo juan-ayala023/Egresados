@@ -45,6 +45,21 @@ const q = {
      WHERE o.estado = 'pagada' AND b.estado != 'anulada'
      ORDER BY a.nombre`),
 
+  /* Solo lo vendido DESPUES de una fecha. Es para los reenvios al proveedor
+     del lector: pidieron el archivo antes del evento y luego "los nuevos
+     registros que vayan teniendo". Sin esto habria que mandarles la lista
+     entera cada vez y que ellos adivinen cual es nueva -- y en una lista de
+     500 con reenvios diarios, ahi es donde se cuela un duplicado o se pierde
+     una boleta. */
+  tokensDesde: db.prepare(`
+    SELECT b.id, b.token_firmado, b.estado, a.nombre, a.promocion, a.es_egresado
+      FROM boleta b
+      JOIN orden o ON o.id = b.orden_id
+      JOIN asistente a ON a.id = b.asistente_id
+     WHERE o.estado = 'pagada' AND b.estado != 'anulada'
+       AND o.pagada_en > ?
+     ORDER BY a.nombre`),
+
   escaneadas: db.prepare(`
     SELECT b.id, b.usada_en, b.usada_por, b.puerta, a.nombre, a.promocion
       FROM boleta b
@@ -127,8 +142,13 @@ export function validarEnPuerta(token, { puerta = null, operador = null, momento
  * linea se cae con el. Con esta lista la app de puerta puede verificar firmas
  * sin conexion y subir los escaneos despues con /api/puerta/sincronizar.
  */
-export function tokensParaOffline() {
-  return q.tokensValidos.all().map((b) => ({
+/**
+ * Boletas validas con su codigo, para el lector de la puerta.
+ * @param {string|null} desde fecha ISO; con ella solo trae lo pagado despues
+ */
+export function tokensParaOffline(desde = null) {
+  const filas = desde ? q.tokensDesde.all(desde) : q.tokensValidos.all()
+  return filas.map((b) => ({
     id: b.id,
     token: b.token_firmado,
     estado: b.estado,

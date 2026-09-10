@@ -166,14 +166,36 @@ rutasAdmin.get('/admin/ordenes.csv', (req, res) => {
 //   2. Es una FOTO del momento en que se descarga. Quien compre despues no
 //      esta en el archivo, asi que hay que volver a bajarlo lo mas tarde
 //      posible antes del evento.
-//   3. Este archivo NO controla reingresos. Que un mismo codigo no pase dos
-//      veces lo tiene que garantizar el sistema del proveedor; nuestra propia
-//      pantalla /puerta si lo hace, pero solo para lo que se escanee ahi.
-rutasAdmin.get('/admin/puerta.csv', (_req, res) => {
-  const filas = tokensParaOffline()
+//   3. El proveedor CONFIRMO (9-sep-2026) que su sistema verifica y marca como
+//      usada en la misma lectura, asi que el reingreso queda controlado de su
+//      lado. Confirmo tambien que sus lectores leen 2D, y que borran los datos
+//      personales cuando el colegio apruebe el informe del evento.
+//
+//      LO QUE SIGUE SIN RESOLVERSE es la sincronizacion: mientras la venta
+//      siga abierta, cada boleta vendida despues del ultimo envio es alguien
+//      con una boleta valida que su sistema no reconoce. Por eso el parametro
+//      `desde`, y por eso conviene mas conectar sus lectores USB a nuestra
+//      pantalla /puerta: ahi no hay envio que sincronizar.
+rutasAdmin.get('/admin/puerta.csv', (req, res) => {
+  /* ?desde=2026-11-10 trae SOLO lo vendido despues de esa fecha.
+     El proveedor pidio el archivo antes del evento y luego los registros
+     nuevos que vayan saliendo. Sin esto habria que mandarles la lista entera
+     cada vez y que ellos adivinen cual es nueva; en una lista de 500 con
+     reenvios diarios, ahi es donde se cuela un duplicado o se pierde una
+     boleta. Sin el parametro sale todo, que es el primer envio. */
+  const desde = req.query.desde ? String(req.query.desde) : null
+  if (desde && Number.isNaN(Date.parse(desde))) {
+    throw errores.validacion({ desde: 'Fecha no valida. Usa 2026-11-10.' })
+  }
+
+  const filas = tokensParaOffline(desde)
   const fecha = new Date().toISOString().slice(0, 10)
+  const nombre = desde
+    ? `boletas-nuevas-desde-${desde.slice(0, 10)}-al-${fecha}.csv`
+    : `boletas-para-lector-${fecha}.csv`
+
   res.type('text/csv; charset=utf-8')
-  res.set('Content-Disposition', `attachment; filename="boletas-para-lector-${fecha}.csv"`)
+  res.set('Content-Disposition', `attachment; filename="${nombre}"`)
   res.send(boletasParaLectorEnCsv(filas))
 })
 
