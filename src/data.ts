@@ -176,7 +176,10 @@ export const galeria = {
   cta: 'Compra tu boleta aquí',
   /* Pie del carrusel: sin esto nadie descubre que hay más fotos a la
      derecha, porque en escritorio no hay barra de desplazamiento. */
-  pistaCarrusel: 'Desliza para ver más recuerdos de ediciones anteriores',
+  /* "de la edición anterior", en singular: las fotos son todas del último
+     Homecoming, no de varios. Decirlo en plural prometía un archivo histórico
+     que no existe. */
+  pistaCarrusel: 'Desliza para ver más recuerdos de la edición anterior',
   /* Fotos reales del colegio. Todas vienen de cámara en 3:2, así que las
      proporciones de abajo se mantienen cerca de esa relación: forzar
      verticales recortaría medio encuadre. El orden cuenta la noche:

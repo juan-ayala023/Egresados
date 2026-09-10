@@ -17,8 +17,11 @@ const ICONOS = {
 export default function FAQ() {
   /* Se identifica por el texto de la pregunta y no por índice: con las
      categorías, el índice 0 existe en las tres y se abrirían todas a la vez.
-     Arranca abierta la primera de todas, como antes. */
-  const [abierta, setAbierta] = useState<string | null>(faq[0].preguntas[0].pregunta);
+
+     Arrancan TODAS cerradas (lo pidió el colegio). Antes se abría sola la
+     primera, y eso hacía dos cosas malas: empujaba las demás hacia abajo, y
+     daba a entender que esa pregunta importaba más que el resto. */
+  const [abierta, setAbierta] = useState<string | null>(null);
 
   return (
     <section id="faq" className="mx-auto max-w-4xl px-6 pt-14 md:pt-16 pb-8 md:pb-10">

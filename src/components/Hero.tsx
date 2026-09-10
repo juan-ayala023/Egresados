@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { MapPin, CalendarDays, Clock } from 'lucide-react';
 import Photo from './Photo';
 import Magnetic from './Magnetic';
+import ManitoClic from './ManitoClic';
 import Aurora from './Aurora';
 import CompartirWhatsApp from './CompartirWhatsApp';
 import { dur, ease, escalonar, palabra, subir } from '@/lib/motion';
@@ -232,9 +233,14 @@ export default function Hero({ listo }: { listo: boolean }) {
             variants={subir}
             className="mt-[clamp(1.1rem,3vh,1.75rem)] flex flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4"
           >
-            <Magnetic href="#boletas" className="btn-gold">
-              {evento.ctaPrincipal}
-            </Magnetic>
+            {/* w-full + flex-1 en movil: el contenedor padre estiraba el boton
+                a todo el ancho y envolverlo se lo quitaba. */}
+            <div className="flex w-full items-center gap-3 sm:w-auto sm:gap-4">
+              <Magnetic href="#boletas" className="btn-gold flex-1 sm:flex-none">
+                {evento.ctaPrincipal}
+              </Magnetic>
+              <ManitoClic />
+            </div>
           </motion.div>
 
           {/* Acción grupal, deliberadamente por debajo de los dos botones: la

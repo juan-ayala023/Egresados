@@ -17,7 +17,7 @@ const links = [
   { href: '#evento', label: 'Experiencia' },
   { href: '#galeria', label: 'Galería' },
   { href: '#boletas', label: 'Boletas' },
-  { href: '#faq', label: 'Preguntas' },
+  { href: '#faq', label: 'FAQ' },
 ];
 
 export default function Navbar({ listo }: { listo: boolean }) {

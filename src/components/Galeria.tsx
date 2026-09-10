@@ -5,6 +5,7 @@ import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { X, ChevronLeft, ChevronRight, Expand } from 'lucide-react';
 import Photo from './Photo';
+import ManitoClic from './ManitoClic';
 import RevealText from './RevealText';
 import { dur, ease, enVista, subir } from '@/lib/motion';
 import { galeria, imagenes } from '@/data';
@@ -260,9 +261,12 @@ export default function Galeria() {
         <p className="text-center font-display text-xl font-bold text-bone sm:text-2xl">
           {galeria.ctaPregunta}
         </p>
-        <a href="#boletas" className="btn-gold text-center">
-          {galeria.cta}
-        </a>
+        <div className="flex items-center gap-3">
+          <a href="#boletas" className="btn-gold text-center">
+            {galeria.cta}
+          </a>
+          <ManitoClic />
+        </div>
       </motion.div>
 
       <AnimatePresence>

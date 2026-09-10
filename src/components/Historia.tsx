@@ -6,6 +6,7 @@ import Photo from './Photo';
 import Reveal from './Reveal';
 import RevealText from './RevealText';
 import Magnetic from './Magnetic';
+import ManitoClic from './ManitoClic';
 import { dur, enVista, subir, escalonar } from '@/lib/motion';
 import { historia, evento, imagenes } from '@/data';
 
@@ -169,9 +170,12 @@ export default function Historia() {
               </motion.div>
 
               <motion.div variants={subir}>
-                <Magnetic href="#boletas" className="btn-gold">
-                  {historia.cta}
-                </Magnetic>
+                <div className="flex items-center gap-3">
+                  <Magnetic href="#boletas" className="btn-gold">
+                    {historia.cta}
+                  </Magnetic>
+                  <ManitoClic />
+                </div>
               </motion.div>
             </motion.div>
           </div>

@@ -7,6 +7,7 @@ import Photo from './Photo';
 import Reveal from './Reveal';
 import RevealText from './RevealText';
 import Magnetic from './Magnetic';
+import ManitoClic from './ManitoClic';
 import Aurora from './Aurora';
 import { Martini, UtensilsCrossed, Music4, Sparkles, Play } from 'lucide-react';
 import { enVista, subir, escalonar } from '@/lib/motion';
@@ -288,10 +289,11 @@ export default function Artistas() {
           className="mt-4 rounded-lg border border-dashed border-gold/40 bg-ink/30 px-6 py-4 text-center"
         >
           <p className="font-display text-lg font-bold text-bone">{noche.ctaPregunta}</p>
-          <div className="mt-3 flex justify-center">
+          <div className="mt-3 flex items-center justify-center">
             <Magnetic href="#boletas" className="btn-gold" fuerza={0.2}>
               {noche.cta}
             </Magnetic>
+            <ManitoClic className="ml-3" />
           </div>
         </motion.div>
       </div>

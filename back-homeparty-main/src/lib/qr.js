@@ -68,8 +68,16 @@ export function pngDelToken(token, ancho = 512) {
 
 /**
  * QR como data URI (data:image/png;base64,...).
- * Se usa en el correo: las imagenes embebidas se ven siempre, mientras que los
- * adjuntos los bloquean muchos clientes de correo.
+ *
+ * OJO: NO SIRVE PARA CORREO. Esto se creyo durante meses y era falso -- Gmail
+ * BLOQUEA las imagenes data: en el cuerpo del mensaje, asi que el QR salia
+ * como cuadrito roto. Se descubrio el 10 de septiembre de 2026 mirando un
+ * correo de prueba de verdad.
+ *
+ * El correo usa pngDelToken() de arriba y lo manda como adjunto incrustado
+ * (cid:), que es lo que si se ve. Esta funcion queda para el .html que se
+ * guarda en disco cuando no hay SMTP: ahi no hay adjuntos y el navegador si
+ * muestra los data URI.
  */
 export function dataUriDelToken(token, ancho = 320) {
   return QRCode.toDataURL(token, { width: ancho, margin: 2, errorCorrectionLevel: 'M' })

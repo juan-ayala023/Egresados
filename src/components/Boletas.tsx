@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { Check, Minus, Plus } from 'lucide-react';
+import ManitoClic from './ManitoClic';
 import {
   boletas as boletasBase,
   boleteria,
@@ -186,6 +187,10 @@ function Tarjeta({
         >
           {agotada ? (ventaAbierta ? 'Agotada' : 'Cerrada') : 'Compra tu boleta aquí'}
         </motion.button>
+
+        {/* La manito solo cuando SE PUEDE comprar. Sobre una boleta agotada
+            invitaria a tocar algo que no responde. */}
+        {!agotada && <ManitoClic className="self-center" />}
       </div>
     </motion.div>
   );
