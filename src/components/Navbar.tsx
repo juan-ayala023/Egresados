@@ -101,7 +101,7 @@ export default function Navbar({ listo }: { listo: boolean }) {
           <div className="flex items-center gap-3">
             <a
               href="#boletas"
-              className="cursor-pointer whitespace-nowrap rounded-full bg-gold px-4 py-2 font-body text-[11px] font-bold uppercase tracking-[0.1em] text-ink transition-all hover:bg-goldSoft sm:px-5 sm:py-2.5 sm:text-[12px] sm:tracking-[0.12em]"
+              className="cursor-pointer whitespace-nowrap rounded-full bg-gold px-4 py-2 font-body text-[11px] font-black uppercase tracking-[0.1em] text-ink transition-all hover:bg-goldSoft sm:px-5 sm:py-2.5 sm:text-[12px] sm:tracking-[0.12em]"
             >
               Compra tu boleta aquí
             </a>
@@ -202,7 +202,7 @@ export default function Navbar({ listo }: { listo: boolean }) {
                 >
                   Compra tu boleta aquí
                 </a>
-                <p className="mt-4 text-center font-body text-[11px] font-bold uppercase tracking-[0.16em] text-muted">
+                <p className="mt-4 text-center font-body text-[11px] font-black uppercase tracking-[0.16em] text-muted">
                   {evento.fechaTexto}
                 </p>
               </motion.div>

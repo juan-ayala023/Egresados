@@ -91,12 +91,12 @@ function Tarjeta({
       />
 
       {b.destacada && !agotada && (
-        <span className="absolute -top-3 left-8 rounded-full bg-gold px-4 py-1 font-body text-[10px] font-bold uppercase tracking-[0.14em] text-ink">
+        <span className="absolute -top-3 left-8 rounded-full bg-gold px-4 py-1 font-body text-[10px] font-black uppercase tracking-[0.14em] text-ink">
           Más elegida
         </span>
       )}
       {agotada && (
-        <span className="absolute -top-3 left-8 rounded-full border border-brand/20 bg-bone px-4 py-1 font-body text-[10px] font-bold uppercase tracking-[0.14em] text-grayBrand">
+        <span className="absolute -top-3 left-8 rounded-full border border-brand/20 bg-bone px-4 py-1 font-body text-[10px] font-black uppercase tracking-[0.14em] text-grayBrand">
           {ventaAbierta ? 'Agotada' : 'Venta cerrada'}
         </span>
       )}
@@ -112,7 +112,7 @@ function Tarjeta({
         <span className="lining font-display font-bold text-[2.6rem] leading-none text-brand">
           {formatoCOP(totalPorBoleta(b))}
         </span>
-        <span className="ml-2 font-body text-xs font-bold uppercase tracking-[0.14em] text-grayBrand">
+        <span className="ml-2 font-body text-xs font-black uppercase tracking-[0.14em] text-grayBrand">
           {b.personas > 1 ? `/ ${b.personas} personas` : '/ persona'}
         </span>
 
@@ -232,7 +232,7 @@ export default function Boletas({ onComprar }: Props) {
   const tope = boletas[0]?.maxPorCompra ?? 4;
 
   return (
-    <section id="boletas" className="relative overflow-hidden bg-bone py-14 md:py-16">
+    <section id="boletas" className="relative overflow-hidden bg-bone pt-14 md:pt-16 pb-8 md:pb-10">
       {/* Encabezado y tarjeta comparten el mismo ancho: era el pedido, y es
           lo que deja el titular en un solo renglón. El cuerpo del titular
           está atado a 3.6vw justamente para que no se parta en escritorio. */}

@@ -93,7 +93,7 @@ function Tarjeta({ a, i }: { a: (typeof artistas)[number]; i: number }) {
               <div className="absolute -inset-x-full top-0 h-full -translate-x-full skew-x-[-18deg] bg-gradient-to-r from-transparent via-gold/15 to-transparent transition-transform duration-[1100ms] ease-out group-hover:translate-x-full" />
             </div>
 
-            <span className="absolute left-4 top-4 rounded-sm bg-bone/90 px-2.5 py-1 font-body text-[10px] font-bold uppercase tracking-[0.14em] text-brand">
+            <span className="absolute left-4 top-4 rounded-sm bg-bone/90 px-2.5 py-1 font-body text-[10px] font-black uppercase tracking-[0.14em] text-brand">
               {a.etiqueta}
             </span>
 
@@ -165,13 +165,20 @@ export default function Artistas() {
             />
           </div>
           {/* El filo dorado ata la entradilla al titular; suelta a la derecha
-              se leía como un texto de otra sección. */}
+              se leía como un texto de otra sección.
+
+              `md:mt-10` la baja hasta la altura del TITULAR, no la del eyebrow:
+              arranca donde arranca "Una noche para volver", que es con lo que
+              tiene que emparejarse. Y `max-w-lg` en vez de md la estira hacia
+              la izquierda -- como la fila va con justify-between, el bloque se
+              pega a la derecha y ensancharlo es lo que corre su borde
+              izquierdo. */}
           <motion.p
             variants={subir}
             initial="oculto"
             whileInView="visible"
             viewport={enVista}
-            className="max-w-md border-l-4 border-gold pl-6 font-body text-[17px] leading-relaxed text-bone/90 md:mt-3 md:text-lg"
+            className="max-w-md border-l-4 border-gold pl-6 font-body text-[17px] leading-relaxed text-bone/90 md:mt-10 md:max-w-lg md:text-lg"
           >
             {noche.intro}
           </motion.p>
@@ -274,10 +281,14 @@ export default function Artistas() {
           initial="oculto"
           whileInView="visible"
           viewport={enVista}
-          className="mt-8 rounded-lg border border-dashed border-gold/40 bg-ink/30 px-6 py-6 text-center"
+          /* Pegado a las tarjetas y apretado por dentro: con la separacion de
+             antes el boton caia fuera de pantalla y habia que bajar para
+             encontrarlo, justo en el momento en que la seccion acaba de
+             convencer. */
+          className="mt-4 rounded-lg border border-dashed border-gold/40 bg-ink/30 px-6 py-4 text-center"
         >
           <p className="font-display text-lg font-bold text-bone">{noche.ctaPregunta}</p>
-          <div className="mt-4 flex justify-center">
+          <div className="mt-3 flex justify-center">
             <Magnetic href="#boletas" className="btn-gold" fuerza={0.2}>
               {noche.cta}
             </Magnetic>

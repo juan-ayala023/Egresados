@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useState } from 'react';
 import { Plus, Minus, Beer, Ticket, MapPin } from 'lucide-react';
-import { faq, contacto } from '@/data';
+import { faq, faqCabecera } from '@/data';
 import RevealText from './RevealText';
 import { dur, ease, enVista, subir } from '@/lib/motion';
 
@@ -21,7 +21,7 @@ export default function FAQ() {
   const [abierta, setAbierta] = useState<string | null>(faq[0].preguntas[0].pregunta);
 
   return (
-    <section id="faq" className="mx-auto max-w-4xl px-6 py-14 md:py-16">
+    <section id="faq" className="mx-auto max-w-4xl px-6 pt-14 md:pt-16 pb-8 md:pb-10">
       {/* Todo el bloque vive dentro de un panel: las preguntas pasaron de ser
           renglones separados por líneas a tarjetas blancas, y sin un fondo
           propio esas tarjetas quedaban flotando sueltas sobre la página. */}
@@ -38,13 +38,13 @@ export default function FAQ() {
             viewport={enVista}
             className="eyebrow"
           >
-            Antes de comprar
+            {faqCabecera.eyebrow}
           </motion.p>
           <RevealText
-            texto="Lo que todos preguntan"
+            texto={faqCabecera.titulo}
             as="h2"
             className="mt-3 font-display text-[clamp(1.5rem,3.2vw,2.05rem)] font-bold leading-[1.15] tracking-[-0.015em]"
-            acento={[2]}
+            acento={faqCabecera.acento}
           />
         </div>
 
@@ -153,29 +153,11 @@ export default function FAQ() {
         </div>
       </div>
 
-      {/* Sin correo no hay línea. Antes se pintaba "Escríbenos a" seguido de
-          nada y un enlace mailto vacío: misma regla que el Footer y el botón
-          de WhatsApp, antes un hueco que un dato inventado. */}
-      {contacto.correo && (
-        /* Grande a propósito: este correo es el ÚNICO canal de atención
-           -- el colegio descartó WhatsApp -- así que es lo único que tiene
-           alguien cuyo pago no pasó o a quien no le llegó la boleta. En
-           letra chica de pie de página nadie lo encontraba. */
-        <div className="mx-auto mt-12 max-w-2xl rounded-lg border border-gold/25 bg-gold/[0.06] px-6 py-7 text-center">
-          <p className="font-display text-lg font-bold text-bone sm:text-xl">
-            ¿Tienes otra pregunta?
-          </p>
-          <p className="mt-2 font-body text-sm text-bone/70">
-            Escríbenos y te respondemos.
-          </p>
-          <a
-            href={`mailto:${contacto.correo}`}
-            className="mt-4 inline-block font-body text-base font-bold text-gold underline decoration-gold/40 underline-offset-[6px] transition-colors hover:text-goldSoft sm:text-lg"
-          >
-            {contacto.correo}
-          </a>
-        </div>
-      )}
+      {/* El bloque de contacto SE MUDO al pie. Aqui iba sobre el navy y el
+          colegio lo veia apagado; abajo cae sobre el fondo claro, que es donde
+          mas resalta. Ademas cierra la pagina: la ultima cosa que se ve es a
+          donde escribir. */}
+
     </section>
   );
 }

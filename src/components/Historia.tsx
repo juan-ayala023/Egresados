@@ -46,8 +46,15 @@ function CintaPromociones() {
             key={`${a}-${i}`}
             /* Azul de marca al 22%, NO bone: esta seccion es de fondo claro y
                la cinta venia disenada de cuando era oscura -- los anios eran
-               blanco sobre blanco y no se veia ninguno. */
-            className="shrink-0 cursor-default font-display font-bold text-xl tabular-nums text-brand/[0.22] transition-colors duration-200 hover:text-goldDeep sm:text-2xl"
+               blanco sobre blanco y no se veia ninguno.
+
+               Los que cierran decada o media decada van en dorado: le dan
+               ritmo a la cinta y sirven de punto de referencia para ubicar tu
+               anio. El patron es por el numero, no al azar, para que no baile
+               entre las dos filas ni al repetirse la lista. */
+            className={`shrink-0 cursor-default font-display font-bold text-xl tabular-nums transition-colors duration-200 hover:text-goldDeep sm:text-2xl ${
+              a % 5 === 0 ? 'text-goldDeep/70' : 'text-brand/[0.22]'
+            }`}
           >
             {a}
           </span>
@@ -72,8 +79,12 @@ function CintaPromociones() {
       <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-bone to-transparent sm:w-40" />
       <Fila dir={1} />
       <Fila dir={-1} />
-      <p className="pt-3 text-center font-body text-[10.5px] font-bold uppercase tracking-eyebrow text-grayBrand">
-        Cada promoción que salió por esa puerta
+      {/* Redaccion del colegio. Va SIN mayusculas forzadas y en cuerpo mayor
+          que un pie de foto: es una frase que se lee, no una etiqueta. El
+          remate va en azul de marca para que cierre la idea. */}
+      <p className="pt-4 text-center font-body text-[15px] text-grayBrand sm:text-base">
+        Cada generación que dejó su huella&hellip;{' '}
+        <span className="text-brand">hoy vuelve a casa.</span>
       </p>
     </motion.div>
   );
@@ -199,7 +210,7 @@ export default function Historia() {
                 el 2027 no es la fecha del evento y confundía. Queda el nombre
                 del colegio solo. */}
             <div className="absolute inset-x-0 bottom-0 bg-brand px-6 py-4">
-              <p className="font-body text-xs font-bold uppercase tracking-[0.14em] text-bone">
+              <p className="font-body text-xs font-black uppercase tracking-[0.14em] text-bone">
                 {evento.colegio}
               </p>
             </div>

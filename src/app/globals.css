@@ -134,7 +134,7 @@ body::after {
   .eyebrow {
     /* Dorado ENTERO, no al 70%: el colegio los veía apagados. Ya estaban en
        negrilla -- lo que los hacía desaparecer era la transparencia. */
-    @apply font-body text-[11.5px] font-bold uppercase tracking-eyebrow text-gold;
+    @apply font-body text-[12.5px] font-black uppercase tracking-[0.14em] text-gold;
   }
 
   /* Misma etiqueta para las secciones de fondo claro: el 139C al 70% sobre
@@ -143,7 +143,7 @@ body::after {
     /* Mismo cuerpo que .eyebrow: son la misma pieza, solo cambia el fondo.
        Dejarlos de distinto tamano se notaba al pasar de una seccion oscura a
        una clara. */
-    @apply font-body text-[11.5px] font-bold uppercase tracking-eyebrow text-goldDeep;
+    @apply font-body text-[12.5px] font-black uppercase tracking-[0.14em] text-goldDeep;
   }
 
   .gold-rule {

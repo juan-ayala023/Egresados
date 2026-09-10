@@ -75,7 +75,7 @@ function Unidad({ valor, label }: { valor: number; label: string }) {
           <Digito key={i} valor={d} />
         ))}
       </div>
-      <div className="mt-2 font-body text-[9px] font-bold uppercase tracking-[0.18em] text-muted sm:text-[10px] sm:tracking-eyebrow">{label}</div>
+      <div className="mt-2 font-body text-[9px] font-black uppercase tracking-[0.18em] text-muted sm:text-[10px] sm:tracking-eyebrow">{label}</div>
     </div>
   );
 }
@@ -282,7 +282,7 @@ export default function Hero({ listo }: { listo: boolean }) {
               gap-7 con 4 unidades y etiquetas de tracking ancho sumaba más
               de 330px: se desbordaba en iPhone SE. Escala con la pantalla. */}
           <div className="w-full sm:w-auto">
-            <p className="mb-2.5 font-body text-[10px] font-bold uppercase tracking-eyebrow text-gold">
+            <p className="mb-2.5 font-body text-[10px] font-black uppercase tracking-eyebrow text-gold">
               Conteo regresivo
             </p>
             <div className="flex w-full items-end justify-between gap-3 sm:w-auto sm:justify-start sm:gap-7">
@@ -297,7 +297,7 @@ export default function Hero({ listo }: { listo: boolean }) {
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-gold opacity-60" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-gold" />
             </span>
-            <span className="font-body text-xs font-bold uppercase tracking-[0.18em] text-bone/70">
+            <span className="font-body text-xs font-black uppercase tracking-[0.18em] text-bone/70">
               {evento.urgencia}
             </span>
           </div>

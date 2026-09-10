@@ -105,7 +105,7 @@ export default function Galeria() {
   }, [abierta, cerrar, mover]);
 
   return (
-    <section id="galeria" className="mx-auto max-w-7xl px-6 py-14 md:py-16">
+    <section id="galeria" className="mx-auto max-w-7xl px-6 pt-14 md:pt-16 pb-8 md:pb-10">
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
           <motion.p
@@ -243,7 +243,7 @@ export default function Galeria() {
                 />
               ))}
             </div>
-            <p className="font-body text-[11px] font-bold uppercase tracking-[0.14em] text-bone/90">
+            <p className="font-body text-[11px] font-black uppercase tracking-[0.14em] text-bone/90">
               {galeria.pistaCarrusel}
             </p>
           </div>
@@ -338,7 +338,7 @@ export default function Galeria() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2, duration: dur.base, ease: ease.out }}
-                className="mt-4 flex items-center justify-between gap-4 font-body text-xs font-bold uppercase tracking-[0.14em] text-muted"
+                className="mt-4 flex items-center justify-between gap-4 font-body text-xs font-black uppercase tracking-[0.14em] text-muted"
               >
                 <span>{galeria.fotos[abierta].alt}</span>
                 <span className="shrink-0 tabular-nums text-gold">

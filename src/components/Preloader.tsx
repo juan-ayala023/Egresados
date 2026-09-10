@@ -16,8 +16,8 @@ export default function Preloader({ onDone }: { onDone: () => void }) {
   const [fuera, setFuera] = useState(false);
 
   /* La cuenta llego a su tope: es el momento del relevo -- el numero se apaga
-     y el logo ocupa su lugar. Se nombra una sola vez porque de esto dependen
-     tres cosas (el numero, el logo y la bajada) y tenian que cambiar juntas. */
+     y el logo ocupa su lugar. Se nombra aparte porque de esto dependen las dos
+     piezas y tenian que cambiar a la vez. */
   const llego = n >= evento.aniversario;
 
   useEffect(() => {
@@ -82,13 +82,8 @@ export default function Preloader({ onDone }: { onDone: () => void }) {
             />
           ))}
 
-          {/* Hilo dorado que se abre con el telón */}
-          <motion.div
-            initial={{ scaleX: 0, opacity: 0 }}
-            animate={saliendo ? { scaleX: 1, opacity: 0 } : { scaleX: 1, opacity: 1 }}
-            transition={{ duration: 1.5, ease: ease.out }}
-            className="absolute inset-x-0 top-1/2 z-10 h-px origin-center bg-gradient-to-r from-transparent via-gold to-transparent"
-          />
+          {/* SIN hilo dorado. Cruzaba la pantalla justo por la mitad y, ahora
+              que el logo ocupa ese centro, le pasaba una línea por encima. */}
 
           <motion.div
             animate={saliendo ? { opacity: 0, scale: 0.96 } : { opacity: 1 }}
@@ -132,14 +127,6 @@ export default function Preloader({ onDone }: { onDone: () => void }) {
                 />
               </motion.div>
             </div>
-            <motion.span
-              initial={{ opacity: 0 }}
-              animate={{ opacity: llego ? 1 : 0 }}
-              transition={{ duration: 0.4 }}
-              className="mt-7 font-body text-xs font-bold uppercase tracking-eyebrow text-gold"
-            >
-              {evento.aniversario} años de historia
-            </motion.span>
           </motion.div>
         </div>
       )}

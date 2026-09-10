@@ -95,7 +95,7 @@ export const noche = {
       titulo: 'Música en vivo',
       etiqueta: 'En tarima',
       texto:
-        'Banda completa en vivo de Felipe Ángel, show de Jessi Uribe de "Yo Me Llamo" y las mejores canciones para bailar sin parar a cargo de DJ ALEX.',
+        'Banda completa de Felipe Ángel, show de Jessi Uribe de "Yo Me Llamo" y las mejores canciones para bailar sin parar a cargo de DJ ALEX.',
     },
     {
       icono: 'bar' as const,
@@ -275,6 +275,18 @@ export const metodosPago = [
 /* Cada categoría nombra su icono con una llave, igual que los bloques de la
    noche: data.ts no importa componentes. Son iconos de línea, no emoji: el
    manual de marca no autoriza pictogramas de relleno. */
+/* Cabecera de las preguntas frecuentes. Estaba quemada dentro del componente,
+   que es justo lo que este archivo existe para evitar: el colegio pidio
+   cambiar los dos textos y no habia donde tocarlos sin programar.
+
+   `acento` marca que palabras del titulo van en dorado, contando desde 0:
+   "Todo(0) lo(1) que(2) necesitas(3) saber(4)". */
+export const faqCabecera = {
+  eyebrow: 'Información del evento',
+  titulo: 'Todo lo que necesitas saber',
+  acento: [3, 4],
+};
+
 export const faq = [
   {
     categoria: 'Alimentos y Bebidas',

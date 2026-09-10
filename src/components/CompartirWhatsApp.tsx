@@ -21,11 +21,21 @@ export default function CompartirWhatsApp({ className = '' }: { className?: stri
 
   useEffect(() => setUrl(window.location.origin + window.location.pathname), []);
 
+  /* Formato del colegio: una linea por dato, cada una con su emoji.
+     Antes iba en parrafo corrido y en WhatsApp se leia como un bloque que
+     nadie termina; en renglones se escanea de un vistazo.
+
+     Los datos salen de `evento` en data.ts, no van escritos aqui: si cambia
+     la fecha o la hora, el mensaje cambia solo y no queda una version vieja
+     circulando por los chats. */
   const mensaje = [
-    `${evento.titulo} — ${evento.colegio}`,
-    `${evento.fechaTexto}, ${evento.horaTexto}. ${evento.lugar} (${evento.direccion}).`,
-    '¿Nos vemos allá? Cupos limitados.',
-    url,
+    `🎉 ¡${evento.titulo}!`,
+    `📅 ${evento.fechaTexto} | ${evento.horaTexto}`,
+    `📍 ${evento.lugar}`,
+    '⚠️ Cupos limitados.',
+    /* El enlace en su propio renglon: WhatsApp solo lo vuelve clicable y le
+       arma la vista previa si no lleva texto pegado. */
+    url && `🎟️ Compra tu boleta aquí:\n${url}`,
   ]
     .filter(Boolean)
     .join('\n');
@@ -36,7 +46,7 @@ export default function CompartirWhatsApp({ className = '' }: { className?: stri
         href={`https://wa.me/?text=${encodeURIComponent(mensaje)}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="group inline-flex items-center gap-2.5 font-body text-sm font-semibold text-bone/75 underline-offset-[6px] transition-colors hover:text-[#25D366] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold"
+        className="group inline-flex items-center gap-2.5 font-body text-sm font-bold text-bone/75 underline-offset-[6px] transition-colors hover:text-[#25D366] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold"
       >
         <IconoWhatsApp size={18} />
         Compartir evento por WhatsApp

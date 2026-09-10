@@ -57,7 +57,7 @@ export default function BotonWhatsApp() {
             {/* La etiqueta se despliega en el hover y no ocupa espacio en
                 reposo: el botón vive sobre el contenido y en móvil no hay
                 hover, así que ahí se queda siempre como círculo limpio. */}
-            <span className="hidden max-w-0 overflow-hidden whitespace-nowrap font-body text-[13px] font-semibold leading-none transition-[max-width] duration-300 group-hover:max-w-[10rem] sm:block">
+            <span className="hidden max-w-0 overflow-hidden whitespace-nowrap font-body text-[13px] font-bold leading-none transition-[max-width] duration-300 group-hover:max-w-[10rem] sm:block">
               Escríbenos
             </span>
           </a>

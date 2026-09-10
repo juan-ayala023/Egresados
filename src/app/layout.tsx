@@ -9,7 +9,15 @@ import { evento } from '@/data';
    700 títulos y subtítulos · 500 apoyos de UI · 400 cuerpos. */
 const roboto = Roboto({
   subsets: ['latin'],
-  weight: ['400', '500', '700'],
+  /* Roboto NO tiene 600. Por eso en el resto del sitio no se usa
+     `font-semibold`: pide un peso que la fuente no trae y cada navegador lo
+     resuelve distinto -- unos bajan a 500, otros lo fabrican. Para "mas que
+     normal" va font-medium (500); para negrilla, font-bold (700).
+
+     El 900 (Black) es para las etiquetas pequenas: a 12px con las letras muy
+     separadas, la negrilla normal se adelgaza y el colegio las seguia viendo
+     finas. El Black si se lee como un negro solido. */
+  weight: ['400', '500', '700', '900'],
   variable: '--font-roboto',
   display: 'swap',
 });
