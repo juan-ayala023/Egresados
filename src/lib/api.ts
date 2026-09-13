@@ -43,8 +43,12 @@ export type BoletaApi = {
 };
 
 /* Tipos de documento que aprobó el acta ("NIT/CC"). El backend los valida
-   contra la misma lista; si cambia una, cambia la otra. */
-export const TIPOS_DOCUMENTO = ['CC', 'CE', 'NIT', 'PP', 'TI'] as const;
+   contra la misma lista; si cambia una, cambia la otra.
+
+   SIN TARJETA DE IDENTIDAD (11 de septiembre de 2026): es el documento de los
+   menores de edad, y esta fiesta es para adultos. Tenerla en la lista invitaba
+   a registrar a un menor. */
+export const TIPOS_DOCUMENTO = ['CC', 'CE', 'NIT', 'PP'] as const;
 export type TipoDocumento = (typeof TIPOS_DOCUMENTO)[number];
 
 export const ETIQUETA_DOCUMENTO: Record<TipoDocumento, string> = {
@@ -52,7 +56,6 @@ export const ETIQUETA_DOCUMENTO: Record<TipoDocumento, string> = {
   CE: 'Cédula de extranjería',
   NIT: 'NIT',
   PP: 'Pasaporte',
-  TI: 'Tarjeta de identidad',
 };
 
 export type Comprador = {

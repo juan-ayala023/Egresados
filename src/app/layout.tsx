@@ -23,6 +23,13 @@ const roboto = Roboto({
 });
 
 export const metadata: Metadata = {
+  /* El subdominio oficial (13 de septiembre de 2026). Es lo que WhatsApp,
+     Facebook e Instagram usan para armar la vista previa cuando alguien pega
+     el enlace: sin esto, las rutas relativas de la imagen y el título no
+     resuelven y la tarjeta sale vacía. */
+  ...(process.env.NEXT_PUBLIC_SITIO_URL
+    ? { metadataBase: new URL(process.env.NEXT_PUBLIC_SITIO_URL) }
+    : {}),
   title: `${evento.titulo} · ${evento.colegio}`,
   description: `${evento.bajada}. ${evento.fechaTexto} en ${evento.lugar}, ${evento.ciudad}. Cupos limitados.`,
 };

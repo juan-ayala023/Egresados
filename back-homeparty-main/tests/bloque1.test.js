@@ -296,11 +296,17 @@ test('sin llaves de Wompi y con la simulacion apagada, el servidor no arranca', 
 test('llaves de produccion con NODE_ENV distinto de production no arrancan', () => {
   const original = { ...config.wompi }
   const correoOriginal = config.correo.host
+  const urlOriginal = config.urlPublica
   config.wompi.simulacion = false
   config.wompi.publicKey = 'pub_prod_algo'
   config.wompi.integritySecret = 'integrity_real'
   config.wompi.eventsSecret = 'events_real'
   config.correo.host = 'smtp.colegio.edu.co'
+  // Se fija aqui y no se hereda del .env: la prueba comprueba que un
+  // PUBLIC_URL sin https se reclama, y si depende del .env de quien la corra
+  // pasa o falla segun la maquina. Paso justo eso el 10 de septiembre de 2026
+  // al apuntar el .env a un tunel https para una prueba con gente.
+  config.urlPublica = 'http://localhost:4000'
   try {
     assert.throws(revisarConfiguracion, (e) => {
       assert.match(e.message, /llaves de PRODUCCION con NODE_ENV=test/)
@@ -310,6 +316,7 @@ test('llaves de produccion con NODE_ENV distinto de production no arrancan', () 
   } finally {
     Object.assign(config.wompi, original)
     config.correo.host = correoOriginal
+    config.urlPublica = urlOriginal
   }
 })
 

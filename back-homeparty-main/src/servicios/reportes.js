@@ -57,6 +57,21 @@ const q = {
   ORDER BY o.pagada_en DESC
      LIMIT ?`),
 
+  // Los asistentes de una venta, con el estado de SU boleta.
+  //
+  // Va aparte y no dentro de ultimasVentas a proposito: unir aqui repetiria
+  // los datos del comprador una vez por acompanante, y el panel tendria que
+  // volver a agruparlos. Son 25 consultas chiquitas por indice, no una tabla
+  // cruzada.
+  asistentesDeOrden: db.prepare(`
+    SELECT a.indice, a.nombre, a.tipo_documento, a.cedula, a.promocion,
+           a.es_egresado, b.id AS boleta_id, b.estado AS boleta_estado,
+           b.usada_en
+      FROM asistente a
+      LEFT JOIN boleta b ON b.asistente_id = a.id
+     WHERE a.orden_id = ?
+  ORDER BY a.indice`),
+
   resumenEstados: db.prepare(`
     SELECT estado, COUNT(*) AS ordenes, COALESCE(SUM(cantidad), 0) AS boletas,
            COALESCE(SUM(total_centavos), 0) AS total_centavos
@@ -78,7 +93,16 @@ export function buscarOrdenes(texto) {
  */
 export function ultimasVentas(limite = 25) {
   const n = Math.min(Math.max(Number(limite) || 25, 1), 200)
-  return q.ultimasVentas.all(n)
+  return q.ultimasVentas.all(n).map((venta) => ({
+    ...venta,
+    // A NOMBRE DE QUIEN VAN LAS BOLETAS. El comite necesita esto para dos
+    // cosas: saber quien entra (el que compra 4 no va solo) y responderle a
+    // quien llama diciendo "no me llego la de mi esposa".
+    //
+    // Va incluido y no en otra llamada porque son pocos por venta, y el panel
+    // los muestra al desplegar la fila sin tener que volver a preguntar.
+    asistentes: q.asistentesDeOrden.all(venta.id),
+  }))
 }
 
 /** Cuantas ordenes y cuanta plata hay en cada estado. */

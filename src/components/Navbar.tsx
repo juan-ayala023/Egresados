@@ -8,6 +8,8 @@ import { Menu, X } from 'lucide-react';
 import { ease } from '@/lib/motion';
 import { evento, imagenes } from '@/data';
 import Aurora from './Aurora';
+import ManitoClic from './ManitoClic';
+import { useBloquearScroll } from '@/lib/bloquearScroll';
 
 /* Menú definido por el colegio. 'Experiencia' apunta a la sección #evento.
    OJO: Artistas ya no tiene entrada aquí; la sección sigue existiendo en la
@@ -26,13 +28,10 @@ export default function Navbar({ listo }: { listo: boolean }) {
   const [menu, setMenu] = useState(false);
 
   /* Con el menú abierto, el fondo no debe poder desplazarse: en móvil se
-     siente como si la página se escapara por detrás del panel. */
-  useEffect(() => {
-    document.body.style.overflow = menu ? 'hidden' : '';
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [menu]);
+     siente como si la página se escapara por detrás del panel.
+     Va por el candado compartido: antes este efecto ponía overflow='' y le
+     quitaba el bloqueo al checkout si estaba abierto. */
+  useBloquearScroll(menu);
 
   /* Escape cierra, como cualquier diálogo. */
   useEffect(() => {
@@ -99,12 +98,19 @@ export default function Navbar({ listo }: { listo: boolean }) {
           </ul>
 
           <div className="flex items-center gap-3">
-            <a
-              href="#boletas"
-              className="cursor-pointer whitespace-nowrap rounded-full bg-gold px-4 py-2 font-body text-[11px] font-black uppercase tracking-[0.1em] text-ink transition-all hover:bg-goldSoft sm:px-5 sm:py-2.5 sm:text-[12px] sm:tracking-[0.12em]"
-            >
-              Compra tu boleta aquí
-            </a>
+            {/* La manito también aquí (pedido del colegio, 13 de septiembre de
+                2026). Va más chica y menos metida que en las secciones: este
+                botón es la mitad de alto, y la barra es fija, así que la
+                animación se ve todo el tiempo -- no puede ser estridente. */}
+            <div className="flex items-center">
+              <a
+                href="#boletas"
+                className="cursor-pointer whitespace-nowrap rounded-full bg-gold px-4 py-2 font-body text-[11px] font-black uppercase tracking-[0.1em] text-ink transition-all hover:bg-goldSoft sm:px-5 sm:py-2.5 sm:text-[12px] sm:tracking-[0.12em]"
+              >
+                Compra tu boleta aquí
+              </a>
+              <ManitoClic tamano={22} entrada={20} bajada={6} />
+            </div>
 
             {/* Área táctil de 44px, el mínimo recomendado para el pulgar. */}
             <button

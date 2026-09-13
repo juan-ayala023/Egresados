@@ -11,7 +11,8 @@
    Lo que sí tiene que ser es honesto — si algo se rompió, se ve.
    ========================================================================== */
 
-import { useCallback, useEffect, useState } from 'react';
+import { Fragment, useCallback, useEffect, useState } from 'react';
+import { ChevronDown } from 'lucide-react';
 import {
   leerToken, guardarToken, olvidarToken,
   obtenerAlertas, atenderAlerta, obtenerVentas, buscarOrdenes, obtenerFicha, reenviarBoletas, anularOrden, descargarCsv,
@@ -33,6 +34,9 @@ export default function Panel() {
 
   const [alertas, setAlertas] = useState<Alertas | null>(null);
   const [ventas, setVentas] = useState<Venta[]>([]);
+  /* Qué venta está desplegada, por referencia. Una sola a la vez: con 500
+     ventas, abrirlas todas convierte la tabla en un muro. */
+  const [desplegada, setDesplegada] = useState<string | null>(null);
   const [cargando, setCargando] = useState(false);
 
   const [texto, setTexto] = useState('');
@@ -357,6 +361,7 @@ export default function Panel() {
             <table className="w-full min-w-[720px] border-collapse font-body text-sm">
               <thead>
                 <tr className="border-b border-white/[0.08] text-left text-[11px] font-black uppercase tracking-[0.14em] text-muted">
+                  <th className="w-8 px-2 py-3 font-medium" aria-label="Desplegar"></th>
                   <th className="px-4 py-3 font-medium">Referencia</th>
                   <th className="px-4 py-3 font-medium">Comprador</th>
                   <th className="px-4 py-3 font-medium">Promoción</th>
@@ -367,14 +372,29 @@ export default function Panel() {
                 </tr>
               </thead>
               <tbody>
-                {ventas.map((v) => (
+                {ventas.map((v) => {
+                  const abierta = desplegada === v.referencia;
+                  return (
+                  <Fragment key={v.referencia}>
                   <tr
-                    key={v.referencia}
-                    className="border-b border-white/[0.05] last:border-0 transition-colors hover:bg-white/[0.03]"
+                    onClick={() => setDesplegada(abierta ? null : v.referencia)}
+                    className={`cursor-pointer border-b border-white/[0.05] transition-colors hover:bg-white/[0.03] ${
+                      abierta ? 'bg-white/[0.04]' : ''
+                    }`}
                   >
+                    {/* La flecha marca que la fila se abre. Sin ella nadie
+                        descubre que hay algo debajo. */}
+                    <td className="px-2 py-3 text-center align-middle">
+                      <ChevronDown
+                        size={15}
+                        className={`inline-block text-muted transition-transform duration-200 ${
+                          abierta ? 'rotate-180 text-gold' : ''
+                        }`}
+                      />
+                    </td>
                     <td className="px-4 py-3">
                       <button
-                        onClick={() => abrir(v.referencia)}
+                        onClick={(e) => { e.stopPropagation(); abrir(v.referencia); }}
                         className="text-gold underline underline-offset-4"
                       >
                         {v.referencia}
@@ -408,7 +428,67 @@ export default function Panel() {
                       )}
                     </td>
                   </tr>
-                ))}
+
+                  {/* A NOMBRE DE QUIÉN VAN LAS BOLETAS.
+                      Quien compra 4 no va solo, y hasta ahora el panel solo
+                      mostraba al que pagó. Esto es lo que se necesita para
+                      responderle a quien llama diciendo "no me llegó la de mi
+                      esposa", y para saber quién va a entrar. */}
+                  {abierta && (
+                    <tr className="border-b border-white/[0.05] bg-ink/40">
+                      <td colSpan={8} className="px-4 py-4 sm:px-12">
+                        <p className="mb-3 font-body text-[11px] font-black uppercase tracking-[0.14em] text-muted">
+                          Boletas de esta compra
+                        </p>
+                        <ul className="space-y-2">
+                          {v.asistentes.map((a) => (
+                            <li
+                              key={a.boleta_id ?? a.indice}
+                              className="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-l-2 border-gold/40 pl-3"
+                            >
+                              <span className="font-body text-sm text-bone">{a.nombre}</span>
+                              <span className="font-body text-xs text-muted">
+                                {a.tipo_documento} {a.cedula}
+                              </span>
+                              <span className="font-body text-xs text-muted">
+                                {a.es_egresado
+                                  ? `Promoción ${a.promocion}`
+                                  : a.promocion
+                                  ? 'No egresado'
+                                  : 'Sin promoción'}
+                              </span>
+                              {/* El estado de la boleta es lo que le importa a
+                                  quien está en la puerta: si dice usada, ese
+                                  código ya entró y no sirve otra vez. */}
+                              {a.boleta_estado === 'usada' ? (
+                                <span className="font-body text-xs text-gold">
+                                  ya entró
+                                  {a.usada_en
+                                    ? ` · ${new Date(a.usada_en).toLocaleString('es-CO', {
+                                        day: '2-digit', month: '2-digit',
+                                        hour: '2-digit', minute: '2-digit',
+                                      })}`
+                                    : ''}
+                                </span>
+                              ) : a.boleta_estado === 'anulada' ? (
+                                <span className="font-body text-xs text-red-400/90">anulada</span>
+                              ) : (
+                                <span className="font-body text-xs text-emerald-400/80">sin usar</span>
+                              )}
+                              {a.boleta_id && (
+                                <span className="font-body text-[10.5px] text-muted/70">
+                                  {a.boleta_id}
+                                </span>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      </td>
+                    </tr>
+                  )}
+                  </Fragment>
+                  );
+                })}
               </tbody>
             </table>
           </div>

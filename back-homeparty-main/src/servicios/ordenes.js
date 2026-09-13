@@ -53,6 +53,23 @@ const q = {
   porId: db.prepare(`SELECT * FROM orden WHERE id = ?`),
 
   compradorDe: db.prepare(`SELECT * FROM comprador WHERE orden_id = ?`),
+
+  // Las boletas CON el correo de su dueno. Va aparte de boletasDe a proposito:
+  // boletasDeOrden() alimenta la respuesta PUBLICA de la orden, y meterle ahi
+  // el correo de cada acompanante lo dejaria a la vista de cualquiera que
+  // tenga la referencia.
+  boletasConDueno: db.prepare(`
+    SELECT b.id, b.token_firmado, b.estado,
+           a.id AS asistente_id, a.indice, a.nombre AS asistente_nombre,
+           a.correo AS asistente_correo, a.promocion, a.es_egresado,
+           a.correo_enviado_en
+      FROM boleta b
+      JOIN asistente a ON a.id = b.asistente_id
+     WHERE b.orden_id = ?
+  ORDER BY a.indice`),
+
+  marcarCorreoAsistente: db.prepare(
+    `UPDATE asistente SET correo_enviado_en = ? WHERE id = ?`),
   asistentesDe: db.prepare(`SELECT * FROM asistente WHERE orden_id = ? ORDER BY indice`),
   boletasDe: db.prepare(`
     SELECT b.*, a.nombre AS asistente_nombre, a.promocion, a.es_egresado
@@ -347,6 +364,30 @@ function emitirBoletas(ordenId) {
  * Es asincrono y nunca lanza hacia arriba: si el SMTP falla, el pago ya paso y
  * el usuario puede pedir el reenvio desde el paso 3 o desde el panel.
  */
+/**
+ * Envia (o reenvia) las boletas de una orden pagada.
+ *
+ * CADA BOLETA VA SOLO A SU DUENIO. Lo pidio el colegio el 11 de septiembre de
+ * 2026, y lo afino esa misma tarde despues de la primera prueba: la version
+ * anterior le mandaba al comprador TODAS las boletas ademas de repartirlas,
+ * y el comprador recibia las de sus amigos sin necesitarlas.
+ *
+ * Como queda:
+ *   - Cada acompanante con correo recibe la suya, y solo la suya.
+ *   - Quien pago recibe la suya + el resumen de la compra (numero de orden,
+ *     total), que es su comprobante. Y se le dice a quien se le mando el resto.
+ *   - Un acompanante SIN correo no puede quedarse sin boleta: la suya va en el
+ *     correo de quien pago. Es la unica excepcion, y es para no perder nada.
+ *
+ * LO QUE NO SE REPITE: el barrido de reintentos corre cada minuto. Cada
+ * asistente queda marcado cuando su boleta salio (correo_enviado_en), y un
+ * reintento no se la vuelve a mandar. Al comprador SI se le puede reenviar:
+ * eso es lo que hace el boton del panel.
+ *
+ * El resultado del comprador es el que manda: si ESE falla, la orden queda
+ * como no enviada y se reintenta. Si el SMTP esta caido, no se intenta nada
+ * mas -- mandar tres individuales solo multiplicaria el fallo.
+ */
 export async function enviarCorreoDeOrden(ordenId) {
   const orden = q.porId.get(ordenId)
   if (!orden || orden.estado !== 'pagada') {
@@ -354,23 +395,56 @@ export async function enviarCorreoDeOrden(ordenId) {
   }
 
   const comprador = q.compradorDe.get(ordenId)
-  const boletas = boletasDeOrden(ordenId).filter((b) => b.estado !== 'anulada')
+  const filas = q.boletasConDueno.all(ordenId).filter((b) => b.estado !== 'anulada')
+  const correoComprador = String(comprador.correo ?? '').trim().toLowerCase()
 
-  // El PDF va tambien adjunto, por si alguien quiere imprimirlo.
-  const adjuntos = []
-  for (const b of boletas) {
+  // Forma que espera el armador del correo.
+  const comoBoleta = (f) => ({
+    id: f.id,
+    asistente: f.asistente_nombre,
+    promocion: f.promocion,
+    esEgresado: f.es_egresado === 1,
+    estado: f.estado,
+    token: f.token_firmado,
+  })
+
+  const pdfDe = async (f) => {
     try {
-      adjuntos.push({
-        filename: `boleta-${b.asistente.split(' ')[0].toLowerCase()}-${b.id.slice(-6)}.pdf`,
-        content: await pdfDeBoleta({ ...b, referencia: orden.referencia }),
+      return {
+        filename: `boleta-${f.asistente_nombre.split(' ')[0].toLowerCase()}-${f.id.slice(-6)}.pdf`,
+        content: await pdfDeBoleta({ ...comoBoleta(f), referencia: orden.referencia }),
         contentType: 'application/pdf',
-      })
+      }
     } catch (e) {
-      console.error(`[correo] No se pudo generar el PDF de ${b.id}:`, e.message)
+      console.error(`[correo] No se pudo generar el PDF de ${f.id}:`, e.message)
+      return null
     }
   }
 
-  const resultado = await enviarBoletas(orden, comprador, boletas, adjuntos)
+  // --- A donde va cada boleta ---------------------------------------------------
+  // A su propio correo si lo dejo y no es el mismo del comprador; si no, al
+  // comprador. Se agrupa por destino: si dos acompanantes pusieron el mismo
+  // correo, les llega UN correo con las dos, no dos correos.
+  const grupos = new Map()
+  for (const f of filas) {
+    const suyo = String(f.asistente_correo ?? '').trim().toLowerCase()
+    const destino = suyo && suyo !== correoComprador ? suyo : correoComprador
+    if (!grupos.has(destino)) grupos.set(destino, [])
+    grupos.get(destino).push(f)
+  }
+
+  const delComprador = grupos.get(correoComprador) ?? []
+  grupos.delete(correoComprador)
+
+  // A quien se le mando aparte: se le cuenta al comprador en su correo, para
+  // que sepa que sus amigos ya tienen la suya y no la reenvie el.
+  const enviadasAparte = [...grupos.values()].flat().map((f) => f.asistente_nombre)
+
+  // --- 1. el correo de quien pago -----------------------------------------------
+  const adjuntosComprador = (await Promise.all(delComprador.map(pdfDe))).filter(Boolean)
+  const resultado = await enviarBoletas(
+    orden, comprador, delComprador.map(comoBoleta), adjuntosComprador, { enviadasAparte },
+  )
 
   if (resultado.enviado) {
     q.registrarCorreo.run(comprador.correo, ahora(), ordenId)
@@ -378,8 +452,32 @@ export async function enviarCorreoDeOrden(ordenId) {
     // Se anota el fallo. El reintento lo agenda quien llame (ver
     // src/servicios/correos.js), que es quien conoce la espera creciente.
     q.registrarFalloCorreo.run(resultado.detalle ?? 'sin detalle', null, ordenId)
+    return resultado
   }
-  return resultado
+
+  // --- 2. la boleta de cada acompanante, a su propio correo ---------------------
+  let individuales = 0
+  for (const [destino, suyas] of grupos) {
+    const pendientes = suyas.filter((f) => !f.correo_enviado_en)
+    if (pendientes.length === 0) continue   // ya se le habia mandado
+
+    const adjuntos = (await Promise.all(pendientes.map(pdfDe))).filter(Boolean)
+    const r = await enviarBoletas(orden, comprador, pendientes.map(comoBoleta), adjuntos, {
+      para: destino,
+      invitadoDe: comprador.nombre,
+    })
+
+    if (r.enviado) {
+      for (const f of pendientes) q.marcarCorreoAsistente.run(ahora(), f.asistente_id)
+      individuales += 1
+    } else {
+      // No tumba la orden: el reintento del barrido lo vuelve a intentar, y
+      // desde el panel se puede reenviar.
+      console.error(`[correo] No se le pudo mandar la boleta a ${destino}: ${r.detalle}`)
+    }
+  }
+
+  return { ...resultado, individuales }
 }
 
 /** Ordenes pagadas sin correo enviado a las que ya les toca reintento. */

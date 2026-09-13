@@ -9,6 +9,7 @@ import ManitoClic from './ManitoClic';
 import RevealText from './RevealText';
 import { dur, ease, enVista, subir } from '@/lib/motion';
 import { galeria, imagenes } from '@/data';
+import { useBloquearScroll } from '@/lib/bloquearScroll';
 
 export default function Galeria() {
   const [abierta, setAbierta] = useState<number | null>(null);
@@ -98,12 +99,11 @@ export default function Galeria() {
       if (e.key === 'ArrowLeft') mover(-1);
     };
     document.addEventListener('keydown', onKey);
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', onKey);
-      document.body.style.overflow = '';
-    };
+    return () => document.removeEventListener('keydown', onKey);
   }, [abierta, cerrar, mover]);
+
+  /* Con una foto abierta a pantalla completa, el fondo no se mueve. */
+  useBloquearScroll(abierta !== null);
 
   return (
     <section id="galeria" className="mx-auto max-w-7xl px-6 pt-14 md:pt-16 pb-8 md:pb-10">

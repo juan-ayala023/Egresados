@@ -186,8 +186,11 @@ body::after {
     color: rgb(var(--bone));
   }
 
+  /* Los titulos de los campos van en BLANCO, no en gris (11 de septiembre de
+     2026): sobre el azul del checkout el gris se apagaba y "NOMBRE COMPLETO"
+     se leia como texto de relleno, no como lo que hay que llenar. */
   .label {
-    @apply mb-1.5 block font-body text-[11px] uppercase tracking-[0.16em] text-muted;
+    @apply mb-1.5 block font-body text-[11px] font-black uppercase tracking-[0.16em] text-bone;
   }
 
   /* Tratamiento unificado de fotografía */

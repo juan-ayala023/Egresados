@@ -9,33 +9,47 @@ import IconoWhatsApp from './IconoWhatsApp';
    número: así WhatsApp muestra el selector de chats en vez de abrirle
    conversación a alguien.
 
-   La URL se arma después de montar porque en el servidor no existe
-   window.location y este sitio no tiene dominio fijo configurado todavía
-   (no hay metadataBase en layout.tsx). Mientras tanto comparte solo el texto,
-   que es válido: nunca manda un enlace roto.
+   EL ENLACE ES EL SUBDOMINIO OFICIAL, no la URL desde donde se abrió la
+   página. El colegio asignó homecomingtcs.columbus.edu.co el 13 de septiembre
+   de 2026 (va en NEXT_PUBLIC_SITIO_URL). Antes salía de window.location, y
+   quien compartiera desde Vercel o desde un túnel de pruebas mandaba ESA
+   dirección a su promoción. Si la variable faltara, cae a window.location
+   como antes: nunca manda un enlace roto.
 
    El botón de "Copiar enlace" que iba al lado lo quitó el colegio el 8 de
    septiembre de 2026. */
 export default function CompartirWhatsApp({ className = '' }: { className?: string }) {
   const [url, setUrl] = useState('');
 
-  useEffect(() => setUrl(window.location.origin + window.location.pathname), []);
+  useEffect(() => {
+    const fija = (process.env.NEXT_PUBLIC_SITIO_URL ?? '').replace(/\/$/, '');
+    setUrl(fija || window.location.origin + window.location.pathname);
+  }, []);
 
-  /* Formato del colegio: una linea por dato, cada una con su emoji.
-     Antes iba en parrafo corrido y en WhatsApp se leia como un bloque que
-     nadie termina; en renglones se escanea de un vistazo.
+  /* Formato del colegio: una linea por dato. Antes iba en parrafo corrido y
+     en WhatsApp se leia como un bloque que nadie termina; en renglones se
+     escanea de un vistazo.
+
+     SIN EMOJIS (13 de septiembre de 2026). Iban con uno por renglon, como en
+     la muestra del colegio, pero la app de WhatsApp para Windows los
+     convierte en "?" al recibir el enlace -- es un fallo de esa app con los
+     caracteres de 4 bytes, no de aqui. Se quitaron antes que arriesgar que a
+     alguien le llegue el mensaje con signos raros.
+
+     Tampoco va la cursiva de "Cupos limitados" (_asi_): por la misma razon,
+     mejor texto plano que marcas que puedan salir crudas.
 
      Los datos salen de `evento` en data.ts, no van escritos aqui: si cambia
      la fecha o la hora, el mensaje cambia solo y no queda una version vieja
      circulando por los chats. */
   const mensaje = [
-    `🎉 ¡${evento.titulo}!`,
-    `📅 ${evento.fechaTexto} | ${evento.horaTexto}`,
-    `📍 ${evento.lugar}`,
-    '⚠️ Cupos limitados.',
+    `¡${evento.titulo}!`,
+    `${evento.fechaTexto} | ${evento.horaTexto}`,
+    evento.lugar,
+    'Cupos limitados.',
     /* El enlace en su propio renglon: WhatsApp solo lo vuelve clicable y le
        arma la vista previa si no lleva texto pegado. */
-    url && `🎟️ Compra tu boleta aquí:\n${url}`,
+    url && `Compra tu boleta aquí:\n${url}`,
   ]
     .filter(Boolean)
     .join('\n');

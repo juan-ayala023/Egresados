@@ -26,6 +26,11 @@ const CARPETA_CORREOS = path.join(path.dirname(config.baseDatos), 'correos')
 // hace por defecto). Va incrustada, igual que los QR.
 const ENCABEZADO = path.join(path.dirname(fileURLToPath(import.meta.url)), 'correo-encabezado.png')
 
+// El logo de los 80 anos que cierra el correo (13 de septiembre de 2026, en
+// vez del "THE COLUMBUS SCHOOL" escrito). Es blanco sobre transparente, asi
+// que va sobre una franja azul: en el fondo blanco del correo no se veria.
+const PIE = path.join(path.dirname(fileURLToPath(import.meta.url)), 'correo-pie.png')
+
 // Colores del manual de marca. En correo no hay variables CSS: van a mano.
 const NAVY = '#004990'
 const ORO = '#C88A12'
@@ -72,7 +77,11 @@ function obtenerTransporte() {
  *   data URI, que es lo unico que se ve al abrirlo en el navegador.
  * @returns {Promise<{html:string, imagenes:Array}>}
  */
-async function armarCorreo(orden, boletas, { paraArchivo = false } = {}) {
+async function armarCorreo(orden, boletas, { paraArchivo = false, invitadoDe = null, enviadasAparte = [] } = {}) {
+  // invitadoDe = nombre de quien compro, cuando este correo va para un
+  // acompanante y no para el comprador. Cambia el texto: a quien no pago hay
+  // que decirle POR QUE le esta llegando una boleta.
+  const individual = Boolean(invitadoDe)
   const imagenes = []
 
   // --- Banner de apertura ---
@@ -87,6 +96,18 @@ async function armarCorreo(orden, boletas, { paraArchivo = false } = {}) {
   } catch (e) {
     // Que falte el banner no puede costar el correo: la boleta importa mas.
     console.error('[correo] No se pudo cargar el encabezado:', e.message)
+  }
+
+  let srcPie = null
+  try {
+    if (paraArchivo) {
+      srcPie = `data:image/png;base64,${fs.readFileSync(PIE).toString('base64')}`
+    } else {
+      imagenes.push({ filename: 'tcs-80.png', path: PIE, cid: 'pie' })
+      srcPie = 'cid:pie'
+    }
+  } catch (e) {
+    console.error('[correo] No se pudo cargar el logo del pie:', e.message)
   }
 
   // --- Una tarjeta por asistente, con su QR ---
@@ -116,7 +137,18 @@ async function armarCorreo(orden, boletas, { paraArchivo = false } = {}) {
           <td align="center" style="padding:0 16px 22px;font-family:Arial,Helvetica,sans-serif;">
             <div style="font-size:17px;font-weight:bold;color:${NAVY};">${escapar(b.asistente)}</div>
             <div style="font-size:13px;color:#6b7280;margin-top:5px;">
-              ${b.esEgresado ? `Promoción ${escapar(b.promocion)}` : 'Invitado / no egresado'}
+              ${
+                // Tres casos, no dos: egresado, no egresado, y NO SABEMOS.
+                // La promocion del acompanante es opcional desde el 11 de
+                // septiembre de 2026, y decirle "invitado / no egresado" a
+                // alguien que solo dejo la casilla vacia es afirmar algo que
+                // nadie dijo.
+                b.esEgresado
+                  ? `Promoción ${escapar(b.promocion)}`
+                  : b.promocion
+                  ? 'Invitado / no egresado'
+                  : ''
+              }
             </div>
             <div style="font-size:11px;color:#9ca3af;margin-top:10px;letter-spacing:0.4px;">Boleta ${b.id}</div>
           </td>
@@ -144,9 +176,13 @@ async function armarCorreo(orden, boletas, { paraArchivo = false } = {}) {
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background:#ffffff;border-radius:16px;overflow:hidden;font-family:Arial,Helvetica,sans-serif;color:#1f2937;">
 
     ${srcEncabezado ? `
+    <!-- Cabezote azul (13 de septiembre de 2026). La imagen trae el fondo en
+         el MISMO azul de la marca, asi que va centrada a su tamano real sobre
+         una franja de ese color y no se nota donde termina: el tiquete se ve
+         completo y sin estirar. -->
     <tr>
-      <td style="background:${NAVY};line-height:0;">
-        <img src="${srcEncabezado}" width="600" alt="${escapar(config.evento.nombre)}" style="display:block;width:100%;max-width:600px;height:auto;border:0;" />
+      <td align="center" style="background:${NAVY};padding:22px 20px;line-height:0;">
+        <img src="${srcEncabezado}" width="443" alt="${escapar(config.evento.nombre)}" style="display:block;width:100%;max-width:443px;height:auto;border:0;margin:0 auto;" />
       </td>
     </tr>` : ''}
 
@@ -159,7 +195,9 @@ async function armarCorreo(orden, boletas, { paraArchivo = false } = {}) {
       </p>
 
       <p style="margin:0 0 26px;font-size:15px;line-height:1.65;color:${NAVY};font-weight:bold;">
-        Te enviamos el código QR con tu boleta para que puedas ingresar a esta gran fiesta.
+        ${individual
+          ? `${escapar(invitadoDe)} compró tu boleta para el Homecoming. Aquí está tu código QR para entrar.`
+          : 'Te enviamos el código QR con tu boleta para que puedas ingresar a esta gran fiesta.'}
       </p>
 
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f7f8fa;border-radius:12px;margin:0 0 26px;">
@@ -168,36 +206,66 @@ async function armarCorreo(orden, boletas, { paraArchivo = false } = {}) {
             ${fila('Número de orden', `<b style="color:${NAVY};">${escapar(orden.referencia)}</b>`)}
             ${fila('Fecha', formatoLargo(config.evento.fecha))}
             ${fila('Lugar', escapar(config.evento.lugar))}
-            ${fila('Boletas', String(boletas.length))}
-            ${fila('Total pagado', formatoPesos(orden.total_centavos), true)}
+            ${individual
+              // Al acompanante NO se le muestra cuanto se pago: no es su plata
+              // y el dato solo le sirve a quien compro.
+              ? fila('Boletas', String(boletas.length))
+              : `${fila('Boletas', String(boletas.length))}
+                 ${fila('Total pagado', formatoPesos(orden.total_centavos), true)}`}
           </table>
         </td></tr>
       </table>
 
       <p style="font-size:14px;line-height:1.65;margin:0 0 18px;color:#374151;">
-        Hay <b>un código QR por asistente</b>. Cada quien puede entrar por su cuenta,
-        sin depender de quien compró. Cada código sirve <b>una sola vez</b>.
+        ${
+          // Redaccion del colegio, 13 de septiembre de 2026.
+          'Tu código QR es <b>personal y de un solo uso</b>. Cada asistente puede ingresar de forma independiente al titular de la compra.'
+        }
       </p>
+
+      ${enviadasAparte.length > 0 ? `
+      <p style="font-size:13.5px;line-height:1.65;margin:0 0 18px;padding:12px 16px;background:#f7f8fa;border-radius:10px;color:#374151;">
+        ${enviadasAparte.length === 1
+          ? `La boleta de <b>${escapar(enviadasAparte[0])}</b> se envió a su propio correo.`
+          : `Las boletas de <b>${enviadasAparte.slice(0, -1).map(escapar).join('</b>, <b>')}</b> y <b>${escapar(enviadasAparte.at(-1))}</b> se enviaron a sus propios correos.`}
+        No hace falta que las reenvíes.
+      </p>` : ''}
 
       ${tarjetas.join('')}
 
-      <p style="font-size:12.5px;color:#6b7280;line-height:1.65;margin:22px 0 0;border-top:1px solid #eceff3;padding-top:18px;">
-        Guarda este correo o toma pantallazo de los códigos. También los adjuntamos en PDF
-        por si prefieres imprimirlos. Si algo no cuadra, escríbenos a
-        <a href="mailto:${escapar(config.correo.soporte)}" style="color:${ORO_OSCURO};font-weight:bold;">${escapar(config.correo.soporte)}</a>
-        con tu número de orden.
+      <!-- El correo de soporte es un mailto: con el numero de orden YA en el
+           asunto. El texto pide "escribenos con tu numero de orden", y la
+           mitad de la gente no lo copia: asi llega solo. -->
+      <!-- Redaccion del colegio, 13 de septiembre de 2026. -->
+      <p style="font-size:13.5px;color:#374151;line-height:1.65;margin:22px 0 0;border-top:1px solid #eceff3;padding-top:18px;">
+        <b style="color:${NAVY};">¡Prepárate para el Homecoming!</b> Guarda este correo o haz una captura de
+        pantalla de los códigos QR. Además, te adjuntamos un documento en PDF por si
+        prefieres imprimirlos.
+      </p>
+      <p style="font-size:13.5px;color:#374151;line-height:1.65;margin:12px 0 0;">
+        Si presentas algún inconveniente con tus entradas, escríbenos a
+        <a href="mailto:${escapar(config.correo.soporte)}?subject=${encodeURIComponent(`Orden ${orden.referencia} - ${config.evento.nombre}`)}" style="color:${NAVY};font-weight:bold;">${escapar(config.correo.soporte)}</a>
+        con tu número de orden y con gusto te ayudaremos.
       </p>
 
     </td></tr>
 
     <tr>
-      <td style="padding:26px 30px 28px;text-align:center;">
-        <div style="border-top:3px solid ${ORO};width:44px;margin:0 auto 16px;font-size:0;line-height:0;">&nbsp;</div>
-        <div style="font-size:11.5px;letter-spacing:1.6px;text-transform:uppercase;color:${NAVY};font-weight:bold;">
-          ${escapar(config.evento.lugar)}
-        </div>
+      <td style="padding:0 30px 26px;text-align:center;">
+        <div style="border-top:3px solid ${ORO};width:44px;margin:26px auto 0;font-size:0;line-height:0;">&nbsp;</div>
       </td>
     </tr>
+    ${srcPie ? `
+    <tr>
+      <td align="center" style="background:${NAVY};padding:22px 30px;line-height:0;">
+        <img src="${srcPie}" width="270" alt="${escapar(config.evento.lugar)} · 80 Years" style="display:block;width:270px;max-width:100%;height:auto;border:0;margin:0 auto;" />
+      </td>
+    </tr>` : `
+    <tr>
+      <td style="padding:0 30px 26px;text-align:center;font-size:11.5px;letter-spacing:1.6px;text-transform:uppercase;color:${NAVY};font-weight:bold;">
+        ${escapar(config.evento.lugar)}
+      </td>
+    </tr>`}
 
   </table>
 
@@ -218,15 +286,24 @@ const escapar = (s) => String(s ?? '').replace(/[&<>"]/g, (c) =>
  *
  * @returns {Promise<{enviado: boolean, via: string, detalle?: string}>}
  */
-export async function enviarBoletas(orden, comprador, boletas, adjuntos = []) {
-  const asunto = `Tus boletas - ${config.evento.nombre} (${orden.referencia})`
+export async function enviarBoletas(orden, comprador, boletas, adjuntos = [], opciones = {}) {
+  // `para` permite mandarle la boleta a un acompanante en vez de a quien pago.
+  // `invitadoDe` es el nombre del comprador: si viene, el correo se redacta
+  // para el acompanante.
+  const { para = null, invitadoDe = null, enviadasAparte = [] } = opciones
+  const destinatario = para ?? comprador.correo
+
+  const asunto = invitadoDe
+    ? `Tu boleta - ${config.evento.nombre}`
+    : `${boletas.length === 1 ? 'Tu boleta' : 'Tus boletas'} - ${config.evento.nombre} (${orden.referencia})`
+
   const t = obtenerTransporte()
 
   // Sin SMTP el correo se guarda como .html suelto, y ahi los cid: no existen:
   // se arma con data URI para que se vea al abrirlo en el navegador.
   let html, imagenes
   try {
-    ({ html, imagenes } = await armarCorreo(orden, boletas, { paraArchivo: !t }))
+    ({ html, imagenes } = await armarCorreo(orden, boletas, { paraArchivo: !t, invitadoDe, enviadasAparte }))
   } catch (e) {
     return { enviado: false, via: 'error', detalle: `No se pudo armar el correo: ${e.message}` }
   }
@@ -235,7 +312,10 @@ export async function enviarBoletas(orden, comprador, boletas, adjuntos = []) {
   if (!t) {
     try {
       fs.mkdirSync(CARPETA_CORREOS, { recursive: true })
-      const archivo = path.join(CARPETA_CORREOS, `${orden.referencia}.html`)
+      // Un archivo por destinatario: con las boletas individuales, usar solo
+      // la referencia haria que el ultimo pisara a los anteriores.
+      const sufijo = para ? `-${para.replace(/[^\w.-]/g, '_')}` : ''
+      const archivo = path.join(CARPETA_CORREOS, `${orden.referencia}${sufijo}.html`)
       fs.writeFileSync(archivo, html, 'utf8')
       console.log(`[correo] SMTP no configurado. Correo guardado en ${archivo}`)
       return { enviado: true, via: 'archivo', detalle: archivo }
@@ -248,7 +328,7 @@ export async function enviarBoletas(orden, comprador, boletas, adjuntos = []) {
   try {
     await t.sendMail({
       from: config.correo.remitente,
-      to: comprador.correo,
+      to: destinatario,
       subject: asunto,
       html,
       // Gmail ofrecia "traducir del ingles": adivinaba el idioma y le erraba,
@@ -264,7 +344,7 @@ export async function enviarBoletas(orden, comprador, boletas, adjuntos = []) {
     })
     return { enviado: true, via: 'smtp' }
   } catch (e) {
-    console.error(`[correo] Fallo el envio a ${comprador.correo}:`, e.message)
+    console.error(`[correo] Fallo el envio a ${destinatario}:`, e.message)
     return { enviado: false, via: 'smtp', detalle: e.message }
   }
 }

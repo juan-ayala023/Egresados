@@ -66,6 +66,21 @@ const MIGRACIONES = [
        )`,
     ],
   },
+  {
+    nombre: '004-correo-por-asistente',
+    // CADA BOLETA A SU PROPIO DUENIO.
+    //
+    // Antes las boletas de una compra salian todas al correo de quien pago, y
+    // el resto dependia de que esa persona las reenviara. El colegio pidio el
+    // 11 de septiembre de 2026 que a cada asistente le llegue la suya.
+    //
+    // Esta columna es lo que evita mandarla dos veces: el barrido de reintentos
+    // corre cada minuto y Wompi reenvia eventos. Sin marcar por asistente, un
+    // reintento por UNO que fallo le reenviaria la boleta a los otros tres.
+    sql: [
+      `ALTER TABLE asistente ADD COLUMN correo_enviado_en TEXT`,
+    ],
+  }
 ]
 
 /** Columnas que ya existen en una tabla. */

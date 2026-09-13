@@ -169,6 +169,21 @@ export const atenderAlerta = (token: string, tipo: string, referencia?: string |
 
 /* Una venta de la tabla del panel. Es la vista de "cómo va la venta": solo
    pagadas, la más reciente primero. */
+/* A nombre de quién va cada boleta de una venta. Quien compra 4 no va solo,
+   y el comité necesita saber quién entra -- y poder responderle a quien llama
+   diciendo "no me llegó la de mi esposa". */
+export type AsistenteVenta = {
+  indice: number;
+  nombre: string;
+  tipo_documento: string;
+  cedula: string;
+  promocion: string | null;
+  es_egresado: number;
+  boleta_id: string | null;
+  boleta_estado: string | null;
+  usada_en: string | null;
+};
+
 export type Venta = {
   id: number;
   referencia: string;
@@ -185,6 +200,7 @@ export type Venta = {
   correo: string;
   celular: string | null;
   promocion: string | null;
+  asistentes: AsistenteVenta[];
 };
 
 /* Las últimas ventas, sin tener que buscar a nadie.

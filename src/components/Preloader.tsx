@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { ease } from '@/lib/motion';
 import { evento, imagenes } from '@/data';
+import { useBloquearScroll } from '@/lib/bloquearScroll';
 
 /* Cuenta de 00 al aniversario y descubre la página con un telón vertical.
    Es el único momento maximalista del sitio: todo lo demás es contenido. */
@@ -57,12 +58,8 @@ export default function Preloader({ onDone }: { onDone: () => void }) {
     return () => clearTimeout(t);
   }, [saliendo, onDone]);
 
-  useEffect(() => {
-    document.body.style.overflow = fuera ? '' : 'hidden';
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [fuera]);
+  /* Mientras el telón de carga está puesto, la página no se mueve. */
+  useBloquearScroll(!fuera);
 
   if (sinMovimiento) return null;
 

@@ -91,11 +91,9 @@ function Tarjeta({
         }}
       />
 
-      {b.destacada && !agotada && (
-        <span className="absolute -top-3 left-8 rounded-full bg-gold px-4 py-1 font-body text-[10px] font-black uppercase tracking-[0.14em] text-ink">
-          Más elegida
-        </span>
-      )}
+      {/* Sin "Más elegida" (pedido del colegio, 13 de septiembre de 2026):
+          con una sola boleta a la venta no hay con qué compararla, y el
+          distintivo prometía una comparación que no existe. */}
       {agotada && (
         <span className="absolute -top-3 left-8 rounded-full border border-brand/20 bg-bone px-4 py-1 font-body text-[10px] font-black uppercase tracking-[0.14em] text-grayBrand">
           {ventaAbierta ? 'Agotada' : 'Venta cerrada'}
@@ -173,6 +171,10 @@ function Tarjeta({
           </button>
         </div>
 
+        {/* El boton y la manito van juntos en su propia fila para que en movil
+            (donde cantidad y boton van uno debajo del otro) la manito siga
+            pegada al boton y no se vaya a otra linea. */}
+        <div className="flex flex-1 items-center">
         <motion.button
           whileTap={agotada ? undefined : { scale: 0.97 }}
           onClick={() => onComprar(b, cantidad)}
@@ -187,10 +189,11 @@ function Tarjeta({
         >
           {agotada ? (ventaAbierta ? 'Agotada' : 'Cerrada') : 'Compra tu boleta aquí'}
         </motion.button>
-
-        {/* La manito solo cuando SE PUEDE comprar. Sobre una boleta agotada
-            invitaria a tocar algo que no responde. */}
-        {!agotada && <ManitoClic className="self-center" />}
+        {/* Solo cuando SE PUEDE comprar: sobre una boleta agotada invitaria a
+            tocar algo que no responde. Azul si el boton no es el dorado, que
+            ahi es blanco sobre blanco. */}
+        {!agotada && <ManitoClic color={b.destacada ? 'blanco' : 'azul'} />}
+        </div>
       </div>
     </motion.div>
   );

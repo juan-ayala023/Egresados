@@ -14,9 +14,17 @@ const RE_CORREO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const ANIO_MINIMO_PROMOCION = 1948
 export const NO_EGRESADO = 'no-egresado'
 
-// Tipos de documento aprobados en el acta ("NIT/CC"). El mismo listado esta en
-// el CHECK de la tabla comprador: si cambia uno, cambia el otro.
-export const TIPOS_DOCUMENTO = ['CC', 'CE', 'NIT', 'PP', 'TI']
+// Tipos de documento aprobados en el acta ("NIT/CC").
+//
+// SIN TARJETA DE IDENTIDAD desde el 11 de septiembre de 2026: es el documento
+// de los menores, y esta fiesta es para adultos. Se rechaza aqui, ANTES de la
+// base.
+//
+// El CHECK de las tablas comprador y asistente si sigue aceptando 'TI', y es a
+// proposito: SQLite no deja cambiar un CHECK sin reconstruir la tabla entera,
+// y no vale la pena por un valor que esta validacion ya no deja pasar. Si
+// alguien lo ve ahi y le parece inconsistente: esta linea es la que manda.
+export const TIPOS_DOCUMENTO = ['CC', 'CE', 'NIT', 'PP']
 export const TIPO_DOCUMENTO_POR_DEFECTO = 'CC'
 
 /** Deja solo digitos, igual que hace el front al escribir. */
@@ -24,8 +32,15 @@ export const soloDigitos = (v) => String(v ?? '').replace(/\D/g, '')
 
 const limpio = (v) => String(v ?? '').trim()
 
+/**
+ * Nombre Y apellidos: al menos dos palabras. El colegio pidio (13 de
+ * septiembre de 2026) que no se pueda registrar a alguien solo con el nombre:
+ * la boleta va a nombre de esa persona y en la puerta se cruza con la cedula.
+ */
 function validarNombre(valor) {
-  if (limpio(valor).length < 5) return 'Escribe el nombre completo (minimo 5 caracteres).'
+  const v = limpio(valor)
+  if (v.length < 5) return 'Escribe el nombre completo (minimo 5 caracteres).'
+  if (v.split(/\s+/).length < 2) return 'Escribe nombre y apellidos, no solo el nombre.'
   return null
 }
 
@@ -65,10 +80,20 @@ function validarCelular(valor) {
   return null
 }
 
-/** Ano de grado entre 1948 y el ano pasado, o el literal "no-egresado". */
-function validarPromocion(valor) {
+/**
+ * Ano de grado entre 1948 y el ano pasado, o el literal "no-egresado".
+ *
+ * OBLIGATORIA PARA QUIEN COMPRA, OPCIONAL PARA LOS ACOMPANANTES. Lo pidio el
+ * colegio el 11 de septiembre de 2026, y tiene sentido: quien compra sabe su
+ * propio ano de grado, pero de los amigos que lleva puede no acordarse -- y
+ * quedarse trancado en el formulario por ese dato es perder la venta.
+ *
+ * Si viene vacia en un acompanante NO se asume que es egresado: se guarda
+ * vacia y es_egresado queda en 0. Ver esEgresado() aqui abajo.
+ */
+function validarPromocion(valor, { obligatoria = true } = {}) {
   const v = limpio(valor)
-  if (!v) return 'Selecciona tu promocion.'
+  if (!v) return obligatoria ? 'Selecciona tu promocion.' : null
   if (v === NO_EGRESADO) return null
   const anio = Number(v)
   const anioPasado = new Date().getFullYear() - 1
@@ -78,7 +103,15 @@ function validarPromocion(valor) {
   return null
 }
 
-export const esEgresado = (promocion) => limpio(promocion) !== NO_EGRESADO
+/**
+ * VACIO NO ES EGRESADO. Antes esto era `!== NO_EGRESADO`, y con la promocion
+ * opcional en los acompanantes una casilla en blanco los habria marcado como
+ * egresados verificados sin que nadie lo dijera. Vacio significa "no sabemos".
+ */
+export const esEgresado = (promocion) => {
+  const v = limpio(promocion)
+  return v !== '' && v !== NO_EGRESADO
+}
 
 /**
  * Valida el cuerpo completo de POST /api/ordenes.
@@ -135,18 +168,22 @@ export function validarOrden(cuerpo) {
 
   // --- asistentes ------------------------------------------------------------
   // Cuantos datos se piden por acompanante (DATOS_ASISTENTE):
-  //   minimo   -> nombre + promocion
+  //   minimo   -> nombre (la promocion se pide, pero no se exige)
   //   acta     -> ademas tipo y numero de documento. Es lo que pidio el colegio:
   //               "nombre, Tipo de documento y numero, y si es egresado o no".
-  //               La promocion es justamente como se expresa si es egresado.
   //   completo -> ademas correo y celular (lo que pide el front hoy)
+  //
+  // LA PROMOCION DEL ACOMPANANTE NUNCA ES OBLIGATORIA, en ningun modo. Solo
+  // la de quien compra. Decision del colegio del 11 de septiembre de 2026.
   const modo = config.datosAsistente
   const pideDocumento = modo === 'acta' || modo === 'completo'
   const pideContacto = modo === 'completo'
 
   entrada.forEach((a, i) => {
     revisar(`asistentes.${i}.nombre`, validarNombre(a?.nombre))
-    revisar(`asistentes.${i}.promocion`, validarPromocion(a?.promocion))
+    // Opcional a proposito: ver validarPromocion(). El unico que tiene que
+    // poner su ano de grado es quien compra.
+    revisar(`asistentes.${i}.promocion`, validarPromocion(a?.promocion, { obligatoria: false }))
     if (pideDocumento) {
       revisar(`asistentes.${i}.tipoDocumento`,
         validarTipoDocumento(a?.tipoDocumento, config.exigirTipoDocumento))

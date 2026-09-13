@@ -229,7 +229,7 @@ export const boleteria = {
 export const boletas: Boleta[] = [
   {
     id: 'homecoming-80',
-    nombre: 'Pase Individual Homecoming 80 Años',
+    nombre: 'Boleta Homecoming 80 Años',
     precio: 80000,
     /* El comprador paga la tarifa de servicio: $80.000 + $7.000 = $87.000.
        REDONDEADO el 8 de septiembre de 2026 por pedido del colegio: antes eran

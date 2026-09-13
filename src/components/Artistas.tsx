@@ -293,7 +293,7 @@ export default function Artistas() {
             <Magnetic href="#boletas" className="btn-gold" fuerza={0.2}>
               {noche.cta}
             </Magnetic>
-            <ManitoClic className="ml-3" />
+            <ManitoClic />
           </div>
         </motion.div>
       </div>

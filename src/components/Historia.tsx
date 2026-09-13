@@ -174,7 +174,7 @@ export default function Historia() {
                   <Magnetic href="#boletas" className="btn-gold">
                     {historia.cta}
                   </Magnetic>
-                  <ManitoClic />
+                  <ManitoClic color="azul" />
                 </div>
               </motion.div>
             </motion.div>
