@@ -176,13 +176,14 @@ async function armarCorreo(orden, boletas, { paraArchivo = false, invitadoDe = n
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background:#ffffff;border-radius:16px;overflow:hidden;font-family:Arial,Helvetica,sans-serif;color:#1f2937;">
 
     ${srcEncabezado ? `
-    <!-- Cabezote azul (13 de septiembre de 2026). La imagen trae el fondo en
-         el MISMO azul de la marca, asi que va centrada a su tamano real sobre
-         una franja de ese color y no se nota donde termina: el tiquete se ve
-         completo y sin estirar. -->
+    <!-- Cabezote azul. El colegio mando el original en alta resolucion el 13
+         de septiembre de 2026 (3146px de ancho); el archivo va a 1200px, el
+         doble de lo que se muestra, para que se vea nitido en pantallas
+         retina. Trae el fondo en el MISMO azul de la marca y margen propio,
+         asi que va a todo el ancho, sin padding, y no se nota donde termina. -->
     <tr>
-      <td align="center" style="background:${NAVY};padding:22px 20px;line-height:0;">
-        <img src="${srcEncabezado}" width="443" alt="${escapar(config.evento.nombre)}" style="display:block;width:100%;max-width:443px;height:auto;border:0;margin:0 auto;" />
+      <td style="background:${NAVY};padding:0;line-height:0;">
+        <img src="${srcEncabezado}" width="600" alt="${escapar(config.evento.nombre)}" style="display:block;width:100%;max-width:600px;height:auto;border:0;" />
       </td>
     </tr>` : ''}
 

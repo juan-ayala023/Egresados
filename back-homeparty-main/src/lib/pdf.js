@@ -53,8 +53,14 @@ function dibujar(doc, b, qr) {
   doc.rect(0, 0, ANCHO, ALTO_BANDA).fill(NAVY)
   const banner = leerCabezote()
   if (banner) {
-    const w = 330
-    const h = Math.round(130 * (w / 443))   // proporcion del archivo (443x130)
+    const w = 360
+    // La proporcion se lee del PNG (ancho y alto van en los bytes 16-24 de la
+    // cabecera IHDR). Antes iba escrita a mano para un archivo de 443x130, y
+    // al cambiar el cabezote por el original en alta resolucion habria
+    // quedado mal centrado.
+    const anchoPng = banner.readUInt32BE(16)
+    const altoPng = banner.readUInt32BE(20)
+    const h = Math.round(altoPng * (w / anchoPng))
     doc.image(banner, (ANCHO - w) / 2, (ALTO_BANDA - h) / 2, { width: w })
   }
   doc.x = MARGEN
