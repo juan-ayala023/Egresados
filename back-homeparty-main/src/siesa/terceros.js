@@ -98,6 +98,13 @@ export function cedulaValida(cedula) {
  * consulta viaja como texto al otro servidor -- asi que la cedula se valida
  * con cedulaValida() ANTES, y si no es puro numero ni se arma el SQL.
  *
+ * LA UNION CON CLIENTES ES POR ROWID. SIESA no enlaza t201_mm_clientes con
+ * el tercero por la cedula sino por su rowid interno (f201_rowid_tercero =
+ * f200_rowid), igual que el colegio une contactos por f200_rowid_contacto.
+ * Se supuso f201_id_tercero y no existe: se descubrio el 13 de septiembre de
+ * 2026 corriendo la consulta contra la base real, la vispera de la primera
+ * factura. Los nombres se verificaron con SELECT TOP 1 * sobre la tabla.
+ *
  * @returns {Promise<{existe:boolean, tercero:string|null, sucursales:string[]}>}
  */
 export async function consultarTercero(cedula) {
@@ -116,7 +123,7 @@ export async function consultarTercero(cedula) {
        FROM t200_mm_terceros t
             LEFT JOIN t201_mm_clientes c
               ON c.f201_id_cia = t.f200_id_cia
-             AND c.f201_id_tercero = t.f200_id
+             AND c.f201_rowid_tercero = t.f200_rowid
       WHERE t.f200_id_cia = ${Number(cia)}
         AND t.f200_nit = ''${nit}''
     ')`

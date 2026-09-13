@@ -20,7 +20,8 @@ import 'dotenv/config'
 import { config } from '../src/config.js'
 import { buscarPorReferencia, compradorDe } from '../src/servicios/ordenes.js'
 import { leerConfiguracionSiesa, cerrarConexion } from '../src/siesa/config.js'
-import { armarFactura, armarRecibo, facturar, ErrorSiesaFactura } from '../src/siesa/facturacion.js'
+import { armarFactura, armarRecibo, ErrorSiesaFactura } from '../src/siesa/facturacion.js'
+import { facturarOrden } from '../src/servicios/facturacion.js'
 import { armarTercero, armarCliente, armarCriterio, consultarTercero } from '../src/siesa/terceros.js'
 
 const referencia = process.argv[2]
@@ -95,8 +96,7 @@ try {
     mostrar('CLIENTE (sucursal) - Clientes', armarCliente(comprador, configuracion))
     const criterio = armarCriterio(comprador)
     if (criterio) mostrar('CRITERIO - Criterios_Clientes', criterio)
-    else console.log('
-  CRITERIO: apagado (SIESA_PLAN_CRITERIOS vacio).')
+    else console.log('\n  CRITERIO: apagado (SIESA_PLAN_CRITERIOS vacio).')
 
     mostrar('FACTURA (FES) - Financiera_Factura', factura)
     mostrar('RECIBO DE CAJA (RCV) - Recibo_de_caja', recibo)
@@ -107,12 +107,19 @@ try {
     console.log('')
   } else {
     console.log('\n  ENVIANDO AL ERP...\n')
-    const r = await facturar(orden, comprador)
-    if (r.tercero?.existia === false) console.log(`  Tercero creado:   ${r.tercero.tercero}`)
-    else if (r.tercero) console.log(`  Tercero:          ${r.tercero.tercero} (ya existia)`)
+    // Por facturarOrden y no por facturar() directo: es la misma funcion
+    // que usa el envio automatico, GUARDA los consecutivos en la orden y no
+    // factura dos veces. Antes el script solo imprimia los numeros, y la
+    // orden quedaba como "sin facturar" en el panel -- con el riesgo de que
+    // una segunda pasada la volviera a emitir.
+    const r = await facturarOrden(orden.id)
+    if (!r.facturada) {
+      console.log(`  NO se facturo: ${r.motivo}\n`)
+      process.exit(1)
+    }
     console.log(`  Factura emitida:  ${r.numeroFactura}`)
     console.log(`  Recibo emitido:   ${r.numeroRecibo}`)
-    console.log('\n  Anotalos: son los consecutivos con los que contabilidad rastrea la venta.\n')
+    console.log('\n  Quedaron guardados en la orden. Se ven en el panel.\n')
   }
 } catch (e) {
   console.log(`\n  FALLO: ${e.message}`)
