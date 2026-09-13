@@ -112,6 +112,24 @@ curl -s http://127.0.0.1:4000/api/evento | head -c 200; echo
 curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:3002/
 ```
 
+### 4b. Verificar `TRUST_PROXY` — esto NO se puede saltar
+
+Detrás de Node hay dos capas (el borde HTTPS y nginx). Los límites por IP
+(10 compras por IP cada 10 minutos) usan la IP que Node cree que tiene el
+cliente. Si Node ve la IP de nginx o del borde **para todo el mundo**, a la
+undécima compra de la ciudad el sistema dice "demasiadas peticiones".
+
+Con el dominio ya apuntado, abrir el sitio desde **dos celulares con datos
+(no wifi del colegio)** y mirar el log:
+
+```bash
+pm2 logs homecoming-api --lines 20 | grep "ip="
+```
+
+- Si los dos celulares salen con **IPs distintas** → bien, seguir.
+- Si salen con **la misma** (y es `127.0.0.1` o una interna) → en el `.env`
+  poner `TRUST_PROXY=2` y `pm2 restart homecoming-api`. Volver a mirar.
+
 ## 5. nginx
 
 ```bash

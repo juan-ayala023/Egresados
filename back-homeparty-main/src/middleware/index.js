@@ -1,6 +1,7 @@
 // -----------------------------------------------------------------------------
 // Middlewares. Son pocos y cortos a proposito.
 // -----------------------------------------------------------------------------
+import crypto from 'node:crypto'
 import { config } from '../config.js'
 import { ErrorApi, errores } from '../lib/errores.js'
 import { ahora } from '../lib/fechas.js'
@@ -14,18 +15,68 @@ export const asyncHandler = (fn) => (req, res, next) =>
   Promise.resolve(fn(req, res, next)).catch(next)
 
 /**
+ * Compara dos tokens sin que el tiempo de respuesta delate cuantas letras
+ * acertaron. `===` compara letra por letra y se detiene en la primera
+ * distinta; con miles de intentos medidos, eso se convierte en una pista.
+ * timingSafeEqual tarda lo mismo acierte o no.
+ */
+function tokenCoincide(recibido, esperado) {
+  if (!recibido || !esperado) return false
+  const a = Buffer.from(String(recibido))
+  const b = Buffer.from(String(esperado))
+  return a.length === b.length && crypto.timingSafeEqual(a, b)
+}
+
+// Intentos fallidos de entrar al panel, por IP. Un token de 32 letras al azar
+// no se adivina ni en un millon de anos, asi que esto no es contra un ataque
+// que pueda funcionar: es para que un escaner o un curioso no pueda martillar
+// el /admin miles de veces sin que nadie se entere, y para que cada fallo
+// quede en el log con su IP.
+const FALLOS_MAXIMOS = 10
+const VENTANA_FALLOS_MS = 15 * 60_000
+const fallosPorIp = new Map()
+
+const limpiezaFallos = setInterval(() => {
+  const corte = Date.now() - VENTANA_FALLOS_MS
+  for (const [ip, tiempos] of fallosPorIp) {
+    const vivos = tiempos.filter((t) => t > corte)
+    if (vivos.length === 0) fallosPorIp.delete(ip)
+    else fallosPorIp.set(ip, vivos)
+  }
+}, 60_000)
+limpiezaFallos.unref?.()
+
+/**
  * Exige "Authorization: Bearer <token>".
  * @param {'admin'|'puerta'} rol
  */
 export function exigirToken(rol) {
   return (req, _res, next) => {
+    const ip = req.ip
+    const corte = Date.now() - VENTANA_FALLOS_MS
+    const fallos = (fallosPorIp.get(ip) ?? []).filter((t) => t > corte)
+
+    if (fallos.length >= FALLOS_MAXIMOS) {
+      const esperar = Math.ceil((fallos[0] + VENTANA_FALLOS_MS - Date.now()) / 1000)
+      return next(errores.demasiadasPeticiones(Math.max(60, esperar)))
+    }
+
     const header = req.get('authorization') ?? ''
     const token = header.startsWith('Bearer ') ? header.slice(7).trim() : ''
     // El personal de puerta usa su token; el admin puede entrar a todo.
     const permitidos = rol === 'puerta'
       ? [config.tokens.puerta, config.tokens.admin]
       : [config.tokens.admin]
-    if (!token || !permitidos.includes(token)) return next(errores.noAutorizado())
+
+    const valido = permitidos.some((esperado) => tokenCoincide(token, esperado))
+    if (!valido) {
+      fallos.push(Date.now())
+      fallosPorIp.set(ip, fallos)
+      console.warn(`[auth] token invalido para ${rol} desde ${ip} (${fallos.length}/${FALLOS_MAXIMOS}) ${req.method} ${req.originalUrl}`)
+      return next(errores.noAutorizado())
+    }
+
+    fallosPorIp.delete(ip)
     req.actor = rol
     next()
   }
@@ -85,9 +136,12 @@ export function registrarPeticiones(req, res, next) {
 
   res.on('finish', () => {
     const origen = req.get('origin')
+    // La ip va en el log a proposito: es la unica forma de comprobar en
+    // produccion que TRUST_PROXY esta bien y que cada comprador cuenta como
+    // uno y no todos como el mismo.
     console.log(
       `${req.method} ${req.originalUrl} -> ${res.statusCode} (${Date.now() - inicio}ms)`
-      + (origen ? `  origin=${origen}` : ''),
+      + `  ip=${req.ip}` + (origen ? `  origin=${origen}` : ''),
     )
   })
   next()

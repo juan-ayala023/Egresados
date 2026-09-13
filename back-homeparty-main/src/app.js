@@ -34,7 +34,18 @@ export function crearApp() {
 
   // Detras de un proxy (nginx, Railway, Render...) req.ip trae la IP real solo
   // si confiamos en la cabecera X-Forwarded-For.
-  app.set('trust proxy', 1)
+  //
+  // CUANTOS SALTOS HAY DELANTE IMPORTA MUCHO. Los limites por IP (10 ordenes
+  // por 10 minutos, etc.) se calculan con req.ip. Si el numero es menor que
+  // los proxies reales, req.ip es la IP del ULTIMO proxy para todo el mundo:
+  // todos los compradores caen en el mismo balde y a la undecima compra el
+  // sistema le dice "demasiadas peticiones" a toda la ciudad.
+  //
+  // En el servidor del colegio hay dos capas: el borde que pone el HTTPS y
+  // nginx. Si el borde manda X-Forwarded-For, van 2; si no, 1. Se verifica
+  // mirando el log: cada peticion imprime su ip. Si dos celulares distintos
+  // salen con la misma, el numero esta corto. Ver DESPLIEGUE.md.
+  app.set('trust proxy', config.trustProxy)
   app.disable('x-powered-by')
 
   // CORS: solo los origenes de la lista blanca. En produccion va el subdominio

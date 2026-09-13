@@ -183,6 +183,9 @@ export const config = {
   //
   // La venta NO depende de esto: sin configurar, el backend arranca y vende
   // igual. Solo la facturacion lo necesita.
+  // Cuantos proxies hay delante de Node. Ver app.js. 1 = solo nginx.
+  trustProxy: numero('TRUST_PROXY', 1),
+
   siesa: {
     host: texto('MSSQL_HOST', ''),
     puerto: numero('MSSQL_PORT', 1433),
@@ -323,6 +326,33 @@ export function revisarConfiguracion() {
     if (esProd && !config.urlPublica.startsWith('https://')) {
       problemas.push(`PUBLIC_URL tiene que ser https en produccion, llego "${config.urlPublica}"`)
     }
+
+    // LAS CUATRO LLAVES TIENEN QUE SER DEL MISMO JUEGO. El 13 de septiembre
+    // de 2026 llegaron dos de produccion y dos del sandbox: con eso el
+    // checkout abre contra un ambiente y la firma se calcula con el secreto
+    // del otro, y Wompi rechaza TODOS los pagos. Mejor que el servidor no
+    // arranque a que arranque y nadie pueda comprar.
+    if (esProd) {
+      const { privateKey, apiUrl } = config.wompi
+      if (privateKey && !privateKey.startsWith('prv_prod_')) {
+        problemas.push('WOMPI_PUBLIC_KEY es de produccion pero WOMPI_PRIVATE_KEY no (prv_prod_)')
+      }
+      if (!integritySecret.startsWith('prod_')) {
+        problemas.push('WOMPI_PUBLIC_KEY es de produccion pero WOMPI_INTEGRITY_SECRET no (prod_integrity_)')
+      }
+      if (!eventsSecret.startsWith('prod_')) {
+        problemas.push('WOMPI_PUBLIC_KEY es de produccion pero WOMPI_EVENTS_SECRET no (prod_events_)')
+      }
+      if (apiUrl.includes('sandbox')) {
+        problemas.push(`llaves de produccion contra el sandbox: WOMPI_API_URL=${apiUrl}`)
+      }
+    }
+  }
+
+  // El token del panel protege las ventas, los datos de 500 personas y el
+  // boton de anular. En produccion no puede ser corto ni adivinable.
+  if (config.entorno === 'production' && String(config.tokens.admin).length < 24) {
+    problemas.push('ADMIN_TOKEN es demasiado corto para produccion (minimo 24 caracteres al azar)')
   }
 
   if (config.entorno === 'production' && config.wompi.simulacion) {

@@ -339,3 +339,58 @@ test('una apertura posterior al cierre no deja arrancar', () => {
     config.evento.apertura = original
   }
 })
+
+test('llaves de Wompi MEZCLADAS (dos de produccion, dos del sandbox) no arrancan', () => {
+  // Paso el 13 de septiembre de 2026: llegaron pub_test_ y prv_test_ junto a
+  // prod_integrity_ y prod_events_. Con eso Wompi rechaza todos los pagos.
+  const original = { ...config.wompi }
+  const entornoOriginal = config.entorno
+  const urlOriginal = config.urlPublica
+  const adminOriginal = config.tokens.admin
+  config.entorno = 'production'
+  config.urlPublica = 'https://homecomingtcs.columbus.edu.co'
+  config.tokens.admin = 'x'.repeat(32)
+  config.wompi.simulacion = false
+  config.wompi.publicKey = 'pub_prod_abc'
+  config.wompi.privateKey = 'prv_test_abc'          // <- del sandbox
+  config.wompi.integritySecret = 'prod_integrity_abc'
+  config.wompi.eventsSecret = 'events_test_abc'      // <- del sandbox
+  config.wompi.apiUrl = 'https://sandbox.wompi.co/v1' // <- sandbox
+  try {
+    assert.throws(revisarConfiguracion, (e) => {
+      assert.match(e.message, /WOMPI_PRIVATE_KEY no \(prv_prod_\)/)
+      assert.match(e.message, /WOMPI_EVENTS_SECRET no \(prod_events_\)/)
+      assert.match(e.message, /contra el sandbox/)
+      return true
+    })
+  } finally {
+    Object.assign(config.wompi, original)
+    config.entorno = entornoOriginal
+    config.urlPublica = urlOriginal
+    config.tokens.admin = adminOriginal
+  }
+})
+
+test('un ADMIN_TOKEN corto no arranca en produccion', () => {
+  const original = { ...config.wompi }
+  const entornoOriginal = config.entorno
+  const urlOriginal = config.urlPublica
+  const adminOriginal = config.tokens.admin
+  config.entorno = 'production'
+  config.urlPublica = 'https://homecomingtcs.columbus.edu.co'
+  config.wompi.simulacion = false
+  config.wompi.publicKey = 'pub_prod_abc'
+  config.wompi.privateKey = 'prv_prod_abc'
+  config.wompi.integritySecret = 'prod_integrity_abc'
+  config.wompi.eventsSecret = 'prod_events_abc'
+  config.wompi.apiUrl = 'https://production.wompi.co/v1'
+  config.tokens.admin = 'admin123'
+  try {
+    assert.throws(revisarConfiguracion, /ADMIN_TOKEN es demasiado corto/)
+  } finally {
+    Object.assign(config.wompi, original)
+    config.entorno = entornoOriginal
+    config.urlPublica = urlOriginal
+    config.tokens.admin = adminOriginal
+  }
+})
