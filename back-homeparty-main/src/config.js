@@ -7,7 +7,22 @@
 // del BACKEND.md, seccion 9. Tienen un valor por defecto para poder trabajar,
 // pero hay que confirmarlas con el colegio antes de abrir la venta.
 // -----------------------------------------------------------------------------
-import 'dotenv/config'
+import dotenv from 'dotenv'
+
+// EL .env MANDA SOBRE EL ENTORNO DEL SHELL.
+//
+// Por defecto dotenv NO pisa una variable que ya exista en el entorno. En un
+// computador propio da igual. En el servidor del colegio no: el usuario
+// `eventos` tiene cargadas las variables de la plataforma de eventos (sus
+// llaves de Wompi, su URL de API...), y el 13 de septiembre de 2026 el
+// backend arranco leyendo ESAS en vez de las del archivo -- le preguntaba a
+// la URL equivocada y Wompi respondia 404.
+//
+// Con override, lo que dice back-homeparty-main/.env es lo que vale, este
+// donde este el proceso. La unica excepcion son las pruebas: ellas fijan sus
+// propias variables ANTES de importar esto (DB en memoria, simulacion, etc.)
+// y el .env no las puede pisar, o escribirian en la base de verdad.
+dotenv.config({ override: process.env.NODE_ENV !== 'test' })
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
