@@ -204,10 +204,16 @@ export async function consultarTransaccion(id, { timeoutMs = 10_000 } = {}) {
 
   const url = `${config.wompi.apiUrl.replace(/\/$/, '')}/transactions/${encodeURIComponent(id)}`
 
+  // Con la llave PRIVADA si la hay. Con la publica, Wompi respondio 404 el 14
+  // de septiembre de 2026 para una transaccion de ese mismo dia que a
+  // mediodia si habia devuelto: la consulta publica parece limitada en el
+  // tiempo. La privada es la del comercio y ve todas sus transacciones.
+  const llave = config.wompi.privateKey || config.wompi.publicKey
+
   let respuesta
   try {
     respuesta = await fetch(url, {
-      headers: { Authorization: `Bearer ${config.wompi.publicKey}` },
+      headers: { Authorization: `Bearer ${llave}` },
       signal: AbortSignal.timeout(timeoutMs),
     })
   } catch (e) {
