@@ -9,6 +9,7 @@
 // datos estan bien.
 // -----------------------------------------------------------------------------
 import { config } from '../config.js'
+import { validarDireccion, validarCiudad, esCiudadConocida } from './direcciones.js'
 
 const RE_CORREO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const ANIO_MINIMO_PROMOCION = 1948
@@ -158,12 +159,13 @@ export function validarOrden(cuerpo) {
   // se queda por si hay que vender sin facturar, pero en operacion normal va
   // en true: sin direccion, la DIAN rechaza la factura.
   if (config.exigirDireccionFacturacion) {
-    if (limpio(c.direccion).length < 5) {
-      errores['comprador.direccion'] = 'Escribe la direccion de facturacion.'
-    }
-    if (limpio(c.ciudad).length < 3) {
-      errores['comprador.ciudad'] = 'Escribe la ciudad.'
-    }
+    // Reglas de forma (14 de septiembre de 2026): la direccion tiene que
+    // parecer una direccion y la ciudad tiene que ser una ciudad. Ver
+    // src/lib/direcciones.js. Si la ciudad no esta en la lista (eligio "Otra"
+    // o "Fuera de Colombia"), no se le exige una via colombiana.
+    revisar('comprador.ciudad', validarCiudad(c.ciudad))
+    revisar('comprador.direccion',
+      validarDireccion(c.direccion, { exterior: !esCiudadConocida(c.ciudad) }))
   }
 
   // --- asistentes ------------------------------------------------------------

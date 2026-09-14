@@ -6,6 +6,9 @@ import { X, ArrowLeft, Loader2, ShieldCheck, Check, AlertCircle } from 'lucide-r
 import { ease } from '@/lib/motion';
 import { useBloquearScroll } from '@/lib/bloquearScroll';
 import {
+  CIUDADES, CIUDAD_OTRA, CIUDAD_EXTERIOR, validarDireccion, validarCiudad,
+} from '@/lib/direcciones';
+import {
   anosGraduacion,
   formatoCOP,
   totalPorBoleta,
@@ -47,7 +50,14 @@ export default function Checkout({ boleta, cantidad, onClose }: Props) {
   const [paso, setPaso] = useState(0);
   const [asistentes, setAsistentes] = useState<Asistente[]>([]);
   const [direccion, setDireccion] = useState('');
-  const [ciudad, setCiudad] = useState('');
+  /* La ciudad es un desplegable (14 de septiembre de 2026): antes era texto
+     libre y aceptaba "xyz", y eso va a la factura electrónica. `ciudadOpcion`
+     es lo que eligió en la lista; si eligió "Otra" o "Fuera de Colombia",
+     `ciudadTexto` es el nombre que escribió. `ciudad` es lo que se manda. */
+  const [ciudadOpcion, setCiudadOpcion] = useState('');
+  const [ciudadTexto, setCiudadTexto] = useState('');
+  const pideNombreCiudad = ciudadOpcion === CIUDAD_OTRA || ciudadOpcion === CIUDAD_EXTERIOR;
+  const ciudad = pideNombreCiudad ? ciudadTexto.trim() : ciudadOpcion;
   const [aceptaDatos, setAceptaDatos] = useState(false);
   const [aceptaTerminos, setAceptaTerminos] = useState(false);
   /* Un mensaje por campo, no un booleano: cuando el error viene del backend
@@ -82,7 +92,8 @@ export default function Checkout({ boleta, cantidad, onClose }: Props) {
       setPaso(0);
       setAsistentes(Array.from({ length: cantidad }, vacio));
       setDireccion('');
-      setCiudad('');
+      setCiudadOpcion('');
+      setCiudadTexto('');
       setAceptaDatos(false);
       setAceptaTerminos(false);
       setErrores({});
@@ -224,8 +235,13 @@ export default function Checkout({ boleta, cantidad, onClose }: Props) {
 
   const validarPago = () => {
     const nuevos: Record<string, string> = {};
-    if (direccion.trim().length < 5) nuevos['direccion'] = 'Escribe la dirección de facturación.';
-    if (ciudad.trim().length < 3) nuevos['ciudad'] = 'Escribe la ciudad.';
+    /* Misma regla que el servidor (lib/direcciones.ts): la dirección tiene
+       que parecer una dirección y la ciudad tiene que ser una ciudad. Si vive
+       fuera de Colombia no se le exige una vía colombiana. */
+    const errorCiudad = validarCiudad(ciudad);
+    if (errorCiudad) nuevos['ciudad'] = errorCiudad;
+    const errorDireccion = validarDireccion(direccion, { exterior: ciudadOpcion === CIUDAD_EXTERIOR });
+    if (errorDireccion) nuevos['direccion'] = errorDireccion;
     if (!aceptaDatos) nuevos['aceptaDatos'] = 'Debes aceptar el tratamiento de datos.';
     if (!aceptaTerminos) nuevos['aceptaTerminos'] = 'Debes aceptar los términos.';
     setErrores(nuevos);
@@ -589,14 +605,35 @@ export default function Checkout({ boleta, cantidad, onClose }: Props) {
                       </div>
                       <div>
                         <label className="label">Ciudad</label>
-                        <input
-                          value={ciudad}
-                          onChange={(e) => { setCiudad(e.target.value); limpiar('ciudad'); }}
-                          placeholder="Medellín"
+                        <select
+                          value={ciudadOpcion}
+                          onChange={(e) => { setCiudadOpcion(e.target.value); setCiudadTexto(''); limpiar('ciudad'); }}
                           className={`field ${clase('ciudad')}`}
-                        />
-                        <Aviso clave="ciudad" />
+                        >
+                          <option value="">Selecciona la ciudad</option>
+                          {CIUDADES.map((c) => (
+                            <option key={c} value={c}>{c}</option>
+                          ))}
+                          <option value={CIUDAD_OTRA}>Otra ciudad de Colombia</option>
+                          <option value={CIUDAD_EXTERIOR}>Fuera de Colombia</option>
+                        </select>
+                        {!pideNombreCiudad && <Aviso clave="ciudad" />}
                       </div>
+                      {pideNombreCiudad && (
+                        <div>
+                          <label className="label">
+                            {ciudadOpcion === CIUDAD_EXTERIOR ? 'Ciudad y país' : '¿Cuál ciudad?'}
+                          </label>
+                          <input
+                            value={ciudadTexto}
+                            onChange={(e) => { setCiudadTexto(e.target.value); limpiar('ciudad'); }}
+                            placeholder={ciudadOpcion === CIUDAD_EXTERIOR ? 'Miami, Estados Unidos' : 'Nombre del municipio'}
+                            className={`field ${clase('ciudad')}`}
+                            autoFocus
+                          />
+                          <Aviso clave="ciudad" />
+                        </div>
+                      )}
                     </div>
                   </div>
 
