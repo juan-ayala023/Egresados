@@ -13,7 +13,7 @@ import { generarReferencia } from '../lib/referencia.js'
 import { firmarCheckout } from '../pagos/index.js'
 import { nuevoIdBoleta, generarToken, urlQr, urlPdf } from '../lib/qr.js'
 import { enviarBoletas } from '../lib/correo.js'
-import { pdfDeBoleta } from '../lib/pdf.js'
+import { pdfDeBoleta, nombreArchivoBoleta } from '../lib/pdf.js'
 import { revisarComprador } from './egresados.js'
 import {
   disponibilidad, estadoVenta, liberarReservasVencidas,
@@ -418,7 +418,7 @@ export async function enviarCorreoDeOrden(ordenId, { aTodos = false } = {}) {
   const pdfDe = async (f) => {
     try {
       return {
-        filename: `boleta-${f.asistente_nombre.split(' ')[0].toLowerCase()}-${f.id.slice(-6)}.pdf`,
+        filename: nombreArchivoBoleta(f.asistente_nombre),
         content: await pdfDeBoleta({ ...comoBoleta(f), referencia: orden.referencia }),
         contentType: 'application/pdf',
       }

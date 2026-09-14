@@ -159,6 +159,24 @@ function producir(alto, b, qr) {
 }
 
 /**
+ * Como se llama el archivo: "Boleta Homecoming - Juan Perez.pdf".
+ *
+ * Antes era "boleta-juan-A1B2C3.pdf" (nombre de pila y la cola del id), y el
+ * colegio pidio el 14 de septiembre de 2026 algo que se lea: que en la
+ * carpeta de descargas y en los adjuntos diga de que es y de quien.
+ *
+ * Sin tildes ni enies: en Content-Disposition y en algunos clientes de
+ * correo un nombre con caracteres raros sale como "=?UTF-8?..." o se pierde.
+ */
+export function nombreArchivoBoleta(asistente) {
+  const plano = String(asistente ?? '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^A-Za-z0-9 ]/g, ' ')
+    .replace(/\s+/g, ' ').trim()
+  return `Boleta Homecoming${plano ? ` - ${plano}` : ''}.pdf`
+}
+
+/**
  * @param {object} b datos de la boleta ya armados por el servicio
  * @returns {Promise<Buffer>}
  */

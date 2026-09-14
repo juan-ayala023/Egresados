@@ -14,7 +14,7 @@ import { asyncHandler, limitar } from '../middleware/index.js'
 import { estadoVenta, disponibilidad } from '../servicios/aforo.js'
 import { buscarBoleta } from '../servicios/boletas.js'
 import { pngDelToken } from '../lib/qr.js'
-import { pdfDeBoleta } from '../lib/pdf.js'
+import { pdfDeBoleta, nombreArchivoBoleta } from '../lib/pdf.js'
 
 export const rutasBoletas = Router()
 
@@ -74,6 +74,6 @@ rutasBoletas.get('/boletas/:id/pdf', limiteArchivos, asyncHandler(async (req, re
   })
 
   res.type('application/pdf')
-  res.set('Content-Disposition', `attachment; filename="boleta-${b.referencia}-${b.id.slice(-6)}.pdf"`)
+  res.set('Content-Disposition', `attachment; filename="${nombreArchivoBoleta(b.asistente_nombre)}"`)
   res.send(pdf)
 }))
