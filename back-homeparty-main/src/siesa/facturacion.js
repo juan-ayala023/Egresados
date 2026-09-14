@@ -293,7 +293,8 @@ export async function facturar(orden, comprador) {
   //
   // El import es dinamico porque terceros.js necesita de aqui limpiarTexto,
   // fechaSiesa y el error. Cargarlo cuando se usa evita el enredo circular.
-  const { asegurarTercero } = await import('./terceros.js')
+  const { asegurarTercero, respuestaFallo } = await import('./terceros.js')
+  const { buscarConsecutivo } = await import('./consecutivos.js')
   const tercero = await asegurarTercero(comprador, { configuracion })
 
   if (config.siesa.ensayo) {
@@ -301,38 +302,83 @@ export async function facturar(orden, comprador) {
     return { ensayo: true, tercero, factura, recibo: null, numeroFactura: null, numeroRecibo: null }
   }
 
+  // Con que se busca el documento en la tabla: tercero, valor en pesos y el
+  // id de Wompi que va en la nota (unico por compra).
+  const idTercero = factura.F350_ID_TERCERO
+  const totalPesos = Math.round(orden.total_centavos / 100)
+  const marca = String(orden.wompi_transaction_id ?? '')
+
   const cli = await obtenerCliente()
 
-  let numeroFactura = null
-  try {
-    const respuesta = await cli.Financiera_FacturaAsync({ Factura: factura })
-    numeroFactura = consecutivoDe(respuesta)
-  } catch (e) {
-    throw new ErrorSiesaFactura(`SIESA rechazo la factura: ${e.message}`, {
-      tipo: 'rechazo', detalle: e.root ?? null,
-    })
-  }
+  // --- 1. FACTURA ---------------------------------------------------------------
+  // PRIMERO SE PREGUNTA SI YA EXISTE. Es lo que hace la plataforma del
+  // colegio, y es lo que evita facturar dos veces si un intento anterior
+  // quedo a medias (14 de septiembre de 2026: Pangea acepto la llamada, no
+  // devolvio el numero, y no habia como saber si la factura estaba o no).
+  let numeroFactura = marca ? await buscarConsecutivo('FES', idTercero, totalPesos, marca) : null
 
   if (!numeroFactura) {
-    throw new ErrorSiesaFactura(
-      'SIESA acepto la factura pero no devolvio el consecutivo. Hay que buscarla en el ERP antes de reintentar, o se factura dos veces.',
-      { tipo: 'rechazo' },
-    )
+    let respuesta
+    try {
+      respuesta = await cli.Financiera_FacturaAsync({ Factura: factura })
+    } catch (e) {
+      throw new ErrorSiesaFactura(`SIESA rechazo la factura: ${e.message}`, {
+        tipo: 'rechazo', detalle: e.root ?? null,
+      })
+    }
+
+    // Pangea responde con un ArrayOfstring. Si rechazo, el motivo viene ahi
+    // como texto, no como excepcion. Se lee SIEMPRE y se muestra tal cual.
+    const crudo = JSON.stringify(respuesta?.[0] ?? respuesta ?? '')
+    console.log(`[siesa] respuesta de Financiera_Factura para ${orden.referencia}: ${crudo.slice(0, 600)}`)
+    const fallo = respuestaFallo(respuesta)
+    if (fallo) {
+      throw new ErrorSiesaFactura(`SIESA rechazo la factura: ${fallo.slice(0, 400)}`, { tipo: 'rechazo', detalle: crudo })
+    }
+
+    // El numero NO viene en la respuesta (verificado el 14 de septiembre de
+    // 2026): se busca en t350_co_docto_contable, igual que hace el colegio.
+    numeroFactura = consecutivoDe(respuesta)
+      ?? (marca ? await buscarConsecutivo('FES', idTercero, totalPesos, marca) : null)
+
+    if (!numeroFactura) {
+      throw new ErrorSiesaFactura(
+        `SIESA no rechazo la factura pero tampoco aparece en t350 (tercero ${idTercero}, $${totalPesos}, Wompi ${marca}). Respuesta de Pangea: ${crudo.slice(0, 400)}`,
+        { tipo: 'rechazo', detalle: crudo },
+      )
+    }
   }
 
+  // --- 2. RECIBO DE CAJA -----------------------------------------------------------
   const recibo = await armarRecibo(orden, comprador, numeroFactura, { configuracion })
 
-  let numeroRecibo = null
-  try {
-    const respuesta = await cli.Recibo_de_cajaAsync({ Recibo: recibo })
+  let numeroRecibo = marca ? await buscarConsecutivo('RCV', idTercero, totalPesos, marca) : null
+
+  if (!numeroRecibo) {
+    let respuesta
+    try {
+      respuesta = await cli.Recibo_de_cajaAsync({ Recibo: recibo })
+    } catch (e) {
+      // La factura YA se emitio. Se avisa distinto a proposito: reintentar
+      // todo la duplicaria... salvo que ahora la busqueda previa lo impide.
+      throw new ErrorSiesaFactura(
+        `La factura ${numeroFactura} SI se emitio, pero el recibo de caja fallo: ${e.message}`,
+        { tipo: 'rechazo', detalle: { numeroFactura } },
+      )
+    }
+
+    const crudo = JSON.stringify(respuesta?.[0] ?? respuesta ?? '')
+    console.log(`[siesa] respuesta de Recibo_de_caja para ${orden.referencia}: ${crudo.slice(0, 600)}`)
+    const fallo = respuestaFallo(respuesta)
+    if (fallo) {
+      throw new ErrorSiesaFactura(
+        `La factura ${numeroFactura} SI se emitio, pero SIESA rechazo el recibo: ${fallo.slice(0, 400)}`,
+        { tipo: 'rechazo', detalle: { numeroFactura, crudo } },
+      )
+    }
+
     numeroRecibo = consecutivoDe(respuesta)
-  } catch (e) {
-    // La factura YA se emitio. Se avisa distinto a proposito: reintentar todo
-    // duplicaria la factura. Lo que falta es solo el recibo.
-    throw new ErrorSiesaFactura(
-      `La factura ${numeroFactura} SI se emitio, pero el recibo de caja fallo: ${e.message}`,
-      { tipo: 'rechazo', detalle: { numeroFactura } },
-    )
+      ?? (marca ? await buscarConsecutivo('RCV', idTercero, totalPesos, marca) : null)
   }
 
   return { ensayo: false, tercero, factura, recibo, numeroFactura, numeroRecibo }
