@@ -291,6 +291,17 @@ export function ultimosCuatroDe(transaccion) {
 }
 
 /**
+ * El codigo de aprobacion del banco (payment_method.extra.external_identifier):
+ * el mismo que sale en el voucher del datafono. Contabilidad lo quiere en la
+ * Autorizacion del recibo de caja. No siempre viene: entonces null, y el
+ * recibo usa el id de Wompi.
+ */
+export function autorizacionBancoDe(transaccion) {
+  const valor = String(transaccion?.payment_method?.extra?.external_identifier ?? '').trim()
+  return valor ? valor.slice(0, 20) : null
+}
+
+/**
  * Normaliza una transaccion de Wompi a lo que le importa al backend.
  * Es la frontera: de aqui para adentro nadie vuelve a ver un campo en ingles.
  */
@@ -305,5 +316,6 @@ export function normalizar(transaccion) {
     metodoPago: transaccion.payment_method_type ?? null,
     franquicia: franquiciaDe(transaccion),
     ultimosCuatro: ultimosCuatroDe(transaccion),
+    autorizacionBanco: autorizacionBancoDe(transaccion),
   }
 }

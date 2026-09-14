@@ -93,6 +93,18 @@ const MIGRACIONES = [
       `ALTER TABLE orden ADD COLUMN ultimos_cuatro TEXT`,
     ],
   },
+  {
+    nombre: '006-autorizacion-banco',
+    // EL CODIGO DE APROBACION DEL BANCO, PARA EL RECIBO DE CAJA.
+    //
+    // Contabilidad pidio el 14 de septiembre de 2026 que en Autorizacion del
+    // recibo vaya el codigo que aprueba el banco (el del voucher), no el id
+    // de Wompi. Wompi lo trae en payment_method.extra.external_identifier;
+    // es lo mismo que manda la plataforma de eventos del colegio.
+    sql: [
+      `ALTER TABLE orden ADD COLUMN autorizacion_banco TEXT`,
+    ],
+  },
 ]
 
 /** Columnas que ya existen en una tabla. */

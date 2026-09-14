@@ -225,3 +225,21 @@ test('de Wompi se leen los ultimos cuatro de la tarjeta', async () => {
   // Algo que no son cuatro digitos tampoco se cuela al ERP.
   assert.equal(ultimosCuatroDe({ payment_method: { extra: { last_four: '**42' } } }), null)
 })
+
+test('en Autorizacion del recibo va el codigo del banco, y el id de Wompi solo si no vino', async () => {
+  // Contabilidad, 14 de septiembre de 2026: quieren el codigo del voucher.
+  const { normalizar } = await import('../src/pagos/wompi.js')
+  const tx = {
+    id: '1372181-1789402817-83493', reference: 'HC80-ACRPQS', status: 'APPROVED',
+    amount_in_cents: 8700000, currency: 'COP', payment_method_type: 'CARD',
+    payment_method: { type: 'CARD', extra: { brand: 'VISA', last_four: '9269', external_identifier: 'A1B2C3' } },
+  }
+  assert.equal(normalizar(tx).autorizacionBanco, 'A1B2C3')
+
+  const conBanco = await armarRecibo({ ...ORDEN, autorizacion_banco: 'A1B2C3' }, COMPRADOR, '4521', { configuracion: CONFIG_465 })
+  assert.equal(conBanco.F358_NRO_AUTORIZACION, 'A1B2C3')
+
+  // Sin codigo del banco: el id de Wompi recortado a 10, como antes.
+  const sinBanco = await armarRecibo({ ...ORDEN, autorizacion_banco: null }, COMPRADOR, '4521', { configuracion: CONFIG_465 })
+  assert.equal(sinBanco.F358_NRO_AUTORIZACION, String(ORDEN.wompi_transaction_id).slice(0, 10))
+})

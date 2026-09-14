@@ -47,29 +47,36 @@ const q = {
   guardarFallo: db.prepare(`
     UPDATE orden SET siesa_error = ?, siesa_intentado_en = ? WHERE id = ?`),
 
-  guardarUltimosCuatro: db.prepare(`
-    UPDATE orden SET ultimos_cuatro = ? WHERE id = ? AND ultimos_cuatro IS NULL`),
+  guardarDatosTarjeta: db.prepare(`
+    UPDATE orden
+       SET ultimos_cuatro = COALESCE(ultimos_cuatro, ?),
+           autorizacion_banco = COALESCE(autorizacion_banco, ?)
+     WHERE id = ?`),
 }
 
 /**
- * Completa los ultimos cuatro digitos de la tarjeta si la orden no los tiene.
+ * Completa los datos de la tarjeta que le falten a la orden: los ultimos
+ * cuatro digitos y el codigo de aprobacion del banco.
  *
  * Las ordenes pagadas ANTES del 14 de septiembre de 2026 se guardaron sin
- * ese dato, y SIESA rechaza el recibo de caja de una tarjeta sin el. Se le
- * vuelve a preguntar a Wompi por la transaccion (que si lo trae) y se deja
- * guardado para no preguntar dos veces. Si Wompi no contesta, se sigue: el
- * ERP dira que falta y el error queda anotado en la orden.
+ * esos datos, y SIESA rechaza el recibo de caja de una tarjeta sin los
+ * ultimos cuatro. Se le vuelve a preguntar a Wompi por la transaccion (que
+ * si los trae) y se dejan guardados para no preguntar dos veces. Si Wompi no
+ * contesta, se sigue: el ERP dira que falta y el error queda anotado.
  */
-async function completarUltimosCuatro(orden) {
-  if (orden.ultimos_cuatro || orden.metodo_pago !== 'CARD' || !orden.wompi_transaction_id) return orden
+async function completarDatosTarjeta(orden) {
+  if (orden.metodo_pago !== 'CARD' || !orden.wompi_transaction_id) return orden
+  if (orden.ultimos_cuatro && orden.autorizacion_banco) return orden
   if (enSimulacion()) return orden
   try {
     const pago = await consultarPago(orden.wompi_transaction_id)
-    if (pago?.ultimosCuatro) {
-      q.guardarUltimosCuatro.run(pago.ultimosCuatro, orden.id)
-      return { ...orden, ultimos_cuatro: pago.ultimosCuatro }
+    const ultimosCuatro = orden.ultimos_cuatro ?? pago?.ultimosCuatro ?? null
+    const autorizacion = orden.autorizacion_banco ?? pago?.autorizacionBanco ?? null
+    if (ultimosCuatro !== orden.ultimos_cuatro || autorizacion !== orden.autorizacion_banco) {
+      q.guardarDatosTarjeta.run(ultimosCuatro, autorizacion, orden.id)
     }
-    console.warn(`[siesa] Wompi no trae los ultimos cuatro de la tarjeta para ${orden.referencia}`)
+    if (!ultimosCuatro) console.warn(`[siesa] Wompi no trae los ultimos cuatro de la tarjeta para ${orden.referencia}`)
+    return { ...orden, ultimos_cuatro: ultimosCuatro, autorizacion_banco: autorizacion }
   } catch (e) {
     console.warn(`[siesa] no se pudo pedir a Wompi la tarjeta de ${orden.referencia}: ${e.message}`)
   }
@@ -103,7 +110,7 @@ export async function facturarOrden(ordenId) {
   if (!comprador) return { facturada: false, motivo: 'La orden no tiene comprador' }
 
   try {
-    const r = await facturar(await completarUltimosCuatro(orden), comprador)
+    const r = await facturar(await completarDatosTarjeta(orden), comprador)
 
     if (r.ensayo) {
       // En ensayo no hay consecutivos que guardar. Se anota el intento para

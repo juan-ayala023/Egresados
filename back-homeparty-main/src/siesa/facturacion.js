@@ -279,7 +279,10 @@ export async function armarRecibo(orden, comprador, numeroFactura, { configuraci
 
     F358_ID_MEDIOS_PAGO: medio,
     F358_NRO_CUENTA: medio === 'TCD' ? String(orden.ultimos_cuatro ?? '') : '',
-    F358_NRO_AUTORIZACION: idTransaccion.slice(0, 10),
+    // El codigo de aprobacion del banco (pedido de contabilidad, 14 de
+    // septiembre de 2026): el del voucher. Si el banco no lo reporto, el id
+    // de Wompi, para que el campo nunca vaya vacio. Maximo 10 en SIESA.
+    F358_NRO_AUTORIZACION: (String(orden.autorizacion_banco ?? '').trim() || idTransaccion).slice(0, 10),
     F358_REFERENCIA_OTROS: medio === 'TCD' ? '' : idTransaccion.slice(0, 8),
     F358_NOTAS: nota,
     F358_FECHA_CONSIGNACION: fecha,

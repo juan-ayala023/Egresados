@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS orden (
   metodo_pago               TEXT,             -- CARD | PSE | NEQUI | BANCOLOMBIA_TRANSFER
   franquicia                TEXT,             -- VISA | MASTERCARD | AMEX... solo en tarjeta
   ultimos_cuatro            TEXT,             -- de la tarjeta; SIESA lo exige en el recibo
+  autorizacion_banco        TEXT,             -- codigo de aprobacion del banco (Wompi external_identifier)
   wompi_transaction_id      TEXT,
   creada_en                 TEXT    NOT NULL,
   expira_en                 TEXT    NOT NULL,
