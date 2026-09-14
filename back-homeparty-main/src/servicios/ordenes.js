@@ -384,11 +384,18 @@ function emitirBoletas(ordenId) {
  * reintento no se la vuelve a mandar. Al comprador SI se le puede reenviar:
  * eso es lo que hace el boton del panel.
  *
+ * SALVO que lo pida una persona: el boton del panel pasa `aTodos`, y ahi se
+ * les reenvia tambien a los acompanantes. Se supo el 14 de septiembre de 2026
+ * con la segunda compra real: la boleta del acompanante salio (Gmail la
+ * acepto), pero el no la veia -- spam, seguramente -- y desde el panel no
+ * habia forma de mandarsela otra vez. La marca protege del reintento
+ * automatico, no de un reenvio que alguien decidio.
+ *
  * El resultado del comprador es el que manda: si ESE falla, la orden queda
  * como no enviada y se reintenta. Si el SMTP esta caido, no se intenta nada
  * mas -- mandar tres individuales solo multiplicaria el fallo.
  */
-export async function enviarCorreoDeOrden(ordenId) {
+export async function enviarCorreoDeOrden(ordenId, { aTodos = false } = {}) {
   const orden = q.porId.get(ordenId)
   if (!orden || orden.estado !== 'pagada') {
     return { enviado: false, detalle: 'La orden no esta pagada' }
@@ -458,7 +465,7 @@ export async function enviarCorreoDeOrden(ordenId) {
   // --- 2. la boleta de cada acompanante, a su propio correo ---------------------
   let individuales = 0
   for (const [destino, suyas] of grupos) {
-    const pendientes = suyas.filter((f) => !f.correo_enviado_en)
+    const pendientes = aTodos ? suyas : suyas.filter((f) => !f.correo_enviado_en)
     if (pendientes.length === 0) continue   // ya se le habia mandado
 
     const adjuntos = (await Promise.all(pendientes.map(pdfDe))).filter(Boolean)

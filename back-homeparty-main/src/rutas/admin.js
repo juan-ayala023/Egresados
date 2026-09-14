@@ -207,7 +207,8 @@ rutasAdmin.post('/admin/ordenes/:referencia/reenviar', asyncHandler(async (req, 
     throw errores.conflicto('ORDEN_NO_PAGADA', 'Esa orden no tiene boletas emitidas.')
   }
 
-  const resultado = await enviarCorreoDeOrden(orden.id)
+  // Lo pidio una persona: se reenvia a TODOS, acompanantes incluidos.
+  const resultado = await enviarCorreoDeOrden(orden.id, { aTodos: true })
   registrarAuditoria('admin', 'reenviar_boletas', { referencia: orden.referencia, ...resultado })
   res.json(resultado)
 }))

@@ -212,6 +212,24 @@ test('REENVIAR no le manda la boleta dos veces al acompanante', async () => {
   assert.equal(buzon().length, 1)
 })
 
+test('el boton REENVIAR del panel si les manda otra vez a los acompanantes', async () => {
+  // 14 de septiembre de 2026: a un acompanante le salio la boleta, no la
+  // encontraba (spam) y desde el panel no habia como mandarsela de nuevo.
+  vaciarBuzon()
+  const { id } = ordenCon([
+    { nombre: 'Juan Ayala Botero', correo: 'quien.paga@ejemplo.com' },
+    { nombre: 'Alexander Yepes', correo: 'alex@ejemplo.com' },
+  ])
+  await enviarCorreoDeOrden(id)
+  assert.ok(leLlego('alex@ejemplo.com'))
+
+  vaciarBuzon()
+  await enviarCorreoDeOrden(id, { aTodos: true })   // lo que hace el panel
+
+  assert.ok(leLlego('alex@ejemplo.com'), 'a Alexander no le volvio a llegar')
+  assert.equal(buzon().length, 2)   // el del comprador y el de Alexander
+})
+
 test('queda anotado a quien ya se le mando', async () => {
   vaciarBuzon()
   const { id } = ordenCon([
