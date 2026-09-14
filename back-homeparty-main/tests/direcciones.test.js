@@ -15,8 +15,9 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
-const { validarDireccion, validarCiudad, esCiudadConocida, CIUDADES } =
+const { validarDireccion, validarCiudad, esCiudadConocida, nombreCiudad } =
   await import('../src/lib/direcciones.js')
+const { DEPARTAMENTOS } = await import('../src/lib/divipola.js')
 
 test('las direcciones como las escribe la gente pasan', () => {
   const reales = [
@@ -64,22 +65,27 @@ test('fuera de Colombia no se exige via colombiana, pero si numero y letras', ()
   assert.ok(validarDireccion('asdfgh', { exterior: true }))
 })
 
-test('la ciudad de la lista pasa, con o sin tilde, en cualquier caja', () => {
-  assert.equal(validarCiudad('Medellín'), null)
-  assert.equal(validarCiudad('medellin'), null)
-  assert.equal(validarCiudad('MEDELLIN'), null)
-  assert.equal(validarCiudad('Itagüí'), null)
-  assert.equal(validarCiudad('Bogota'), null)
-  assert.ok(esCiudadConocida('envigado'))
-  assert.ok(!esCiudadConocida('Narnia'))
+test('un municipio de la DIVIPOLA pasa, con o sin tilde, en cualquier caja', () => {
+  assert.equal(validarCiudad('Medellín, Antioquia'), null)
+  assert.equal(validarCiudad('medellin, antioquia'), null)
+  assert.equal(validarCiudad('ITAGÜÍ, ANTIOQUIA'), null)
+  assert.equal(validarCiudad('Retiro, Antioquia'), null)        // el DANE lo llama asi, sin "El"
+  assert.equal(validarCiudad('Bogotá D.C.'), null)              // municipio y departamento a la vez
+  assert.equal(validarCiudad('Sucre, Sucre'), null)
+  assert.ok(esCiudadConocida('envigado, antioquia'))
+  assert.ok(!esCiudadConocida('Narnia, Antioquia'))
 })
 
-test('una ciudad que no esta en la lista tiene que ser al menos un nombre', () => {
-  // "Otra ciudad" o "fuera de Colombia": se acepta lo que parezca un nombre.
+test('la ciudad se guarda como "Municipio, Departamento"', () => {
+  assert.equal(nombreCiudad('Medellín', 'Antioquia'), 'Medellín, Antioquia')
+  // Salvo Bogota, donde repetirlo se veria tonto.
+  assert.equal(nombreCiudad('Bogotá D.C.', 'Bogotá D.C.'), 'Bogotá D.C.')
+})
+
+test('fuera de Colombia se acepta un nombre, pero no basura', () => {
+  assert.equal(validarCiudad('Miami, Estados Unidos'), null)
   assert.equal(validarCiudad('Ciudad de México'), null)
-  assert.equal(validarCiudad('Santa Rosa de Osos'), null)
-  assert.equal(validarCiudad("L'Hospitalet"), null)
-  // Y no lo que no lo parezca.
+  assert.equal(validarCiudad("L'Hospitalet, España"), null)
   assert.ok(validarCiudad(''))
   assert.ok(validarCiudad('12'))
   assert.ok(validarCiudad('a1b2'))
@@ -87,9 +93,14 @@ test('una ciudad que no esta en la lista tiene que ser al menos un nombre', () =
   assert.ok(validarCiudad('x'))
 })
 
-test('la lista trae el area metropolitana, que es donde vive casi todo el que compra', () => {
-  for (const c of ['Medellín', 'Envigado', 'Sabaneta', 'Itagüí', 'Bello', 'La Estrella', 'Rionegro', 'Bogotá']) {
-    assert.ok(CIUDADES.includes(c), `falta ${c}`)
+test('la DIVIPOLA esta completa y Antioquia va de primera', () => {
+  assert.equal(DEPARTAMENTOS.length, 33)                       // 32 + Bogota D.C.
+  const municipios = DEPARTAMENTOS.reduce((n, d) => n + d.municipios.length, 0)
+  assert.ok(municipios >= 1100, `solo hay ${municipios} municipios`)
+  assert.equal(DEPARTAMENTOS[0].nombre, 'Antioquia')
+  assert.equal(DEPARTAMENTOS[0].municipios[0].nombre, 'Medellín') // la capital primero
+  for (const c of ['Envigado', 'Sabaneta', 'Itagüí', 'Bello', 'La Estrella', 'Rionegro']) {
+    assert.ok(DEPARTAMENTOS[0].municipios.some((m) => m.nombre === c), `falta ${c}`)
   }
 })
 
@@ -103,7 +114,7 @@ test('validarOrden usa las reglas nuevas', async () => {
     comprador: {
       nombre: 'Juan Ayala Botero', tipoDocumento: 'CC', cedula: '1023626286',
       correo: 'j@e.com', celular: '3001234567', promocion: anio,
-      direccion: 'Cra 43A # 1-50 Apto 902', ciudad: 'Medellín',
+      direccion: 'Cra 43A # 1-50 Apto 902', ciudad: 'Medellín, Antioquia',
     },
     aceptaTratamientoDatos: true, aceptaTerminos: true,
     asistentes: [{ nombre: 'Juan Ayala Botero', tipoDocumento: 'CC', cedula: '1023626286', promocion: anio }],

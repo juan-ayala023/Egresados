@@ -75,55 +75,57 @@ export function validarDireccion(valor, { exterior = false } = {}) {
 }
 
 // -----------------------------------------------------------------------------
+// CIUDAD: departamento + municipio, de la lista oficial del DANE.
+//
+// El 14 de septiembre de 2026 el colegio pidio que estuvieran TODOS los
+// municipios y departamentos de Colombia, no una lista corta. Vienen de
+// divipola.js (1.122 municipios, 33 departamentos). El front muestra dos
+// desplegables -- departamento y luego municipio -- y manda la ciudad como
+// "Municipio, Departamento" (o solo "Bogotá D.C.", que es las dos cosas).
+//
+// Quien vive fuera de Colombia escribe "Ciudad, País" a mano: eso no esta en
+// ninguna lista, y se acepta si parece un nombre.
+// -----------------------------------------------------------------------------
+import { DEPARTAMENTOS } from './divipola.js'
 
-/**
- * Ciudades que ofrece el desplegable. Primero el area metropolitana de
- * Medellin y Antioquia, que es donde vive casi todo el que compra; despues
- * las capitales. Es una lista, no una base de datos: si falta una, se agrega.
- */
-export const CIUDADES = [
-  // Area metropolitana del Valle de Aburra
-  'Medellín', 'Envigado', 'Sabaneta', 'Itagüí', 'Bello', 'La Estrella',
-  'Caldas', 'Copacabana', 'Girardota', 'Barbosa',
-  // Oriente antioqueno
-  'Rionegro', 'El Retiro', 'La Ceja', 'Marinilla', 'Guarne', 'El Carmen de Viboral',
-  'Santa Fe de Antioquia', 'San Jerónimo', 'Sopetrán',
-  // Capitales y ciudades grandes
-  'Bogotá', 'Cali', 'Barranquilla', 'Cartagena', 'Bucaramanga', 'Pereira',
-  'Manizales', 'Armenia', 'Cúcuta', 'Santa Marta', 'Ibagué', 'Villavicencio',
-  'Montería', 'Pasto', 'Neiva', 'Valledupar', 'Popayán', 'Sincelejo',
-  'Tunja', 'Riohacha', 'Quibdó', 'Florencia', 'Yopal', 'Chía', 'Cajicá',
-  'Jamundí', 'Palmira', 'Floridablanca', 'Dosquebradas', 'Soledad',
-  'Apartadó', 'Turbo', 'Caucasia', 'Puerto Berrío',
-]
+/** Sin tildes, en minuscula, un solo espacio: para comparar sin drama. */
+const clave = (s) => sinTildes(s).trim().toLowerCase().replace(/\s+/g, ' ')
 
-/** Las dos salidas del desplegable que piden texto aparte. */
-export const CIUDAD_OTRA = 'OTRA'
-export const CIUDAD_EXTERIOR = 'EXTERIOR'
+// "medellin, antioquia" -> true. Se arma una vez al cargar.
+const PARES = new Set()
+for (const d of DEPARTAMENTOS) {
+  for (const m of d.municipios) {
+    PARES.add(`${clave(m.nombre)}, ${clave(d.nombre)}`)
+    // Bogota D.C. es municipio y departamento a la vez: vale solo.
+    if (clave(m.nombre) === clave(d.nombre)) PARES.add(clave(m.nombre))
+  }
+}
 
-const normalizarCiudad = (s) => sinTildes(s).trim().toLowerCase().replace(/\s+/g, ' ')
-const CIUDADES_NORMALIZADAS = new Set(CIUDADES.map(normalizarCiudad))
+/** Como se guarda la ciudad: "Medellín, Antioquia", o "Bogotá D.C." si coinciden. */
+export function nombreCiudad(municipio, departamento) {
+  return clave(municipio) === clave(departamento) ? municipio : `${municipio}, ${departamento}`
+}
 
-/** ¿Esta en la lista? (sin importar tildes ni mayusculas) */
-export const esCiudadConocida = (valor) => CIUDADES_NORMALIZADAS.has(normalizarCiudad(valor))
+/** ¿Es un municipio colombiano de la DIVIPOLA? (sin importar tildes ni mayusculas) */
+export const esCiudadConocida = (valor) => PARES.has(clave(valor))
 
 /**
  * ¿Es una ciudad aceptable?
  *
- * De la lista, sin mas. Si no esta en la lista (eligio "Otra" o "Fuera de
- * Colombia" y escribio el nombre), tiene que ser un nombre: solo letras,
- * espacios y algun guion o punto, minimo 3 letras. "xyz" pasa por letras
- * pero "123" y "a1b2" no; contra el que quiere mentir no hay validacion que
- * valga, esto es contra el que quiere salir rapido.
+ * De la DIVIPOLA, sin mas. Si no esta (vive fuera de Colombia y escribio
+ * "Ciudad, País"), tiene que ser un nombre: letras, espacios, coma y algun
+ * guion o punto, minimo 3 letras. "xyz" pasa por letras pero "123" y "a1b2"
+ * no; contra el que quiere mentir no hay validacion que valga, esto es
+ * contra el que quiere salir rapido.
  *
  * @returns {string|null}
  */
 export function validarCiudad(valor) {
   const v = String(valor ?? '').trim().replace(/\s+/g, ' ')
-  if (!v) return 'Selecciona la ciudad.'
+  if (!v) return 'Selecciona el departamento y el municipio.'
   if (esCiudadConocida(v)) return null
   if (v.length < 3) return 'Escribe el nombre de la ciudad.'
-  if (v.length > 60) return 'El nombre de la ciudad es demasiado largo.'
+  if (v.length > 80) return 'El nombre de la ciudad es demasiado largo.'
   if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ][a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s.,'-]*$/.test(v)) {
     return 'La ciudad solo lleva letras (ej: Medellín).'
   }

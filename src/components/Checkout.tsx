@@ -6,7 +6,7 @@ import { X, ArrowLeft, Loader2, ShieldCheck, Check, AlertCircle } from 'lucide-r
 import { ease } from '@/lib/motion';
 import { useBloquearScroll } from '@/lib/bloquearScroll';
 import {
-  CIUDADES, CIUDAD_OTRA, CIUDAD_EXTERIOR, validarDireccion, validarCiudad,
+  DEPARTAMENTOS, DEPARTAMENTO_EXTERIOR, nombreCiudad, validarDireccion, validarCiudad,
 } from '@/lib/direcciones';
 import {
   anosGraduacion,
@@ -50,14 +50,20 @@ export default function Checkout({ boleta, cantidad, onClose }: Props) {
   const [paso, setPaso] = useState(0);
   const [asistentes, setAsistentes] = useState<Asistente[]>([]);
   const [direccion, setDireccion] = useState('');
-  /* La ciudad es un desplegable (14 de septiembre de 2026): antes era texto
-     libre y aceptaba "xyz", y eso va a la factura electrónica. `ciudadOpcion`
-     es lo que eligió en la lista; si eligió "Otra" o "Fuera de Colombia",
-     `ciudadTexto` es el nombre que escribió. `ciudad` es lo que se manda. */
-  const [ciudadOpcion, setCiudadOpcion] = useState('');
+  /* La ciudad son DOS desplegables (14 de septiembre de 2026): departamento
+     y luego municipio, con los 1.122 municipios oficiales del DANE. Antes era
+     texto libre y aceptaba "xyz", y eso va a la factura electrónica.
+     Si vive fuera de Colombia, elige "Fuera de Colombia" en el primero y
+     escribe "Ciudad, País" a mano. `ciudad` es lo que se manda al servidor. */
+  const [departamento, setDepartamento] = useState('');
+  const [municipio, setMunicipio] = useState('');
   const [ciudadTexto, setCiudadTexto] = useState('');
-  const pideNombreCiudad = ciudadOpcion === CIUDAD_OTRA || ciudadOpcion === CIUDAD_EXTERIOR;
-  const ciudad = pideNombreCiudad ? ciudadTexto.trim() : ciudadOpcion;
+  const exterior = departamento === DEPARTAMENTO_EXTERIOR;
+  const depElegido = DEPARTAMENTOS.find((d) => d.codigo === departamento);
+  const muniElegido = depElegido?.municipios.find((m) => m.codigo === municipio);
+  const ciudad = exterior
+    ? ciudadTexto.trim()
+    : depElegido && muniElegido ? nombreCiudad(muniElegido.nombre, depElegido.nombre) : '';
   const [aceptaDatos, setAceptaDatos] = useState(false);
   const [aceptaTerminos, setAceptaTerminos] = useState(false);
   /* Un mensaje por campo, no un booleano: cuando el error viene del backend
@@ -92,7 +98,8 @@ export default function Checkout({ boleta, cantidad, onClose }: Props) {
       setPaso(0);
       setAsistentes(Array.from({ length: cantidad }, vacio));
       setDireccion('');
-      setCiudadOpcion('');
+      setDepartamento('');
+      setMunicipio('');
       setCiudadTexto('');
       setAceptaDatos(false);
       setAceptaTerminos(false);
@@ -240,7 +247,7 @@ export default function Checkout({ boleta, cantidad, onClose }: Props) {
        fuera de Colombia no se le exige una vía colombiana. */
     const errorCiudad = validarCiudad(ciudad);
     if (errorCiudad) nuevos['ciudad'] = errorCiudad;
-    const errorDireccion = validarDireccion(direccion, { exterior: ciudadOpcion === CIUDAD_EXTERIOR });
+    const errorDireccion = validarDireccion(direccion, { exterior });
     if (errorDireccion) nuevos['direccion'] = errorDireccion;
     if (!aceptaDatos) nuevos['aceptaDatos'] = 'Debes aceptar el tratamiento de datos.';
     if (!aceptaTerminos) nuevos['aceptaTerminos'] = 'Debes aceptar los términos.';
@@ -604,33 +611,47 @@ export default function Checkout({ boleta, cantidad, onClose }: Props) {
                         <Aviso clave="direccion" />
                       </div>
                       <div>
-                        <label className="label">Ciudad</label>
+                        <label className="label">Departamento</label>
                         <select
-                          value={ciudadOpcion}
-                          onChange={(e) => { setCiudadOpcion(e.target.value); setCiudadTexto(''); limpiar('ciudad'); }}
+                          value={departamento}
+                          onChange={(e) => { setDepartamento(e.target.value); setMunicipio(''); setCiudadTexto(''); limpiar('ciudad'); }}
                           className={`field ${clase('ciudad')}`}
                         >
-                          <option value="">Selecciona la ciudad</option>
-                          {CIUDADES.map((c) => (
-                            <option key={c} value={c}>{c}</option>
+                          <option value="">Selecciona el departamento</option>
+                          {DEPARTAMENTOS.map((d) => (
+                            <option key={d.codigo} value={d.codigo}>{d.nombre}</option>
                           ))}
-                          <option value={CIUDAD_OTRA}>Otra ciudad de Colombia</option>
-                          <option value={CIUDAD_EXTERIOR}>Fuera de Colombia</option>
+                          <option value={DEPARTAMENTO_EXTERIOR}>Fuera de Colombia</option>
                         </select>
-                        {!pideNombreCiudad && <Aviso clave="ciudad" />}
                       </div>
-                      {pideNombreCiudad && (
+                      {exterior ? (
                         <div>
-                          <label className="label">
-                            {ciudadOpcion === CIUDAD_EXTERIOR ? 'Ciudad y país' : '¿Cuál ciudad?'}
-                          </label>
+                          <label className="label">Ciudad y país</label>
                           <input
                             value={ciudadTexto}
                             onChange={(e) => { setCiudadTexto(e.target.value); limpiar('ciudad'); }}
-                            placeholder={ciudadOpcion === CIUDAD_EXTERIOR ? 'Miami, Estados Unidos' : 'Nombre del municipio'}
+                            placeholder="Miami, Estados Unidos"
                             className={`field ${clase('ciudad')}`}
                             autoFocus
                           />
+                          <Aviso clave="ciudad" />
+                        </div>
+                      ) : (
+                        <div>
+                          <label className="label">Municipio</label>
+                          <select
+                            value={municipio}
+                            onChange={(e) => { setMunicipio(e.target.value); limpiar('ciudad'); }}
+                            disabled={!depElegido}
+                            className={`field ${clase('ciudad')} disabled:opacity-50`}
+                          >
+                            <option value="">
+                              {depElegido ? 'Selecciona el municipio' : 'Primero el departamento'}
+                            </option>
+                            {depElegido?.municipios.map((m) => (
+                              <option key={m.codigo} value={m.codigo}>{m.nombre}</option>
+                            ))}
+                          </select>
                           <Aviso clave="ciudad" />
                         </div>
                       )}

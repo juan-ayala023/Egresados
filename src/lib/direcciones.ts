@@ -49,37 +49,40 @@ export function validarDireccion(valor: string, { exterior = false } = {}): stri
   return null;
 }
 
-/* Primero el área metropolitana y Antioquia, que es donde vive casi todo el
-   que compra; después las capitales. */
-export const CIUDADES = [
-  'Medellín', 'Envigado', 'Sabaneta', 'Itagüí', 'Bello', 'La Estrella',
-  'Caldas', 'Copacabana', 'Girardota', 'Barbosa',
-  'Rionegro', 'El Retiro', 'La Ceja', 'Marinilla', 'Guarne', 'El Carmen de Viboral',
-  'Santa Fe de Antioquia', 'San Jerónimo', 'Sopetrán',
-  'Bogotá', 'Cali', 'Barranquilla', 'Cartagena', 'Bucaramanga', 'Pereira',
-  'Manizales', 'Armenia', 'Cúcuta', 'Santa Marta', 'Ibagué', 'Villavicencio',
-  'Montería', 'Pasto', 'Neiva', 'Valledupar', 'Popayán', 'Sincelejo',
-  'Tunja', 'Riohacha', 'Quibdó', 'Florencia', 'Yopal', 'Chía', 'Cajicá',
-  'Jamundí', 'Palmira', 'Floridablanca', 'Dosquebradas', 'Soledad',
-  'Apartadó', 'Turbo', 'Caucasia', 'Puerto Berrío',
-];
+/* Departamento + municipio, de la lista oficial del DANE (divipola.ts). El
+   checkout muestra dos desplegables y manda la ciudad como
+   "Municipio, Departamento" (o solo "Bogotá D.C."). Quien vive fuera de
+   Colombia escribe "Ciudad, País" a mano. */
+import { DEPARTAMENTOS } from './divipola';
 
-/* Las dos salidas del desplegable que piden el nombre aparte. */
-export const CIUDAD_OTRA = 'OTRA';
-export const CIUDAD_EXTERIOR = 'EXTERIOR';
+export { DEPARTAMENTOS };
 
-const normalizar = (s: string) => sinTildes(s).trim().toLowerCase().replace(/\s+/g, ' ');
-const CONOCIDAS = new Set(CIUDADES.map(normalizar));
+/* Lo que elige quien vive fuera de Colombia en el desplegable de departamento. */
+export const DEPARTAMENTO_EXTERIOR = 'EXTERIOR';
 
-export const esCiudadConocida = (valor: string) => CONOCIDAS.has(normalizar(valor ?? ''));
+const clave = (s: string) => sinTildes(s ?? '').trim().toLowerCase().replace(/\s+/g, ' ');
 
-/** Mensaje de error, o null. Para el texto libre de "Otra" / "Fuera de Colombia". */
+const PARES = new Set<string>();
+for (const d of DEPARTAMENTOS) {
+  for (const m of d.municipios) {
+    PARES.add(`${clave(m.nombre)}, ${clave(d.nombre)}`);
+    if (clave(m.nombre) === clave(d.nombre)) PARES.add(clave(m.nombre));
+  }
+}
+
+/** Como se manda la ciudad: "Medellín, Antioquia", o "Bogotá D.C." si coinciden. */
+export const nombreCiudad = (municipio: string, departamento: string) =>
+  clave(municipio) === clave(departamento) ? municipio : `${municipio}, ${departamento}`;
+
+export const esCiudadConocida = (valor: string) => PARES.has(clave(valor));
+
+/** Mensaje de error, o null. Para el texto libre de "Fuera de Colombia". */
 export function validarCiudad(valor: string): string | null {
   const v = (valor ?? '').trim().replace(/\s+/g, ' ');
-  if (!v) return 'Selecciona la ciudad.';
+  if (!v) return 'Selecciona el departamento y el municipio.';
   if (esCiudadConocida(v)) return null;
   if (v.length < 3) return 'Escribe el nombre de la ciudad.';
-  if (v.length > 60) return 'El nombre es demasiado largo.';
+  if (v.length > 80) return 'El nombre es demasiado largo.';
   if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ][a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s.,'-]*$/.test(v)) {
     return 'La ciudad solo lleva letras (ej: Medellín).';
   }
