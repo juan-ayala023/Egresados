@@ -45,6 +45,32 @@ function leerCabezote() {
 }
 
 /**
+ * Una linea centrada con trozos en distinta fuente (normal / negrilla).
+ *
+ * pdfkit no deja combinar `continued` con `align: 'center'`: cada trozo se
+ * vuelve a centrar y se monta sobre el anterior. Aqui se miden los anchos,
+ * se calcula donde empieza la linea y se escriben los trozos seguidos.
+ *
+ * @param {Array<{texto:string, negrilla?:boolean, color?:string}>} partes
+ */
+function lineaCentrada(doc, partes, tamano) {
+  doc.fontSize(tamano)
+  const ancho = partes.reduce((suma, p) => {
+    doc.font(p.negrilla ? 'Helvetica-Bold' : 'Helvetica')
+    return suma + doc.widthOfString(p.texto)
+  }, 0)
+  let x = (ANCHO - ancho) / 2
+  const y = doc.y
+  for (const p of partes) {
+    doc.font(p.negrilla ? 'Helvetica-Bold' : 'Helvetica').fillColor(p.color ?? SUAVE)
+    doc.text(p.texto, x, y, { lineBreak: false })
+    x += doc.widthOfString(p.texto)
+  }
+  doc.x = MARGEN
+  doc.y = y + doc.currentLineHeight()
+}
+
+/**
  * Dibuja la boleta en el documento dado y devuelve la altura final.
  * Se usa dos veces: una para medir y otra para producir.
  */
@@ -66,22 +92,24 @@ function dibujar(doc, b, qr) {
   doc.x = MARGEN
   doc.y = ALTO_BANDA + 30
 
-  // --- encabezado ----------------------------------------------------------------
-  doc.fillColor(TINTA).fontSize(24).font('Helvetica-Bold')
-    .text(config.evento.nombre, { align: 'center' })
-  doc.moveDown(0.3)
-  doc.fontSize(11).font('Helvetica').fillColor(SUAVE)
-    .text('The Columbus School · Boleta de ingreso', { align: 'center' })
-
-  doc.moveDown(1.2)
-  doc.moveTo(MARGEN, doc.y).lineTo(ANCHO - MARGEN, doc.y).strokeColor('#DDDDDD').stroke()
-  doc.moveDown(1.2)
+  // Sin titulo ni linea debajo del cabezote (14 de septiembre de 2026,
+  // pedido del colegio): el cabezote ya dice de que es la boleta, y el QR va
+  // directo debajo.
+  doc.moveDown(0.4)
 
   // --- QR --------------------------------------------------------------------------
   doc.image(qr, (ANCHO - 200) / 2, doc.y, { width: 200 })
   doc.y += 212
-  doc.fontSize(9).fillColor(SUAVE).font('Helvetica')
-    .text('Presenta este código en el ingreso. Es válido una sola vez.', { align: 'center' })
+  // Redaccion del colegio (14 de septiembre de 2026), con "entrada" y
+  // "acceso" en negrilla. pdfkit no entiende marcas dentro del texto: se
+  // encadenan trozos con `continued` cambiando la fuente.
+  lineaCentrada(doc, [
+    { texto: 'Presenta este código en la ' },
+    { texto: 'entrada', negrilla: true, color: TINTA },
+    { texto: '. Válido para un único ' },
+    { texto: 'acceso', negrilla: true, color: TINTA },
+    { texto: '.' },
+  ], 9)
 
   doc.moveDown(1.8)
 
@@ -107,11 +135,12 @@ function dibujar(doc, b, qr) {
   doc.moveDown(0.6)
   doc.moveTo(MARGEN, doc.y).lineTo(ANCHO - MARGEN, doc.y).strokeColor('#DDDDDD').stroke()
   doc.moveDown(0.9)
-  doc.fontSize(8).fillColor(SUAVE).font('Helvetica').text(
-    'Esta boleta es personal e intransferible salvo autorización del comité organizador. ' +
-    `Si tienes dudas escribe a ${config.correo.soporte}.`,
-    { align: 'center' },
-  )
+  // Redaccion del colegio (14 de septiembre de 2026): sin la coletilla del
+  // comite, y el correo en negrilla.
+  lineaCentrada(doc, [
+    { texto: 'Esta boleta es personal e intransferible. Si tienes alguna duda, escríbenos a: ' },
+    { texto: config.correo.soporte, negrilla: true, color: TINTA },
+  ], 8)
 
   return doc.y
 }

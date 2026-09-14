@@ -180,7 +180,9 @@ async function armarCorreo(orden, boletas, { paraArchivo = false, invitadoDe = n
          de septiembre de 2026 (3146px de ancho); el archivo va a 1200px, el
          doble de lo que se muestra, para que se vea nitido en pantallas
          retina. Trae el fondo en el MISMO azul de la marca y margen propio,
-         asi que va a todo el ancho, sin padding, y no se nota donde termina. -->
+         asi que va a todo el ancho, sin padding, y no se nota donde termina.
+         (Se probo mas chico, a 250px, y el colegio lo devolvio a todo el
+         ancho el 14 de septiembre de 2026.) -->
     <tr>
       <td style="background:${NAVY};padding:0;line-height:0;">
         <img src="${srcEncabezado}" width="600" alt="${escapar(config.evento.nombre)}" style="display:block;width:100%;max-width:600px;height:auto;border:0;" />
@@ -258,8 +260,11 @@ async function armarCorreo(orden, boletas, { paraArchivo = false, invitadoDe = n
     </tr>
     ${srcPie ? `
     <tr>
-      <td align="center" style="background:${NAVY};padding:22px 30px;line-height:0;">
-        <img src="${srcPie}" width="270" alt="${escapar(config.evento.lugar)} · 80 Years" style="display:block;width:270px;max-width:100%;height:auto;border:0;margin:0 auto;" />
+      <!-- Mas chico que antes (14 de septiembre de 2026): a 270px se veia
+           grande, sobre todo en el celular, donde ocupaba casi todo el ancho.
+           A 170px queda como firma, proporcionado con el cabezote. -->
+      <td align="center" style="background:${NAVY};padding:18px 30px;line-height:0;">
+        <img src="${srcPie}" width="170" alt="${escapar(config.evento.lugar)} · 80 Years" style="display:block;width:170px;max-width:100%;height:auto;border:0;margin:0 auto;" />
       </td>
     </tr>` : `
     <tr>

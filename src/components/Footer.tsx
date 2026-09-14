@@ -2,6 +2,7 @@
 
 import { Instagram, Phone } from 'lucide-react';
 import { contacto, evento } from '@/data';
+import EnlaceCorreo from './EnlaceCorreo';
 
 /* EL PIE VA EN CLARO, como historia y boletería.
    Desde el 9 de septiembre de 2026 es SOLO datos de contacto y letra chica
@@ -35,12 +36,13 @@ export default function Footer() {
               Para mayor información o cualquier inquietud,
               <br className="hidden sm:block" /> escríbenos a nuestro correo:
             </p>
-            <a
-              href={`mailto:${contacto.correo}`}
+            {/* Siempre lleva a algún lado: app de correo en el celular, Gmail
+                en el navegador en PC. Ver EnlaceCorreo.tsx. */}
+            <EnlaceCorreo
+              correo={contacto.correo}
+              asunto={`Consulta ${evento.titulo}`}
               className="mt-3 inline-block font-body text-lg font-bold text-goldDeep underline decoration-goldDeep/40 underline-offset-[6px] transition-colors hover:text-brand sm:text-xl"
-            >
-              {contacto.correo}
-            </a>
+            />
           </>
         )}
 

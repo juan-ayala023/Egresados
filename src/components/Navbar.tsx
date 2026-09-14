@@ -68,17 +68,24 @@ export default function Navbar({ listo }: { listo: boolean }) {
         }`}
       >
         <nav className="mx-auto flex max-w-7xl items-center justify-between px-6">
-          <a href="#top" aria-label={`${evento.titulo} — ${evento.colegio}`} className="flex items-center">
+          <a href="#top" aria-label={`${evento.titulo} — ${evento.colegio}`} className="flex shrink-0 items-center">
             {/* Alto fijo, ancho automático: la marca no se deforma nunca.
-                Encoge al hacer scroll, igual que el resto de la barra. */}
+                Encoge al hacer scroll, igual que el resto de la barra.
+
+                shrink-0 en el enlace y max-w-none en la imagen (14 de
+                septiembre de 2026): en celulares angostos la barra no daba
+                para logo + botón + menú, y el navegador apretaba el logo a lo
+                ancho dejándole la altura fija -- se veía alargado. Ahora el
+                logo no cede nunca; lo que se achica en móvil es su alto (h-9)
+                y el botón. */}
             <Image
               src={imagenes.logoHorizontal}
               alt={`${evento.titulo} · ${evento.colegio}`}
               width={1880}
               height={659}
               priority
-              className={`w-auto transition-[height] duration-500 ${
-                scrolled ? 'h-10 sm:h-12' : 'h-14 sm:h-16'
+              className={`w-auto max-w-none transition-[height] duration-500 ${
+                scrolled ? 'h-8 sm:h-12' : 'h-9 sm:h-14 md:h-16'
               }`}
             />
           </a>
@@ -97,7 +104,7 @@ export default function Navbar({ listo }: { listo: boolean }) {
             ))}
           </ul>
 
-          <div className="flex items-center gap-3">
+          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             {/* La manito también aquí (pedido del colegio, 13 de septiembre de
                 2026). Va más chica y menos metida que en las secciones: este
                 botón es la mitad de alto, y la barra es fija, así que la
@@ -105,7 +112,7 @@ export default function Navbar({ listo }: { listo: boolean }) {
             <div className="flex items-center">
               <a
                 href="#boletas"
-                className="cursor-pointer whitespace-nowrap rounded-full bg-gold px-4 py-2 font-body text-[11px] font-black uppercase tracking-[0.1em] text-ink transition-all hover:bg-goldSoft sm:px-5 sm:py-2.5 sm:text-[12px] sm:tracking-[0.12em]"
+                className="cursor-pointer whitespace-nowrap rounded-full bg-gold px-3 py-2 font-body text-[10px] font-black uppercase tracking-[0.06em] text-ink transition-all hover:bg-goldSoft sm:px-5 sm:py-2.5 sm:text-[12px] sm:tracking-[0.12em]"
               >
                 Compra tu boleta aquí
               </a>
@@ -157,7 +164,7 @@ export default function Navbar({ listo }: { listo: boolean }) {
                   alt={`${evento.titulo} · ${evento.colegio}`}
                   width={1880}
                   height={659}
-                  className="h-14 w-auto"
+                  className="h-12 w-auto max-w-none shrink-0"
                 />
                 <button
                   type="button"
