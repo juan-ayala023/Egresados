@@ -124,3 +124,26 @@ test('sin WSDL configurado la facturacion automatica no se intenta', () => {
   // el log de errores identicos.
   assert.equal(facturacionActiva(), false)
 })
+
+test('los ultimos cuatro de la tarjeta se guardan con el pago', async () => {
+  const { crearOrden, confirmarPago } = await import('../src/servicios/ordenes.js')
+  const { referencia } = crearOrden({
+    tipoBoletaId: 'homecoming-80', cantidad: 1,
+    comprador: {
+      nombre: 'Veronica Restrepo Restrepo', tipoDocumento: 'CC', cedula: '43626286',
+      correo: 'vero@ejemplo.com', celular: '3001234567', direccion: 'Cra 43 # 5-10',
+      ciudad: 'Medellín, Antioquia', promocion: '1995',
+    },
+    asistentes: [{ nombre: 'Veronica Restrepo Restrepo', tipoDocumento: 'CC', cedula: '43626286', promocion: '1995' }],
+    aceptaTratamientoDatos: true, aceptaTerminos: true,
+  })
+
+  confirmarPago(referencia, {
+    estadoDestino: 'pagada', transactionId: 'tx-4242', metodoPago: 'CARD',
+    franquicia: 'VISA', ultimosCuatro: '4242',
+  })
+
+  const orden = db.prepare(`SELECT * FROM orden WHERE referencia = ?`).get(referencia)
+  assert.equal(orden.estado, 'pagada')
+  assert.equal(orden.ultimos_cuatro, '4242')
+})

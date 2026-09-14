@@ -198,3 +198,30 @@ test('todo lo que va a Pangea sale en orden alfabetico, como los ejemplos del co
   const o = ordenarParaPangea({ f015_celular: 1, F_CIA: 1, F201_ID_TERCERO: 1 })
   assert.deepEqual(Object.keys(o), ['F201_ID_TERCERO', 'F_CIA', 'f015_celular'])
 })
+
+// -----------------------------------------------------------------------------
+// LOS ULTIMOS CUATRO DE LA TARJETA (14 de septiembre de 2026).
+//
+// El primer recibo real volvio rechazado: "el medio de pago debe tener numero
+// de tarjeta y fecha de vencimiento". La orden se habia guardado sin los
+// ultimos cuatro porque nunca se leyeron de Wompi. Ahora vienen de
+// payment_method.extra.last_four y se guardan con el pago.
+// -----------------------------------------------------------------------------
+test('de Wompi se leen los ultimos cuatro de la tarjeta', async () => {
+  const { normalizar, ultimosCuatroDe } = await import('../src/pagos/wompi.js')
+
+  const tarjeta = {
+    id: '1372181-1789402817-83493', reference: 'HC80-ACRPQS', status: 'APPROVED',
+    amount_in_cents: 8700000, currency: 'COP', payment_method_type: 'CARD',
+    payment_method: { type: 'CARD', extra: { brand: 'VISA', last_four: '4242', exp_year: '29', exp_month: '06' } },
+  }
+  assert.equal(ultimosCuatroDe(tarjeta), '4242')
+  assert.equal(normalizar(tarjeta).ultimosCuatro, '4242')
+
+  // PSE no tiene tarjeta: null, no una cadena vacia ni basura.
+  const pse = { ...tarjeta, payment_method_type: 'PSE', payment_method: { type: 'PSE', extra: { bank_name: 'BANCOLOMBIA' } } }
+  assert.equal(normalizar(pse).ultimosCuatro, null)
+
+  // Algo que no son cuatro digitos tampoco se cuela al ERP.
+  assert.equal(ultimosCuatroDe({ payment_method: { extra: { last_four: '**42' } } }), null)
+})

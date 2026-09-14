@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS orden (
   total_centavos            INTEGER NOT NULL,
   metodo_pago               TEXT,             -- CARD | PSE | NEQUI | BANCOLOMBIA_TRANSFER
   franquicia                TEXT,             -- VISA | MASTERCARD | AMEX... solo en tarjeta
+  ultimos_cuatro            TEXT,             -- de la tarjeta; SIESA lo exige en el recibo
   wompi_transaction_id      TEXT,
   creada_en                 TEXT    NOT NULL,
   expira_en                 TEXT    NOT NULL,

@@ -31,6 +31,7 @@ import { db } from '../db/index.js'
 import { config } from '../config.js'
 import { ahora } from '../lib/fechas.js'
 import { facturar } from '../siesa/facturacion.js'
+import { consultarPago, enSimulacion } from '../pagos/index.js'
 
 const q = {
   porId: db.prepare(`SELECT * FROM orden WHERE id = ?`),
@@ -45,6 +46,34 @@ const q = {
 
   guardarFallo: db.prepare(`
     UPDATE orden SET siesa_error = ?, siesa_intentado_en = ? WHERE id = ?`),
+
+  guardarUltimosCuatro: db.prepare(`
+    UPDATE orden SET ultimos_cuatro = ? WHERE id = ? AND ultimos_cuatro IS NULL`),
+}
+
+/**
+ * Completa los ultimos cuatro digitos de la tarjeta si la orden no los tiene.
+ *
+ * Las ordenes pagadas ANTES del 14 de septiembre de 2026 se guardaron sin
+ * ese dato, y SIESA rechaza el recibo de caja de una tarjeta sin el. Se le
+ * vuelve a preguntar a Wompi por la transaccion (que si lo trae) y se deja
+ * guardado para no preguntar dos veces. Si Wompi no contesta, se sigue: el
+ * ERP dira que falta y el error queda anotado en la orden.
+ */
+async function completarUltimosCuatro(orden) {
+  if (orden.ultimos_cuatro || orden.metodo_pago !== 'CARD' || !orden.wompi_transaction_id) return orden
+  if (enSimulacion()) return orden
+  try {
+    const pago = await consultarPago(orden.wompi_transaction_id)
+    if (pago?.ultimosCuatro) {
+      q.guardarUltimosCuatro.run(pago.ultimosCuatro, orden.id)
+      return { ...orden, ultimos_cuatro: pago.ultimosCuatro }
+    }
+    console.warn(`[siesa] Wompi no trae los ultimos cuatro de la tarjeta para ${orden.referencia}`)
+  } catch (e) {
+    console.warn(`[siesa] no se pudo pedir a Wompi la tarjeta de ${orden.referencia}: ${e.message}`)
+  }
+  return orden
 }
 
 /**
@@ -74,7 +103,7 @@ export async function facturarOrden(ordenId) {
   if (!comprador) return { facturada: false, motivo: 'La orden no tiene comprador' }
 
   try {
-    const r = await facturar(orden, comprador)
+    const r = await facturar(await completarUltimosCuatro(orden), comprador)
 
     if (r.ensayo) {
       // En ensayo no hay consecutivos que guardar. Se anota el intento para

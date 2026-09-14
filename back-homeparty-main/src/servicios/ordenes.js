@@ -90,7 +90,7 @@ const q = {
   marcarPagada: db.prepare(`
     UPDATE orden
        SET estado = 'pagada', pagada_en = ?, wompi_transaction_id = ?,
-           metodo_pago = ?, franquicia = ?
+           metodo_pago = ?, franquicia = ?, ultimos_cuatro = ?
      WHERE id = ? AND estado = 'pendiente'`),
 
   marcarRechazada: db.prepare(`
@@ -310,7 +310,7 @@ export function vistaPublica(orden, base) {
  *
  * @returns {{cambio: boolean, estado: string, ordenId: number}}
  */
-export function confirmarPago(referencia, { estadoDestino, transactionId, metodoPago, franquicia = null }) {
+export function confirmarPago(referencia, { estadoDestino, transactionId, metodoPago, franquicia = null, ultimosCuatro = null }) {
   return enTransaccion(() => {
     const orden = q.porReferencia.get(referencia)
     if (!orden) throw errores.noEncontrado('La orden')
@@ -320,7 +320,7 @@ export function confirmarPago(referencia, { estadoDestino, transactionId, metodo
     }
 
     if (estadoDestino === 'pagada') {
-      q.marcarPagada.run(ahora(), transactionId ?? null, metodoPago ?? null, franquicia, orden.id)
+      q.marcarPagada.run(ahora(), transactionId ?? null, metodoPago ?? null, franquicia, ultimosCuatro ?? null, orden.id)
       consumirReserva(orden.id)      // el cupo pasa de reservado a vendido
       emitirBoletas(orden.id)        // un QR firmado por asistente
       return { cambio: true, estado: 'pagada', ordenId: orden.id }

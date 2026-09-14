@@ -31,7 +31,7 @@ const FRANQUICIAS_NO_ACEPTADAS = ['AMEX', 'AMERICAN EXPRESS', 'DINERS', 'DINERS 
  *   codigo -> estable, es lo que el front y las pruebas pueden mirar
  */
 export function aplicarPago(pago, origen = 'webhook') {
-  const { referencia, estado, montoCentavos, metodoPago, franquicia, idTransaccion } = pago ?? {}
+  const { referencia, estado, montoCentavos, metodoPago, franquicia, ultimosCuatro, idTransaccion } = pago ?? {}
 
   if (!referencia || !estado) {
     return { aplicado: false, estado: null, ordenId: null, correoPara: null,
@@ -66,6 +66,7 @@ export function aplicarPago(pago, origen = 'webhook') {
       transactionId: idTransaccion ?? null,
       metodoPago: metodoPago ?? null,
       franquicia: franquicia ?? null,
+      ultimosCuatro: ultimosCuatro ?? null,
     })
   } catch (e) {
     console.error(`[${origen}] Error aplicando el pago de ${referencia}:`, e)

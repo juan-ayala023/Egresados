@@ -278,6 +278,19 @@ export function franquiciaDe(transaccion) {
 }
 
 /**
+ * Los ultimos cuatro digitos de la tarjeta (payment_method.extra.last_four).
+ * SIESA los exige en el recibo de caja cuando el medio es tarjeta. En PSE,
+ * Nequi o Bancolombia no vienen: queda null.
+ */
+export function ultimosCuatroDe(transaccion) {
+  const valor = transaccion?.payment_method?.extra?.last_four
+    ?? transaccion?.payment_method?.extra?.lastDigits
+    ?? null
+  const digitos = String(valor ?? '').replace(/\D/g, '')
+  return digitos.length === 4 ? digitos : null
+}
+
+/**
  * Normaliza una transaccion de Wompi a lo que le importa al backend.
  * Es la frontera: de aqui para adentro nadie vuelve a ver un campo en ingles.
  */
@@ -291,5 +304,6 @@ export function normalizar(transaccion) {
     moneda: transaccion.currency ?? null,
     metodoPago: transaccion.payment_method_type ?? null,
     franquicia: franquiciaDe(transaccion),
+    ultimosCuatro: ultimosCuatroDe(transaccion),
   }
 }

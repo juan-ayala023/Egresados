@@ -80,7 +80,19 @@ const MIGRACIONES = [
     sql: [
       `ALTER TABLE asistente ADD COLUMN correo_enviado_en TEXT`,
     ],
-  }
+  },
+  {
+    nombre: '005-ultimos-cuatro',
+    // SIESA NO ACEPTA UN RECIBO CON TARJETA SIN LOS ULTIMOS CUATRO DIGITOS.
+    //
+    // Se supo con el primer recibo real (14 de septiembre de 2026): la factura
+    // salio y el recibo volvio con "el medio de pago debe tener numero de
+    // tarjeta y fecha de vencimiento". Wompi manda los ultimos cuatro en
+    // payment_method.extra.last_four; desde aqui se guardan con el pago.
+    sql: [
+      `ALTER TABLE orden ADD COLUMN ultimos_cuatro TEXT`,
+    ],
+  },
 ]
 
 /** Columnas que ya existen en una tabla. */
