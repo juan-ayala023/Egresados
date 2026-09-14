@@ -364,12 +364,39 @@ export function respuestaFallo(respuesta) {
  * @returns {Promise<{ensayo:boolean, existia:boolean, tercero:string,
  *                    documentoTercero:object|null, documentoCliente:object|null}>}
  */
+/**
+ * A QUE SUCURSAL DEL TERCERO SE LE FACTURA.
+ *
+ * En el ERP del colegio las sucursales de una persona no son "sedes": son
+ * las cuentas por las que se le cobra. La 000 es la persona misma (la tienen
+ * los empleados) y la 001, 002... son sus hijos matriculados. Se supo con la
+ * primera factura real (14 de septiembre de 2026): la compradora era
+ * empleada y mama del colegio, y la factura de SU boleta quedo en la 001,
+ * que era la cuenta de su hijo.
+ *
+ * Regla que pidio contabilidad ese dia: si tiene la 000 se usa esa; si no,
+ * la menor que tenga; si no tiene ninguna, se le crea la 001 (la de
+ * SIESA_ID_SUCURSAL). Nunca se crea una sucursal a quien ya tiene alguna.
+ *
+ * @param {string[]} sucursales las que ya tiene en t201_mm_clientes
+ * @returns {{sucursal: string, crear: boolean}}
+ */
+export function elegirSucursal(sucursales) {
+  const limpias = (sucursales ?? []).map((s) => String(s ?? '').trim()).filter(Boolean)
+  if (limpias.includes('000')) return { sucursal: '000', crear: false }
+  if (limpias.length > 0) {
+    const menor = [...limpias].sort((a, b) => Number(a) - Number(b) || a.localeCompare(b))[0]
+    return { sucursal: menor, crear: false }
+  }
+  return { sucursal: config.siesa.sucursal, crear: true }
+}
+
 export async function asegurarTercero(comprador, { configuracion } = {}) {
   // Con tercero generico no hay nada que crear: todas las facturas salen
   // contra un tercero que el colegio ya tiene dado de alta.
   const generico = String(config.siesa.terceroGenerico ?? '').trim()
   if (generico) {
-    return { ensayo: config.siesa.ensayo, existia: true, tercero: generico, documentoTercero: null, documentoCliente: null }
+    return { ensayo: config.siesa.ensayo, existia: true, tercero: generico, sucursal: config.siesa.sucursal, documentoTercero: null, documentoCliente: null }
   }
 
   const cfg = configuracion ?? (await leerConfiguracionSiesa())
@@ -378,7 +405,7 @@ export async function asegurarTercero(comprador, { configuracion } = {}) {
   const documentoCliente = armarCliente(comprador, cfg)
 
   if (config.siesa.ensayo) {
-    return { ensayo: true, existia: false, tercero: nit, documentoTercero, documentoCliente }
+    return { ensayo: true, existia: false, tercero: nit, sucursal: config.siesa.sucursal, documentoTercero, documentoCliente }
   }
 
   // 1. ¿Ya esta? Si SQL Server no responde, se prefiere NO crear a crear a
@@ -386,19 +413,19 @@ export async function asegurarTercero(comprador, { configuracion } = {}) {
   //    sobrescribiria los datos a alguien.
   const encontrado = await consultarTercero(nit)
   if (encontrado.existe) {
-    const tieneSucursal = encontrado.sucursales.includes(config.siesa.sucursal)
-    if (tieneSucursal) {
-      return { ensayo: false, existia: true, tercero: encontrado.tercero, documentoTercero: null, documentoCliente: null }
+    const { sucursal, crear } = elegirSucursal(encontrado.sucursales)
+    if (!crear) {
+      return { ensayo: false, existia: true, tercero: encontrado.tercero, sucursal, documentoTercero: null, documentoCliente: null }
     }
-    // Tercero sin la sucursal 001: existe la persona pero no el cliente. Se
-    // crea solo la sucursal y no se toca el tercero.
+    // Tercero sin ninguna sucursal: existe la persona pero no el cliente. Se
+    // crea solo la sucursal 001 y no se toca el tercero.
     const cli = await obtenerCliente()
     const r = await cli.ClientesAsync({ Clientes: ordenarParaPangea(documentoCliente) })
     const fallo = respuestaFallo(r)
     if (fallo) {
       throw new ErrorSiesaFactura(`SIESA rechazo la sucursal del cliente: ${fallo}`, { tipo: 'rechazo' })
     }
-    return { ensayo: false, existia: true, tercero: encontrado.tercero, documentoTercero: null, documentoCliente }
+    return { ensayo: false, existia: true, tercero: encontrado.tercero, sucursal, documentoTercero: null, documentoCliente }
   }
 
   // 2. No esta: se crea la persona y despues su sucursal.
@@ -432,5 +459,5 @@ export async function asegurarTercero(comprador, { configuracion } = {}) {
     }
   }
 
-  return { ensayo: false, existia: false, tercero: nit, documentoTercero, documentoCliente }
+  return { ensayo: false, existia: false, tercero: nit, sucursal: config.siesa.sucursal, documentoTercero, documentoCliente }
 }

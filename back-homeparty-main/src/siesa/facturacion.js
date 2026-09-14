@@ -161,9 +161,12 @@ async function obtenerCliente() {
  * Se separa del envio para poder revisarlo, probarlo y mostrarlo en el modo
  * ensayo sin tocar el ERP.
  */
-export async function armarFactura(orden, comprador, { configuracion } = {}) {
+export async function armarFactura(orden, comprador, { configuracion, sucursal } = {}) {
   const cfg = configuracion ?? (await leerConfiguracionSiesa())
   const tercero = terceroDe(comprador)
+  // La sucursal la decide asegurarTercero() segun lo que la persona ya tenga
+  // en el ERP (ver elegirSucursal en terceros.js). Sin ella, la del .env.
+  const sucursalCliente = String(sucursal ?? '').trim() || config.siesa.sucursal
 
   if (!tercero) {
     throw new ErrorSiesaFactura('La orden no tiene cedula del comprador', { tipo: 'sin_tercero' })
@@ -186,7 +189,7 @@ export async function armarFactura(orden, comprador, { configuracion } = {}) {
     F350_ID_TERCERO: tercero,
     F350_IND_ESTADO: '1',
     F350_NOTAS: nota,
-    F311_ID_SUCURSAL_CLI: config.siesa.sucursal,
+    F311_ID_SUCURSAL_CLI: sucursalCliente,
     F311_ID_TIPO_CLI: cfg.id_tipo_cli,
     F311_ID_TERCERO_VENDEDOR: cfg.siesa_seller_tercero_id,
     F311_ID_COND_PAGO: cfg.id_cond_pago,
@@ -202,7 +205,7 @@ export async function armarFactura(orden, comprador, { configuracion } = {}) {
           F320_ID_MOTIVO: cfg.siesa_id_motivo,
           F320_ID_SERVICIO: cfg.siesa_service_id,
           F320_ID_CCOSTO_MOVTO: cfg.siesa_cc,
-          F320_ID_SUCURSAL_CLIENTE: config.siesa.sucursal,
+          F320_ID_SUCURSAL_CLIENTE: sucursalCliente,
           F320_ID_TERCERO_MOVTO: tercero,
           F320_VLR_BRUTO: totalPesos,
           F320_VLR_DSCTO_1: '0',
@@ -218,7 +221,7 @@ export async function armarFactura(orden, comprador, { configuracion } = {}) {
  * Arma el RECIBO DE CAJA (RCV), que cruza contra la factura ya emitida.
  * @param {string} numeroFactura consecutivo que devolvio SIESA al facturar
  */
-export async function armarRecibo(orden, comprador, numeroFactura, { configuracion } = {}) {
+export async function armarRecibo(orden, comprador, numeroFactura, { configuracion, sucursal } = {}) {
   if (!numeroFactura) {
     throw new ErrorSiesaFactura('El recibo necesita el numero de la factura', { tipo: 'sin_configurar' })
   }
@@ -263,7 +266,9 @@ export async function armarRecibo(orden, comprador, numeroFactura, { configuraci
     F353_CONSEC_DOCTO_CRUCE: consecutivo,
     F353_ID_CO_DOCTO_CRUCE: cfg.id_co_docto_cruce,
     F353_ID_TIPO_DOCTO_CRUCE: 'FES',
-    F353_ID_SUCURSAL_DOCTO_CRUCE: config.siesa.sucursal,
+    // La misma sucursal con que salio la factura: si no, el cruce no la
+    // encuentra y la venta queda sin saldar.
+    F353_ID_SUCURSAL_DOCTO_CRUCE: String(sucursal ?? '').trim() || config.siesa.sucursal,
     F353_ID_UN_DOCTO_CRUCE: cfg.id_un_docto_cruce,
     F353_NRO_CUOTA_CRUCE: '0',
 
@@ -313,17 +318,21 @@ export function consecutivoDe(respuesta) {
  */
 export async function facturar(orden, comprador) {
   const configuracion = await leerConfiguracionSiesa()
-  const factura = await armarFactura(orden, comprador, { configuracion })
 
   // El comprador tiene que EXISTIR en el ERP antes de que se le pueda
   // facturar. Va aqui y no en el checkout a proposito: solo se da de alta a
   // quien efectivamente pago, no a todo el que abrio el formulario.
+  //
+  // Va ANTES de armar la factura porque de aqui sale la sucursal a la que se
+  // factura (la 000 si es empleado, o la menor que tenga).
   //
   // El import es dinamico porque terceros.js necesita de aqui limpiarTexto,
   // fechaSiesa y el error. Cargarlo cuando se usa evita el enredo circular.
   const { asegurarTercero, respuestaFallo } = await import('./terceros.js')
   const { buscarConsecutivo } = await import('./consecutivos.js')
   const tercero = await asegurarTercero(comprador, { configuracion })
+  const sucursal = tercero.sucursal
+  const factura = await armarFactura(orden, comprador, { configuracion, sucursal })
 
   if (config.siesa.ensayo) {
     // Ni se carga el WSDL: en ensayo no se toca el ERP ni de lejos.
@@ -378,7 +387,7 @@ export async function facturar(orden, comprador) {
   }
 
   // --- 2. RECIBO DE CAJA -----------------------------------------------------------
-  const recibo = await armarRecibo(orden, comprador, numeroFactura, { configuracion })
+  const recibo = await armarRecibo(orden, comprador, numeroFactura, { configuracion, sucursal })
 
   let numeroRecibo = marca ? await buscarConsecutivo('RCV', idTercero, totalPesos, marca) : null
 

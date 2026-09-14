@@ -187,3 +187,48 @@ test('un rechazo que viene dentro del ArrayOfstring se detecta', () => {
   assert.ok(respuestaFallo([{ TerceroResult: { string: ['No se pudo crear el registro'] } }]))
   assert.equal(respuestaFallo([{ TerceroResult: { string: ['1023626286'] } }]), null)
 })
+
+// -----------------------------------------------------------------------------
+// LA SUCURSAL A LA QUE SE FACTURA (14 de septiembre de 2026).
+//
+// Con la primera factura real, contabilidad vio que la compradora -- empleada
+// y mama del colegio -- quedo facturada en la sucursal 001, que en el ERP es
+// la cuenta de su hijo. La 000 es la persona misma. Regla que pidieron: 000
+// si la tiene; si no, la menor; si no tiene ninguna, se crea la 001.
+// -----------------------------------------------------------------------------
+test('si el tercero tiene la sucursal 000 (es empleado), se le factura a esa', async () => {
+  const { elegirSucursal } = await import('../src/siesa/terceros.js')
+  // Veronica: 000 ella, 001 y 002 sus hijos.
+  assert.deepEqual(elegirSucursal(['000', '001', '002']), { sucursal: '000', crear: false })
+  assert.deepEqual(elegirSucursal(['001', '000']), { sucursal: '000', crear: false })
+})
+
+test('sin la 000 se factura a la menor que tenga, sin crear nada', async () => {
+  const { elegirSucursal } = await import('../src/siesa/terceros.js')
+  assert.deepEqual(elegirSucursal(['001']), { sucursal: '001', crear: false })
+  assert.deepEqual(elegirSucursal(['002', '001']), { sucursal: '001', crear: false })
+  assert.deepEqual(elegirSucursal(['003']), { sucursal: '003', crear: false })
+})
+
+test('un tercero sin sucursales recibe la 001, y esa es la que se crea', async () => {
+  const { elegirSucursal } = await import('../src/siesa/terceros.js')
+  assert.deepEqual(elegirSucursal([]), { sucursal: '001', crear: true })
+  assert.deepEqual(elegirSucursal(['', null]), { sucursal: '001', crear: true })
+})
+
+test('la factura y el recibo llevan la sucursal elegida, no la fija del .env', async () => {
+  const { armarFactura, armarRecibo } = await import('../src/siesa/facturacion.js')
+  const orden = { cantidad: 1, total_centavos: 8700000, metodo_pago: 'CARD', wompi_transaction_id: 'x', ultimos_cuatro: '4242' }
+
+  const f = await armarFactura(orden, COMPRADOR, { configuracion: CONFIG_465, sucursal: '000' })
+  assert.equal(f.F311_ID_SUCURSAL_CLI, '000')
+  assert.equal(f.MOVIMIENTOS.Factura_Financiera_Movimiento[0].F320_ID_SUCURSAL_CLIENTE, '000')
+
+  // El cruce del recibo tiene que apuntar a la MISMA sucursal de la factura.
+  const r = await armarRecibo(orden, COMPRADOR, '001-FES-1', { configuracion: CONFIG_465, sucursal: '000' })
+  assert.equal(r.F353_ID_SUCURSAL_DOCTO_CRUCE, '000')
+
+  // Sin sucursal explicita sigue siendo la del .env (001).
+  const f2 = await armarFactura(orden, COMPRADOR, { configuracion: CONFIG_465 })
+  assert.equal(f2.F311_ID_SUCURSAL_CLI, '001')
+})

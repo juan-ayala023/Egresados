@@ -22,7 +22,7 @@ import { buscarPorReferencia, compradorDe } from '../src/servicios/ordenes.js'
 import { leerConfiguracionSiesa, cerrarConexion } from '../src/siesa/config.js'
 import { armarFactura, armarRecibo, ErrorSiesaFactura } from '../src/siesa/facturacion.js'
 import { facturarOrden } from '../src/servicios/facturacion.js'
-import { armarTercero, armarCliente, armarCriterio, consultarTercero } from '../src/siesa/terceros.js'
+import { armarTercero, armarCliente, armarCriterio, consultarTercero, elegirSucursal } from '../src/siesa/terceros.js'
 
 const referencia = process.argv[2]
 const enviar = process.argv.includes('--enviar')
@@ -76,10 +76,14 @@ try {
     const t = await consultarTercero(comprador.cedula)
     if (!t.existe) {
       console.log('  NO existe en t200_mm_terceros: se va a crear antes de facturar.')
-    } else if (!t.sucursales.includes(config.siesa.sucursal)) {
-      console.log(`  Ya existe (id ${t.tercero}) pero SIN la sucursal ${config.siesa.sucursal}: se crea solo la sucursal.`)
     } else {
-      console.log(`  Ya existe en el ERP (id ${t.tercero}). No se le toca nada.`)
+      const { sucursal, crear } = elegirSucursal(t.sucursales)
+      if (crear) {
+        console.log(`  Ya existe (id ${t.tercero}) pero SIN sucursales: se le crea la ${sucursal}.`)
+      } else {
+        console.log(`  Ya existe en el ERP (id ${t.tercero}) con sucursales ${t.sucursales.join(', ')}. No se le toca nada.`)
+        console.log(`  Se factura a la sucursal ${sucursal}${sucursal === '000' ? ' (la persona misma)' : ''}.`)
+      }
     }
   } catch (e) {
     console.log(`  No se pudo consultar si existe (${e.message}).`)
