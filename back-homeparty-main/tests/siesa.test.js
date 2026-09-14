@@ -244,11 +244,17 @@ test('en Autorizacion del recibo va el codigo del banco, y el id de Wompi solo s
   assert.equal(sinBanco.F358_NRO_AUTORIZACION, String(ORDEN.wompi_transaction_id).slice(0, 10))
 })
 
-test('el codigo del banco solo se toma en tarjeta: en transferencia no hay', async () => {
+test('en transferencia se manda el mismo identificador que la plataforma del colegio', async () => {
+  // Contabilidad (14 de septiembre de 2026): identico a la otra plataforma.
   const { autorizacionBancoDe } = await import('../src/pagos/wompi.js')
   const transferencia = {
     payment_method_type: 'BANCOLOMBIA_TRANSFER',
     payment_method: { type: 'BANCOLOMBIA_TRANSFER', extra: { transfer_voucher: 'TR260914112419tFgevy', external_identifier: '_DhUelc4tFB' } },
   }
-  assert.equal(autorizacionBancoDe(transferencia), null)
+  assert.equal(autorizacionBancoDe(transferencia), '_DhUelc4tFB')
+
+  const r = await armarRecibo({ ...ORDEN, metodo_pago: 'BANCOLOMBIA_TRANSFER', autorizacion_banco: '_DhUelc4tFB' }, COMPRADOR, '4521', { configuracion: CONFIG_465 })
+  assert.equal(r.F358_ID_MEDIOS_PAGO, 'CB5')
+  assert.equal(r.F358_NRO_AUTORIZACION, '_DhUelc4tF')   // 10
+  assert.equal(r.F358_REFERENCIA_OTROS, '_DhUelc4')     // 8
 })

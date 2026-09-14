@@ -283,7 +283,9 @@ export async function armarRecibo(orden, comprador, numeroFactura, { configuraci
     // septiembre de 2026): el del voucher. Si el banco no lo reporto, el id
     // de Wompi, para que el campo nunca vaya vacio. Maximo 10 en SIESA.
     F358_NRO_AUTORIZACION: (String(orden.autorizacion_banco ?? '').trim() || idTransaccion).slice(0, 10),
-    F358_REFERENCIA_OTROS: medio === 'TCD' ? '' : idTransaccion.slice(0, 8),
+    // En transferencia, la plataforma del colegio repite ahi el mismo
+    // identificador (recortado a 8). Se hace igual.
+    F358_REFERENCIA_OTROS: medio === 'TCD' ? '' : (String(orden.autorizacion_banco ?? '').trim() || idTransaccion).slice(0, 8),
     F358_NOTAS: nota,
     F358_FECHA_CONSIGNACION: fecha,
     F358_FECHA_VCTO: fecha,
