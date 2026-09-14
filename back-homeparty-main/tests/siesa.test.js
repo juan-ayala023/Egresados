@@ -172,3 +172,29 @@ test('por defecto el tercero es la cedula; con generico, el generico', async () 
     config.siesa.terceroGenerico = antes
   }
 })
+
+test('todo lo que va a Pangea sale en orden alfabetico, como los ejemplos del colegio', async () => {
+  // Pangea (WCF) ignora los campos que llegan fuera de orden. Se descubrio el
+  // 14 de septiembre de 2026 con la primera factura real: los F311 iban
+  // despues de los F350 y llegaban vacios. El ejemplo de Clientes que mando el
+  // colegio trae sus 54 campos en orden alfabetico ordinal exacto.
+  const { ordenarParaPangea } = await import('../src/siesa/facturacion.js')
+
+  const f = ordenarParaPangea(await armarFactura(ORDEN, COMPRADOR, { configuracion: CONFIG_465 }))
+  const claves = Object.keys(f)
+  assert.deepEqual(claves, [...claves].sort(), 'la factura no esta ordenada')
+  // Los F311 (cliente) tienen que ir ANTES que los F350 (encabezado).
+  assert.ok(claves.indexOf('F311_ID_COND_PAGO') < claves.indexOf('F350_ID_CO'))
+  // Y el orden se aplica tambien adentro de los movimientos.
+  const mov = Object.keys(f.MOVIMIENTOS.Factura_Financiera_Movimiento[0])
+  assert.deepEqual(mov, [...mov].sort(), 'el movimiento no esta ordenado')
+
+  const r = ordenarParaPangea(await armarRecibo(ORDEN, COMPRADOR, '001-FES-1234', { configuracion: CONFIG_465 }))
+  const kr = Object.keys(r)
+  assert.deepEqual(kr, [...kr].sort(), 'el recibo no esta ordenado')
+
+  // Ordinal: mayusculas antes que minusculas (F_CIA antes que f015_celular),
+  // como en el ejemplo de Clientes.
+  const o = ordenarParaPangea({ f015_celular: 1, F_CIA: 1, F201_ID_TERCERO: 1 })
+  assert.deepEqual(Object.keys(o), ['F201_ID_TERCERO', 'F_CIA', 'f015_celular'])
+})

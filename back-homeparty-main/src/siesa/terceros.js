@@ -32,7 +32,7 @@
 import soap from 'soap'
 import { config } from '../config.js'
 import { conectar, leerConfiguracionSiesa } from './config.js'
-import { ErrorSiesaFactura, limpiarTexto, fechaSiesa } from './facturacion.js'
+import { ErrorSiesaFactura, limpiarTexto, fechaSiesa, ordenarParaPangea } from './facturacion.js'
 
 /**
  * Tipo de documento del checkout -> letra que usa SIESA en F200_ID_TIPO_IDENT.
@@ -393,7 +393,7 @@ export async function asegurarTercero(comprador, { configuracion } = {}) {
     // Tercero sin la sucursal 001: existe la persona pero no el cliente. Se
     // crea solo la sucursal y no se toca el tercero.
     const cli = await obtenerCliente()
-    const r = await cli.ClientesAsync({ Clientes: documentoCliente })
+    const r = await cli.ClientesAsync({ Clientes: ordenarParaPangea(documentoCliente) })
     const fallo = respuestaFallo(r)
     if (fallo) {
       throw new ErrorSiesaFactura(`SIESA rechazo la sucursal del cliente: ${fallo}`, { tipo: 'rechazo' })
@@ -404,13 +404,13 @@ export async function asegurarTercero(comprador, { configuracion } = {}) {
   // 2. No esta: se crea la persona y despues su sucursal.
   const cli = await obtenerCliente()
 
-  const rTercero = await cli.TerceroAsync({ Tercero: documentoTercero })
+  const rTercero = await cli.TerceroAsync({ Tercero: ordenarParaPangea(documentoTercero) })
   const falloTercero = respuestaFallo(rTercero)
   if (falloTercero) {
     throw new ErrorSiesaFactura(`SIESA rechazo el tercero: ${falloTercero}`, { tipo: 'rechazo' })
   }
 
-  const rCliente = await cli.ClientesAsync({ Clientes: documentoCliente })
+  const rCliente = await cli.ClientesAsync({ Clientes: ordenarParaPangea(documentoCliente) })
   const falloCliente = respuestaFallo(rCliente)
   if (falloCliente) {
     // El tercero YA quedo creado. Se avisa distinto a proposito: reintentar
@@ -426,7 +426,7 @@ export async function asegurarTercero(comprador, { configuracion } = {}) {
   const criterio = armarCriterio(comprador)
   if (criterio) {
     try {
-      await cli.Criterios_ClientesAsync({ CriClientes: criterio })
+      await cli.Criterios_ClientesAsync({ CriClientes: ordenarParaPangea(criterio) })
     } catch (e) {
       console.warn(`[siesa] criterio del tercero ${nit} no se pudo aplicar: ${e.message}`)
     }

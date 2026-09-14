@@ -58,6 +58,34 @@ export function limpiarTexto(valor, maximo = 250) {
     .slice(0, maximo)
 }
 
+/**
+ * LOS CAMPOS VAN EN ORDEN ALFABETICO, O PANGEA LOS IGNORA.
+ *
+ * Pangea es un servicio WCF de .NET. Su deserializador lee los elementos en
+ * el orden en que los declara el contrato -- alfabetico ordinal, mayusculas
+ * antes que minusculas -- y los que llegan fuera de ese orden los SALTA sin
+ * avisar. La plataforma del colegio no lo sufre porque su libreria (zeep)
+ * ordena sola; la de Node manda los campos como uno los escribe.
+ *
+ * Se descubrio el 14 de septiembre de 2026 con la primera factura real: los
+ * F311_* iban despues de los F350_* y Pangea respondio "El dato es
+ * obligatorio" en las cinco posiciones del bloque 311. Los tres ejemplos que
+ * mando el colegio (Tercero, Clientes, Criterios) estan en ese orden exacto.
+ *
+ * Ordena recursivamente: tambien los movimientos anidados.
+ */
+export function ordenarParaPangea(valor) {
+  if (Array.isArray(valor)) return valor.map(ordenarParaPangea)
+  if (valor && typeof valor === 'object') {
+    const ordenado = {}
+    for (const clave of Object.keys(valor).sort()) {
+      ordenado[clave] = ordenarParaPangea(valor[clave])
+    }
+    return ordenado
+  }
+  return valor
+}
+
 /** Fecha en el formato que espera SIESA: AAAAMMDD, hora de Colombia. */
 export function fechaSiesa(momento = new Date()) {
   const bogota = new Date(momento.toLocaleString('en-US', { timeZone: 'America/Bogota' }))
@@ -320,7 +348,7 @@ export async function facturar(orden, comprador) {
   if (!numeroFactura) {
     let respuesta
     try {
-      respuesta = await cli.Financiera_FacturaAsync({ Factura: factura })
+      respuesta = await cli.Financiera_FacturaAsync({ Factura: ordenarParaPangea(factura) })
     } catch (e) {
       throw new ErrorSiesaFactura(`SIESA rechazo la factura: ${e.message}`, {
         tipo: 'rechazo', detalle: e.root ?? null,
@@ -357,7 +385,7 @@ export async function facturar(orden, comprador) {
   if (!numeroRecibo) {
     let respuesta
     try {
-      respuesta = await cli.Recibo_de_cajaAsync({ Recibo: recibo })
+      respuesta = await cli.Recibo_de_cajaAsync({ Recibo: ordenarParaPangea(recibo) })
     } catch (e) {
       // La factura YA se emitio. Se avisa distinto a proposito: reintentar
       // todo la duplicaria... salvo que ahora la busqueda previa lo impide.
