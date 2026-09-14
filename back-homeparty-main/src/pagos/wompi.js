@@ -303,6 +303,12 @@ export function ultimosCuatroDe(transaccion) {
  * recibo usa el id de Wompi.
  */
 export function autorizacionBancoDe(transaccion) {
+  // SOLO en tarjeta. En una transferencia Bancolombia el external_identifier
+  // es el id de sesion del boton ("_DhUelc4tFB", visto el 14 de septiembre
+  // de 2026), que no le dice nada a contabilidad; ahi lo util es el
+  // comprobante (transfer_voucher), y donde va lo decide contabilidad.
+  const tipo = String(transaccion?.payment_method_type ?? transaccion?.payment_method?.type ?? '').toUpperCase()
+  if (tipo !== 'CARD') return null
   const valor = String(transaccion?.payment_method?.extra?.external_identifier ?? '').trim()
   return valor ? valor.slice(0, 20) : null
 }

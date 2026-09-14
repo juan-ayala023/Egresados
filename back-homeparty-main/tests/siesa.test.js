@@ -243,3 +243,12 @@ test('en Autorizacion del recibo va el codigo del banco, y el id de Wompi solo s
   const sinBanco = await armarRecibo({ ...ORDEN, autorizacion_banco: null }, COMPRADOR, '4521', { configuracion: CONFIG_465 })
   assert.equal(sinBanco.F358_NRO_AUTORIZACION, String(ORDEN.wompi_transaction_id).slice(0, 10))
 })
+
+test('el codigo del banco solo se toma en tarjeta: en transferencia no hay', async () => {
+  const { autorizacionBancoDe } = await import('../src/pagos/wompi.js')
+  const transferencia = {
+    payment_method_type: 'BANCOLOMBIA_TRANSFER',
+    payment_method: { type: 'BANCOLOMBIA_TRANSFER', extra: { transfer_voucher: 'TR260914112419tFgevy', external_identifier: '_DhUelc4tFB' } },
+  }
+  assert.equal(autorizacionBancoDe(transferencia), null)
+})
