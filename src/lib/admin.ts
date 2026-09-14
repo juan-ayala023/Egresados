@@ -238,10 +238,31 @@ export const anularOrden = (token: string, referencia: string, motivo: string) =
     { method: 'POST', body: JSON.stringify({ motivo }) }
   );
 
-/* El CSV no pasa por fetch: se descarga con el token en la URL no serviría
-   (el backend lo espera en el header), así que se trae como blob y se guarda. */
 export async function descargarCsv(token: string, estado = 'pagada') {
-  const res = await fetch(`${BASE}/api/admin/ordenes.csv?estado=${estado}`, {
+  await bajarArchivo(
+    token,
+    `/api/admin/ordenes.csv?estado=${estado}`,
+    `ordenes-${estado}-${new Date().toISOString().slice(0, 10)}.csv`,
+  );
+}
+
+/* LA LISTA PARA EL PROVEEDOR DEL LECTOR (14 de septiembre de 2026).
+   Es otro archivo, a propósito: trae el código que va impreso en el QR (que
+   es lo único que su pistola puede cruzar) y NO trae cédulas, correos ni
+   direcciones, que el proveedor no necesita. El reporte de órdenes es para
+   el comité; este es para la puerta. */
+export async function descargarCsvLector(token: string) {
+  await bajarArchivo(
+    token,
+    '/api/admin/puerta.csv',
+    `boletas-para-lector-${new Date().toISOString().slice(0, 10)}.csv`,
+  );
+}
+
+/* El CSV no pasa por un enlace normal: el backend espera el token en el
+   header, así que se trae como blob y se guarda. */
+async function bajarArchivo(token: string, ruta: string, nombre: string) {
+  const res = await fetch(`${BASE}${ruta}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new ErrorApi(res.status, 'ERROR', 'No se pudo descargar el reporte.');
@@ -250,7 +271,7 @@ export async function descargarCsv(token: string, estado = 'pagada') {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `ordenes-${estado}-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.download = nombre;
   document.body.appendChild(a);
   a.click();
   a.remove();

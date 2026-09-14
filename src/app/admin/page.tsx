@@ -15,7 +15,7 @@ import { Fragment, useCallback, useEffect, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import {
   leerToken, guardarToken, olvidarToken,
-  obtenerAlertas, atenderAlerta, obtenerVentas, buscarOrdenes, obtenerFicha, reenviarBoletas, anularOrden, descargarCsv,
+  obtenerAlertas, atenderAlerta, obtenerVentas, buscarOrdenes, obtenerFicha, reenviarBoletas, anularOrden, descargarCsv, descargarCsvLector,
   type Alertas, type Venta, type OrdenBuscada, type FichaOrden,
 } from '@/lib/admin';
 import { ErrorApi } from '@/lib/api';
@@ -515,6 +515,16 @@ export default function Panel() {
             className="btn-ghost !px-6 !py-3 !text-xs"
           >
             Descargar CSV
+          </button>
+          {/* Lo que se le manda al proveedor de la pistola: el código del QR,
+              sin datos personales. Ver descargarCsvLector en lib/admin.ts. */}
+          <button
+            type="button"
+            onClick={() => descargarCsvLector(token).catch(() => setAviso('No se pudo descargar.'))}
+            className="btn-ghost !px-6 !py-3 !text-xs"
+            title="Boletas válidas con el código del QR, para el sistema del lector"
+          >
+            Lista para el lector
           </button>
         </form>
 
