@@ -9,6 +9,7 @@ import { totalEgresados } from './servicios/egresados.js'
 import { barrer } from './servicios/reconciliacion.js'
 import { reintentarPendientes } from './servicios/correos.js'
 import { despacharCorreo, despacharFactura } from './servicios/pagos.js'
+import { facturacionActiva } from './servicios/facturacion.js'
 
 // Se revisa ANTES de abrir el puerto: mas vale no arrancar que arrancar mal.
 revisarConfiguracion()
@@ -30,6 +31,11 @@ const servidor = app.listen(config.puerto, () => {
   if (config.validarEgresado !== 'apagado' && totalEgresados() === 0) {
     console.log('                  (mercadeo no ha entregado la base todavia)')
   }
+  // Que se vea de una: el 14 de septiembre de 2026 el API corrio un dia
+  // entero en ensayo sin que nadie lo notara, porque el arranque no lo decia.
+  console.log(`  SIESA           ${!facturacionActiva() ? 'sin configurar (no se factura)'
+    : config.siesa.ensayo ? 'ENSAYO: los documentos se arman pero NO se envian al ERP'
+    : 'REAL: factura y recibo se emiten en el ERP al confirmar cada pago'}`)
   if (config.wompi.simulacion) {
     console.log('')
     console.log('  ADVERTENCIA: WOMPI_SIMULACION=true.')
