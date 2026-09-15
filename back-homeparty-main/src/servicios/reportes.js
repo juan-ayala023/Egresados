@@ -46,6 +46,8 @@ const q = {
 
      Solo pagadas: las pendientes son carritos a medio llenar y las expiradas
      ruido. Quien necesite verlas usa el buscador o el CSV. */
+  totalPagadas: db.prepare(`SELECT COUNT(*) AS n FROM orden WHERE estado = 'pagada'`),
+
   ultimasVentas: db.prepare(`
     SELECT o.id, o.referencia, o.estado, o.cantidad, o.total_centavos,
            o.creada_en, o.pagada_en, o.metodo_pago, o.correo_enviado_a,
@@ -91,8 +93,13 @@ export function buscarOrdenes(texto) {
  * Las ultimas ventas pagadas, para la tabla del panel.
  * @param {number} limite cuantas traer (tope 200: mas no se lee en pantalla)
  */
+/** Cuantas ventas pagadas hay en total (para el "25 de 180" del panel). */
+export const totalVentasPagadas = () => q.totalPagadas.get().n
+
 export function ultimasVentas(limite = 25) {
-  const n = Math.min(Math.max(Number(limite) || 25, 1), 200)
+  // Tope 1000: el aforo es 500 boletas, asi que "todas" siempre cabe. El
+  // comite pidio ver la lista completa (15 de septiembre de 2026).
+  const n = Math.min(Math.max(Number(limite) || 25, 1), 1000)
   return q.ultimasVentas.all(n).map((venta) => ({
     ...venta,
     // A NOMBRE DE QUIEN VAN LAS BOLETAS. El comite necesita esto para dos

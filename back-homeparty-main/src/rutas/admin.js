@@ -28,7 +28,7 @@ import {
   anularBoleta, reemitirBoleta, ingresosEscaneados, conteoPuerta, tokensParaOffline,
 } from '../servicios/boletas.js'
 import {
-  buscarOrdenes, ultimasVentas, resumenEstados, ordenesEnCsv, boletasParaLectorEnCsv,
+  buscarOrdenes, ultimasVentas, totalVentasPagadas, resumenEstados, ordenesEnCsv, boletasParaLectorEnCsv,
   registrarAuditoria,
 } from '../servicios/reportes.js'
 import { alertas, atenderAlerta, reabrirAlerta } from '../servicios/alertas.js'
@@ -133,7 +133,9 @@ rutasAdmin.get('/admin/ordenes/:referencia', (req, res) => {
 // tabla.
 rutasAdmin.get('/admin/ventas', (req, res) => {
   const ventas = ultimasVentas(req.query.limite)
-  res.json({ total: ventas.length, ventas })
+  // `total` es el total de pagadas, no el largo de la lista: el panel lo usa
+  // para mostrar "25 de 180" y ofrecer "Ver todas".
+  res.json({ total: totalVentasPagadas(), ventas })
 })
 
 // -----------------------------------------------------------------------------

@@ -34,6 +34,11 @@ export default function Panel() {
 
   const [alertas, setAlertas] = useState<Alertas | null>(null);
   const [ventas, setVentas] = useState<Venta[]>([]);
+  /* Cuantas se muestran. 25 al entrar; "Ver todas" sube el tope (el aforo
+     es 500, asi que cabe). El comite pidio la lista completa el 15 de
+     septiembre de 2026: con mas de 25 ventas no veia las primeras. */
+  const [limiteVentas, setLimiteVentas] = useState(25);
+  const [totalVentas, setTotalVentas] = useState(0);
   /* Qué venta está desplegada, por referencia. Una sola a la vez: con 500
      ventas, abrirlas todas convierte la tabla en un muro. */
   const [desplegada, setDesplegada] = useState<string | null>(null);
@@ -50,9 +55,10 @@ export default function Panel() {
     try {
       /* En paralelo: son dos llamadas independientes y en serie el panel
          tarda el doble en pintar. */
-      const [al, ve] = await Promise.all([obtenerAlertas(t), obtenerVentas(t, 25)]);
+      const [al, ve] = await Promise.all([obtenerAlertas(t), obtenerVentas(t, limiteVentas)]);
       setAlertas(al);
       setVentas(ve.ventas);
+      setTotalVentas(ve.total);
       setEntrado(true);
       guardarToken(t);
     } catch (e) {
@@ -77,10 +83,16 @@ export default function Panel() {
     if (!entrado) return;
     const id = setInterval(() => {
       obtenerAlertas(token).then(setAlertas).catch(() => {});
-      obtenerVentas(token, 25).then((v) => setVentas(v.ventas)).catch(() => {});
+      obtenerVentas(token, limiteVentas).then((v) => { setVentas(v.ventas); setTotalVentas(v.total); }).catch(() => {});
     }, 60_000);
     return () => clearInterval(id);
-  }, [entrado, token]);
+  }, [entrado, token, limiteVentas]);
+
+  /* Al pedir "Ver todas" se recarga de inmediato, sin esperar el minuto. */
+  const verTodas = () => {
+    setLimiteVentas(1000);
+    obtenerVentas(token, 1000).then((v) => { setVentas(v.ventas); setTotalVentas(v.total); }).catch(() => {});
+  };
 
   const salir = () => {
     olvidarToken();
@@ -346,7 +358,9 @@ export default function Panel() {
         <div className="flex flex-wrap items-baseline justify-between gap-3">
           <h2 className="font-display text-lg text-bone">Últimas ventas</h2>
           <span className="font-body text-xs text-muted">
-            Las {ventas.length} más recientes · pagadas
+            {ventas.length < totalVentas
+              ? <>Las {ventas.length} más recientes de {totalVentas} pagadas · <button type="button" onClick={verTodas} className="underline underline-offset-4 hover:text-gold">Ver todas</button></>
+              : <>{ventas.length} ventas pagadas · todas</>}
           </span>
         </div>
 
