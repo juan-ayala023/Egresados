@@ -155,10 +155,11 @@ function fechaNacimientoSiesa(comprador) {
   if (/^\d{8}$/.test(propia)) return propia
   const defecto = config.siesa.fechaNacimientoDefecto
   if (/^\d{8}$/.test(defecto)) return defecto
-  throw new ErrorSiesaFactura(
-    'SIESA exige la fecha de nacimiento para crear el tercero y esta compra no la tiene. Pedirsela al comprador (o definir SIESA_FECHA_NACIMIENTO_DEFECTO si contabilidad lo autoriza).',
-    { tipo: 'sin_tercero' },
-  )
+  // Sin dato: la fecha del dia. Es lo que hace el propio SIESA cuando se crea
+  // un tercero a mano ("el campo siempre queda por defecto con la fecha del
+  // sistema"), y contabilidad autorizo crearlos asi el 15 de septiembre de
+  // 2026 para las 27 compras de esa manana que no la traian.
+  return fechaSiesa()
 }
 
 export function armarTercero(comprador) {
@@ -432,8 +433,9 @@ export function respuestaFallo(respuesta) {
  * que era la cuenta de su hijo.
  *
  * Regla que pidio contabilidad ese dia: si tiene la 000 se usa esa; si no,
- * la menor que tenga; si no tiene ninguna, se le crea la 001 (la de
- * SIESA_ID_SUCURSAL). Nunca se crea una sucursal a quien ya tiene alguna.
+ * la menor que tenga; si no tiene ninguna, se le crea la de SIESA_ID_SUCURSAL
+ * (000 desde el 15 de septiembre de 2026, tambien a pedido de contabilidad:
+ * la persona misma). Nunca se crea una sucursal a quien ya tiene alguna.
  *
  * @param {string[]} sucursales las que ya tiene en t201_mm_clientes
  * @returns {{sucursal: string, crear: boolean}}

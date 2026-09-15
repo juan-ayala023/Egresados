@@ -252,11 +252,11 @@ test('la fecha de nacimiento del checkout va al tercero como AAAAMMDD', () => {
   assert.equal(t.F200_FECHA_NACIMIENTO, '19760302')
 })
 
-test('sin fecha de nacimiento y sin valor por defecto, el tercero NO se arma', () => {
-  assert.throws(
-    () => armarTercero({ ...COMPRADOR, fecha_nacimiento: null }),
-    (e) => e.tipo === 'sin_tercero' && /fecha de nacimiento/.test(e.message),
-  )
+test('sin fecha de nacimiento va la del dia, como hace SIESA al crear a mano', async () => {
+  // Autorizado por contabilidad el 15 de septiembre de 2026.
+  const { fechaSiesa } = await import('../src/siesa/facturacion.js')
+  const t = armarTercero({ ...COMPRADOR, fecha_nacimiento: null })
+  assert.equal(t.F200_FECHA_NACIMIENTO, fechaSiesa())
 })
 
 test('la fecha de nacimiento se valida en el checkout', async () => {
