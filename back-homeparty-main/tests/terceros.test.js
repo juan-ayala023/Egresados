@@ -268,3 +268,10 @@ test('la fecha de nacimiento se valida en el checkout', async () => {
   assert.ok(validarFechaNacimiento('2015-01-01'), 'un menor no compra')
   assert.ok(validarFechaNacimiento('1890-01-01'))
 })
+
+test('la sucursal del cliente se crea ACTIVA', () => {
+  // 15 de septiembre de 2026: con 0 (lo que traia el ejemplo del proveedor)
+  // SIESA la dejo inactiva y rechazo la factura.
+  const c = armarCliente(COMPRADOR, CONFIG_465)
+  assert.equal(c.F201_IND_ESTADO_ACTIVO, '1')
+})

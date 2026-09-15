@@ -282,7 +282,10 @@ export function armarCliente(comprador, cfg) {
     F201_IND_BLOQUEADO: '0',
     F201_IND_BLOQUEO_CUPO: '0',
     F201_IND_BLOQUEO_MORA: '0',
-    F201_IND_ESTADO_ACTIVO: '0',   // 0 = activo, tal cual el ejemplo del colegio
+    // 1 = ACTIVA. El ejemplo del proveedor traia 0 y con 0 la sucursal queda
+    // inactiva: "La sucursal 000 del cliente no esta activa" al facturar
+    // (15 de septiembre de 2026, primer tercero creado de verdad).
+    F201_IND_ESTADO_ACTIVO: '1',
     F201_IND_FACTURA_UNIFICADA: '0',
     F201_IND_PEDIDO_BACKORDER: '0',
     F201_PORC_EXCESO_VENTA: '0',
