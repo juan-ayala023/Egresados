@@ -6,7 +6,7 @@ import { X, ArrowLeft, Loader2, ShieldCheck, Check, AlertCircle } from 'lucide-r
 import { ease } from '@/lib/motion';
 import { useBloquearScroll } from '@/lib/bloquearScroll';
 import {
-  DEPARTAMENTOS, DEPARTAMENTO_EXTERIOR, nombreCiudad, validarDireccion, validarCiudad,
+  DEPARTAMENTOS, DEPARTAMENTO_EXTERIOR, nombreCiudad, validarDireccion, validarCiudad, validarFechaNacimiento,
 } from '@/lib/direcciones';
 import {
   anosGraduacion,
@@ -50,6 +50,10 @@ export default function Checkout({ boleta, cantidad, onClose }: Props) {
   const [paso, setPaso] = useState(0);
   const [asistentes, setAsistentes] = useState<Asistente[]>([]);
   const [direccion, setDireccion] = useState('');
+  /* La fecha de nacimiento la exige SIESA para crear al comprador como
+     tercero (15 de septiembre de 2026: las primeras compras de gente nueva en
+     el ERP quedaron sin factura por esto). Va con los datos de facturación. */
+  const [fechaNacimiento, setFechaNacimiento] = useState('');
   /* La ciudad son DOS desplegables (14 de septiembre de 2026): departamento
      y luego municipio, con los 1.122 municipios oficiales del DANE. Antes era
      texto libre y aceptaba "xyz", y eso va a la factura electrónica.
@@ -249,6 +253,8 @@ export default function Checkout({ boleta, cantidad, onClose }: Props) {
     if (errorCiudad) nuevos['ciudad'] = errorCiudad;
     const errorDireccion = validarDireccion(direccion, { exterior });
     if (errorDireccion) nuevos['direccion'] = errorDireccion;
+    const errorFecha = validarFechaNacimiento(fechaNacimiento);
+    if (errorFecha) nuevos['fechaNacimiento'] = errorFecha;
     if (!aceptaDatos) nuevos['aceptaDatos'] = 'Debes aceptar el tratamiento de datos.';
     if (!aceptaTerminos) nuevos['aceptaTerminos'] = 'Debes aceptar los términos.';
     setErrores(nuevos);
@@ -273,6 +279,7 @@ export default function Checkout({ boleta, cantidad, onClose }: Props) {
       }
       if (clave === 'comprador.direccion') { nuevos['direccion'] = mensaje; continue; }
       if (clave === 'comprador.ciudad') { nuevos['ciudad'] = mensaje; continue; }
+      if (clave === 'comprador.fechaNacimiento') { nuevos['fechaNacimiento'] = mensaje; continue; }
       const comprador = clave.match(/^comprador\.(\w+)$/);
       if (comprador) {
         nuevos[`0-${comprador[1]}`] = mensaje;
@@ -309,6 +316,7 @@ export default function Checkout({ boleta, cantidad, onClose }: Props) {
           celular: titular.celular,
           direccion: direccion.trim(),
           ciudad: ciudad.trim(),
+          fechaNacimiento: fechaNacimiento.trim(),
           promocion: titular.promocion,
         },
         asistentes,
@@ -609,6 +617,18 @@ export default function Checkout({ boleta, cantidad, onClose }: Props) {
                           className={`field ${clase('direccion')}`}
                         />
                         <Aviso clave="direccion" />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <label className="label">Fecha de nacimiento</label>
+                        <input
+                          type="date"
+                          value={fechaNacimiento}
+                          onChange={(e) => { setFechaNacimiento(e.target.value); limpiar('fechaNacimiento'); }}
+                          max={new Date(Date.now() - 18 * 365.25 * 24 * 3600 * 1000).toISOString().slice(0, 10)}
+                          min="1920-01-01"
+                          className={`field ${clase('fechaNacimiento')}`}
+                        />
+                        <Aviso clave="fechaNacimiento" />
                       </div>
                       <div>
                         <label className="label">Departamento</label>

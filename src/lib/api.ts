@@ -66,6 +66,8 @@ export type Comprador = {
   celular: string;
   direccion: string;
   ciudad: string;
+  /* AAAA-MM-DD. SIESA no crea el tercero sin ella (15 de septiembre de 2026). */
+  fechaNacimiento: string;
   promocion: string;
 };
 

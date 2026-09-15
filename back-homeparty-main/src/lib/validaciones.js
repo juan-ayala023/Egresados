@@ -92,6 +92,27 @@ function validarCelular(valor) {
  * Si viene vacia en un acompanante NO se asume que es egresado: se guarda
  * vacia y es_egresado queda en 0. Ver esEgresado() aqui abajo.
  */
+/**
+ * Fecha de nacimiento: AAAA-MM-DD, real, y de un adulto (el evento es para
+ * mayores de edad; la boleta se compra con cedula).
+ */
+export function validarFechaNacimiento(valor) {
+  const s = limpio(valor)
+  if (!s) return 'Escribe tu fecha de nacimiento.'
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s)
+  if (!m) return 'La fecha debe ser AAAA-MM-DD.'
+  const fecha = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])))
+  const valida = fecha.getUTCFullYear() === Number(m[1]) && fecha.getUTCMonth() === Number(m[2]) - 1 && fecha.getUTCDate() === Number(m[3])
+  if (!valida) return 'Esa fecha no existe.'
+  const hoy = new Date()
+  const antesDelCumple = hoy.getUTCMonth() < fecha.getUTCMonth()
+    || (hoy.getUTCMonth() === fecha.getUTCMonth() && hoy.getUTCDate() < fecha.getUTCDate())
+  const edad = hoy.getUTCFullYear() - fecha.getUTCFullYear() - (antesDelCumple ? 1 : 0)
+  if (edad < 18) return 'Debes ser mayor de edad.'
+  if (edad > 110) return 'Revisa el ano de nacimiento.'
+  return null
+}
+
 function validarPromocion(valor, { obligatoria = true } = {}) {
   const v = limpio(valor)
   if (!v) return obligatoria ? 'Selecciona tu promocion.' : null
@@ -153,6 +174,11 @@ export function validarOrden(cuerpo) {
   revisar('comprador.correo', validarCorreo(c.correo))
   revisar('comprador.celular', validarCelular(c.celular))
   revisar('comprador.promocion', validarPromocion(c.promocion))
+  // SIESA no crea un tercero sin fecha de nacimiento (15 de septiembre de
+  // 2026). Se exige junto con los datos de facturacion.
+  if (config.exigirDireccionFacturacion) {
+    revisar('comprador.fechaNacimiento', validarFechaNacimiento(c.fechaNacimiento))
+  }
 
   // DECISION #2: la facturacion electronica DIAN exige direccion y ciudad.
   // El front ya las pide y las manda (Checkout.tsx). El interruptor del .env
@@ -229,6 +255,7 @@ export function validarOrden(cuerpo) {
       celular: soloDigitos(c.celular),
       direccion: limpio(c.direccion) || null,
       ciudad: limpio(c.ciudad) || null,
+      fechaNacimiento: limpio(c.fechaNacimiento) || null,
       promocion: limpio(c.promocion),
     },
     asistentes: entrada.map((a) => ({

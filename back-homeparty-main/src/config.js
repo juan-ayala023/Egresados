@@ -234,6 +234,11 @@ export const config = {
     // factura igual. No se pierde a quien le vendimos: nombre, cedula,
     // direccion y ciudad quedan guardados en la orden y salen en el reporte.
     terceroGenerico: texto('SIESA_TERCERO_GENERICO', ''),
+    // Fecha de nacimiento (AAAAMMDD) con la que se crea un tercero cuando el
+    // comprador no la dejo (compras anteriores al 15 de septiembre de 2026).
+    // Vacio = no se inventa: la factura queda pendiente con el motivo claro.
+    // Solo se pone si contabilidad lo autoriza.
+    fechaNacimientoDefecto: texto('SIESA_FECHA_NACIMIENTO_DEFECTO', '').replace(/\D/g, ''),
 
     // --- Creacion del tercero --------------------------------------------
     // El comprador tiene que EXISTIR en SIESA antes de facturarle. Un egresado

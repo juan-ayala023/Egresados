@@ -49,6 +49,7 @@ CREATE TABLE IF NOT EXISTS comprador (
   celular         TEXT NOT NULL,
   direccion       TEXT,
   ciudad          TEXT,
+  fecha_nacimiento TEXT,           -- AAAA-MM-DD; SIESA la exige para crear el tercero
   promocion       TEXT NOT NULL,
   acepta_datos    INTEGER NOT NULL DEFAULT 0,
   acepta_terminos INTEGER NOT NULL DEFAULT 0,

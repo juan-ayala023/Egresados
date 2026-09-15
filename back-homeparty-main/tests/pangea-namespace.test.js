@@ -32,7 +32,7 @@ const CFG = {
 }
 const COMPRADOR = {
   nombre: 'Alexandra Andrea Alvarez Gomez', tipo_documento: 'CC', cedula: '43743286',
-  correo: 'a@b.com', celular: '3001234567', direccion: 'Km 5.5 via El Retiro', ciudad: 'Medellín',
+  correo: 'a@b.com', celular: '3001234567', direccion: 'Km 5.5 via El Retiro', ciudad: 'Medellín', fecha_nacimiento: '1986-05-10',
 }
 
 /** Serializa una llamada sin enviarla: el endpoint no existe y solo se mira lastRequest. */

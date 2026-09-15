@@ -34,6 +34,7 @@ const orden = (promoAcompanante) => ({
     celular: '3001234567',
     direccion: 'Cra 45 # 12-30',
     ciudad: 'Medellin',
+    fechaNacimiento: '1986-05-10',
     promocion: anioValido,
   },
   aceptaTratamientoDatos: true,

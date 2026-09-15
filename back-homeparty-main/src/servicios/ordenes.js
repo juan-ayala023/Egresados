@@ -36,8 +36,8 @@ const q = {
   insertarComprador: db.prepare(`
     INSERT INTO comprador (
       orden_id, nombre, tipo_documento, cedula, correo, celular, direccion, ciudad,
-      promocion, acepta_datos, acepta_terminos, aceptado_en, egresado_verificado
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 1, ?, ?)`),
+      fecha_nacimiento, promocion, acepta_datos, acepta_terminos, aceptado_en, egresado_verificado
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 1, ?, ?)`),
 
   insertarAsistente: db.prepare(`
     INSERT INTO asistente (
@@ -221,8 +221,8 @@ export function crearOrden(datos, ip = null) {
     q.insertarComprador.run(
       ordenId, datos.comprador.nombre, datos.comprador.tipoDocumento,
       datos.comprador.cedula, datos.comprador.correo, datos.comprador.celular,
-      datos.comprador.direccion, datos.comprador.ciudad, datos.comprador.promocion,
-      creada, egresado.verificado ? 1 : 0,
+      datos.comprador.direccion, datos.comprador.ciudad, datos.comprador.fechaNacimiento ?? null,
+      datos.comprador.promocion, creada, egresado.verificado ? 1 : 0,
     )
 
     datos.asistentes.forEach((a, i) => {

@@ -91,6 +91,7 @@ const compra = (cantidad = 1, cedulaBase = 1020304050) => ({
     celular: '3001234567',
     direccion: 'Cra 43A # 1-50 Apto 902',
     ciudad: 'Medellin',
+    fechaNacimiento: '1986-05-10',
     promocion: '2004',
   },
   asistentes: Array.from({ length: cantidad }, (_, i) => ({

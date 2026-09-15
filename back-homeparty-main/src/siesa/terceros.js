@@ -150,6 +150,17 @@ export async function consultarTercero(cedula) {
  * Arma el cuerpo del TERCERO (la persona) sin enviarlo.
  * Campos y valores tomados del EjemploTerceros.txt que mando el colegio.
  */
+function fechaNacimientoSiesa(comprador) {
+  const propia = String(comprador?.fecha_nacimiento ?? '').replace(/\D/g, '')
+  if (/^\d{8}$/.test(propia)) return propia
+  const defecto = config.siesa.fechaNacimientoDefecto
+  if (/^\d{8}$/.test(defecto)) return defecto
+  throw new ErrorSiesaFactura(
+    'SIESA exige la fecha de nacimiento para crear el tercero y esta compra no la tiene. Pedirsela al comprador (o definir SIESA_FECHA_NACIMIENTO_DEFECTO si contabilidad lo autoriza).',
+    { tipo: 'sin_tercero' },
+  )
+}
+
 export function armarTercero(comprador) {
   const nit = String(comprador?.cedula ?? '').trim()
   if (!cedulaValida(nit)) {
@@ -185,7 +196,10 @@ export function armarTercero(comprador) {
     F200_APELLIDO2: apellido2,
     F200_NOMBRE_EST: completo,
     F200_RAZON_SOCIAL: completo,  // lo que se imprime en la factura
-    F200_FECHA_NACIMIENTO: '',    // no se pide en el checkout
+    // SIESA la exige (15 de septiembre de 2026). Viene del checkout como
+    // AAAA-MM-DD; para compras anteriores, la de SIESA_FECHA_NACIMIENTO_DEFECTO
+    // si contabilidad la autorizo. Sin ninguna, se para antes de enviar.
+    F200_FECHA_NACIMIENTO: fechaNacimientoSiesa(comprador),
     F200_ID_CIIU: '',
 
     // Es cliente, persona natural, activo. Nada mas: no es empleado, ni

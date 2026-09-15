@@ -114,7 +114,7 @@ test('validarOrden usa las reglas nuevas', async () => {
     comprador: {
       nombre: 'Juan Ayala Botero', tipoDocumento: 'CC', cedula: '1023626286',
       correo: 'j@e.com', celular: '3001234567', promocion: anio,
-      direccion: 'Cra 43A # 1-50 Apto 902', ciudad: 'Medellín, Antioquia',
+      direccion: 'Cra 43A # 1-50 Apto 902', ciudad: 'Medellín, Antioquia', fechaNacimiento: '1986-05-10',
     },
     aceptaTratamientoDatos: true, aceptaTerminos: true,
     asistentes: [{ nombre: 'Juan Ayala Botero', tipoDocumento: 'CC', cedula: '1023626286', promocion: anio }],

@@ -132,7 +132,7 @@ test('los ultimos cuatro de la tarjeta se guardan con el pago', async () => {
     comprador: {
       nombre: 'Veronica Restrepo Restrepo', tipoDocumento: 'CC', cedula: '43626286',
       correo: 'vero@ejemplo.com', celular: '3001234567', direccion: 'Cra 43 # 5-10',
-      ciudad: 'Medellín, Antioquia', promocion: '1995',
+      ciudad: 'Medellín, Antioquia', fechaNacimiento: '1976-03-02', promocion: '1995',
     },
     asistentes: [{ nombre: 'Veronica Restrepo Restrepo', tipoDocumento: 'CC', cedula: '43626286', promocion: '1995' }],
     aceptaTratamientoDatos: true, aceptaTerminos: true,

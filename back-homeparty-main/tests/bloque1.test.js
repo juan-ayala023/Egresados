@@ -93,6 +93,7 @@ const compra = (comprador = {}) => ({
     celular: '3001234567',
     direccion: 'Cra 43A # 1-50 Apto 902',
     ciudad: 'Medellin',
+    fechaNacimiento: '1986-05-10',
     promocion: '2004',
     ...comprador,
   },

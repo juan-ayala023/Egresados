@@ -105,6 +105,18 @@ const MIGRACIONES = [
       `ALTER TABLE orden ADD COLUMN autorizacion_banco TEXT`,
     ],
   },
+  {
+    nombre: '007-fecha-nacimiento',
+    // SIESA EXIGE LA FECHA DE NACIMIENTO PARA CREAR UNA PERSONA NATURAL.
+    //
+    // 15 de septiembre de 2026: las primeras compras de gente que no existia
+    // en el ERP fallaron con "El dato es obligatorio y debe ser una fecha
+    // valida" (F200_FECHA_NACIMIENTO). El checkout no la pedia. Desde aqui
+    // se pide y se guarda; las ordenes anteriores quedan en NULL.
+    sql: [
+      `ALTER TABLE comprador ADD COLUMN fecha_nacimiento TEXT`,
+    ],
+  },
 ]
 
 /** Columnas que ya existen en una tabla. */

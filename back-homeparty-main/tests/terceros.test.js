@@ -52,6 +52,8 @@ const COMPRADOR = {
   celular: '3001234567',
   direccion: 'Cra 45 # 12-30',
   ciudad: 'Medellín',
+  fecha_nacimiento: '1986-05-10',
+  fechaNacimiento: '1986-05-10',
 }
 
 // -----------------------------------------------------------------------------
@@ -238,4 +240,31 @@ test('la factura y el recibo llevan la sucursal elegida, no la fija del .env', a
   // Sin sucursal explicita sigue siendo la del .env (001).
   const f2 = await armarFactura(orden, COMPRADOR, { configuracion: CONFIG_465 })
   assert.equal(f2.F311_ID_SUCURSAL_CLI, '001')
+})
+
+// -----------------------------------------------------------------------------
+// LA FECHA DE NACIMIENTO (15 de septiembre de 2026). SIESA no crea una
+// persona natural sin ella: "El dato es obligatorio y debe ser una fecha
+// valida" en F200_FECHA_NACIMIENTO. Se pide en el checkout desde hoy.
+// -----------------------------------------------------------------------------
+test('la fecha de nacimiento del checkout va al tercero como AAAAMMDD', () => {
+  const t = armarTercero({ ...COMPRADOR, fecha_nacimiento: '1976-03-02' })
+  assert.equal(t.F200_FECHA_NACIMIENTO, '19760302')
+})
+
+test('sin fecha de nacimiento y sin valor por defecto, el tercero NO se arma', () => {
+  assert.throws(
+    () => armarTercero({ ...COMPRADOR, fecha_nacimiento: null }),
+    (e) => e.tipo === 'sin_tercero' && /fecha de nacimiento/.test(e.message),
+  )
+})
+
+test('la fecha de nacimiento se valida en el checkout', async () => {
+  const { validarFechaNacimiento } = await import('../src/lib/validaciones.js')
+  assert.equal(validarFechaNacimiento('1986-05-10'), null)
+  assert.ok(validarFechaNacimiento(''))
+  assert.ok(validarFechaNacimiento('10/05/1986'))
+  assert.ok(validarFechaNacimiento('1986-02-30'))
+  assert.ok(validarFechaNacimiento('2015-01-01'), 'un menor no compra')
+  assert.ok(validarFechaNacimiento('1890-01-01'))
 })

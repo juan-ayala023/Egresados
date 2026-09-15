@@ -88,3 +88,27 @@ export function validarCiudad(valor: string): string | null {
   }
   return null;
 }
+
+/* Misma regla que el servidor (validarFechaNacimiento en validaciones.js):
+   AAAA-MM-DD, real, y de un adulto. SIESA exige la fecha para crear el
+   tercero (15 de septiembre de 2026). */
+export function validarFechaNacimiento(valor: string): string | null {
+  const s = (valor ?? '').trim();
+  if (!s) return 'Escribe tu fecha de nacimiento.';
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
+  if (!m) return 'La fecha debe ser AAAA-MM-DD.';
+  const fecha = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])));
+  const valida =
+    fecha.getUTCFullYear() === Number(m[1]) &&
+    fecha.getUTCMonth() === Number(m[2]) - 1 &&
+    fecha.getUTCDate() === Number(m[3]);
+  if (!valida) return 'Esa fecha no existe.';
+  const hoy = new Date();
+  const antesDelCumple =
+    hoy.getUTCMonth() < fecha.getUTCMonth() ||
+    (hoy.getUTCMonth() === fecha.getUTCMonth() && hoy.getUTCDate() < fecha.getUTCDate());
+  const edad = hoy.getUTCFullYear() - fecha.getUTCFullYear() - (antesDelCumple ? 1 : 0);
+  if (edad < 18) return 'Debes ser mayor de edad.';
+  if (edad > 110) return 'Revisa el año de nacimiento.';
+  return null;
+}
