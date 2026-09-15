@@ -19,7 +19,8 @@
     "revisar-produccion": "node scripts/revisar-produccion.js",
     "facturar": "node scripts/facturar.js",
     "listar-siesa": "node scripts/listar-siesa.js",
-    "respaldo": "node scripts/respaldo.js"
+    "respaldo": "node scripts/respaldo.js",
+    "desbloquear-clientes": "node scripts/desbloquear-clientes.js"
   },
   "dependencies": {
     "better-sqlite3": "^11.10.0",

@@ -282,3 +282,11 @@ test('una sucursal inactiva no se elige: si no hay activas se crea o activa la d
   assert.deepEqual(elegirSucursal([]), { sucursal: '001', crear: true })
   assert.deepEqual(elegirSucursal(['002']), { sucursal: '002', crear: false })
 })
+
+test('la sucursal del cliente se crea SIN bloqueo (1 en f201_ind_estado_bloqueado)', () => {
+  // 15 de septiembre de 2026: con 0, SIESA la muestra como "cliente bloqueado".
+  const c = armarCliente(COMPRADOR, CONFIG_465)
+  assert.equal(c.F201_IND_BLOQUEADO, '1')
+  assert.equal(c.F201_IND_BLOQUEO_CUPO, '0')
+  assert.equal(c.F201_IND_BLOQUEO_MORA, '0')
+})

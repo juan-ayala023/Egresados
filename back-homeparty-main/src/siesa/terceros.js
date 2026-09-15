@@ -284,7 +284,12 @@ export function armarCliente(comprador, cfg) {
     F201_CUPO_CREDITO: '0',
     F201_DIAS_GRACIA: '0',
     F201_IND_CALIFICACION: 'A',
-    F201_IND_BLOQUEADO: '0',
+    // 1 = SIN BLOQUEO. En t201_mm_clientes la columna es f201_ind_estado_bloqueado
+    // y los clientes normales del colegio tienen 1; con 0 (lo que traia el
+    // ejemplo del proveedor) SIESA muestra "El cliente esta bloqueado" al abrir
+    // la sucursal (15 de septiembre de 2026). No impide facturar, pero deja el
+    // maestro sucio.
+    F201_IND_BLOQUEADO: '1',
     F201_IND_BLOQUEO_CUPO: '0',
     F201_IND_BLOQUEO_MORA: '0',
     // 1 = ACTIVA. El ejemplo del proveedor traia 0 y con 0 la sucursal queda
@@ -345,7 +350,7 @@ export function armarCriterio(comprador) {
 
 let cliente = null
 
-async function obtenerCliente() {
+export async function obtenerCliente() {
   if (cliente) return cliente
   const { wsdl } = config.siesa
   if (!wsdl) {
