@@ -348,8 +348,25 @@ async function obtenerCliente() {
  * aparente.
  */
 export function respuestaFallo(respuesta) {
-  const texto = JSON.stringify(respuesta?.[0] ?? respuesta ?? '')
-  if (/error|fall|no se|invalid|existe ya|rechaz|excepcion|exception/i.test(texto)) return texto
+  const cuerpo = respuesta?.[0] ?? respuesta ?? null
+
+  // Cuando Pangea acepta, el Result viene en null (verificado con la factura
+  // y el recibo el 14 de septiembre de 2026). Si trae CUALQUIER texto, es un
+  // motivo de rechazo. Antes se buscaban palabras ("error", "invalid"...) y
+  // el 15 de septiembre se colaron rechazos del Tercero que decian otra cosa
+  // (por ejemplo "El dato es obligatorio"): se dieron por creados cinco
+  // compradores que no existian, y las cinco facturas fallaron.
+  if (cuerpo && typeof cuerpo === 'object') {
+    for (const valor of Object.values(cuerpo)) {
+      if (valor === null || valor === undefined) continue
+      const textos = Array.isArray(valor?.string) ? valor.string : Array.isArray(valor) ? valor : [valor]
+      const conTexto = textos.map((s) => String(s ?? '').trim()).filter(Boolean)
+      if (conTexto.length > 0) return conTexto.join(' | ')
+    }
+  }
+
+  const texto = JSON.stringify(cuerpo ?? '')
+  if (/error|fall|no se|invalid|existe ya|rechaz|excepcion|exception|obligatori/i.test(texto)) return texto
   return null
 }
 
@@ -432,20 +449,31 @@ export async function asegurarTercero(comprador, { configuracion } = {}) {
   const cli = await obtenerCliente()
 
   const rTercero = await cli.TerceroAsync({ Tercero: ordenarParaPangea(documentoTercero) })
+  console.log(`[siesa] respuesta de Tercero para ${nit}: ${JSON.stringify(rTercero?.[0] ?? rTercero ?? '').slice(0, 600)}`)
   const falloTercero = respuestaFallo(rTercero)
   if (falloTercero) {
-    throw new ErrorSiesaFactura(`SIESA rechazo el tercero: ${falloTercero}`, { tipo: 'rechazo' })
+    // La tabla manda: si a pesar del texto el tercero quedo, se sigue.
+    const despues = await consultarTercero(nit)
+    if (!despues.existe) {
+      throw new ErrorSiesaFactura(`SIESA rechazo el tercero: ${falloTercero.slice(0, 400)}`, { tipo: 'rechazo' })
+    }
+    console.warn(`[siesa] Tercero ${nit} respondio con texto pero quedo creado: ${falloTercero.slice(0, 200)}`)
   }
 
   const rCliente = await cli.ClientesAsync({ Clientes: ordenarParaPangea(documentoCliente) })
+  console.log(`[siesa] respuesta de Clientes para ${nit}: ${JSON.stringify(rCliente?.[0] ?? rCliente ?? '').slice(0, 600)}`)
   const falloCliente = respuestaFallo(rCliente)
   if (falloCliente) {
-    // El tercero YA quedo creado. Se avisa distinto a proposito: reintentar
-    // todo lo volveria a mandar, y lo que falta es solo la sucursal.
-    throw new ErrorSiesaFactura(
-      `El tercero ${nit} SI se creo, pero su sucursal fallo: ${falloCliente}`,
-      { tipo: 'rechazo', detalle: { tercero: nit } },
-    )
+    const despues = await consultarTercero(nit)
+    if (!despues.sucursales.includes(config.siesa.sucursal)) {
+      // El tercero YA quedo creado. Se avisa distinto a proposito: reintentar
+      // todo lo volveria a mandar, y lo que falta es solo la sucursal.
+      throw new ErrorSiesaFactura(
+        `El tercero ${nit} SI se creo, pero su sucursal fallo: ${falloCliente.slice(0, 400)}`,
+        { tipo: 'rechazo', detalle: { tercero: nit } },
+      )
+    }
+    console.warn(`[siesa] Clientes ${nit} respondio con texto pero la sucursal quedo: ${falloCliente.slice(0, 200)}`)
   }
 
   // 3. Criterio, si contabilidad definio uno. Que esto falle no invalida la
@@ -457,6 +485,18 @@ export async function asegurarTercero(comprador, { configuracion } = {}) {
     } catch (e) {
       console.warn(`[siesa] criterio del tercero ${nit} no se pudo aplicar: ${e.message}`)
     }
+  }
+
+  // 4. COMPROBAR EN LA TABLA que quedo. Pangea puede contestar sin error y no
+  //    haber creado nada (15 de septiembre de 2026). La factura contra un
+  //    tercero que no existe se rechaza igual, pero con un mensaje que no
+  //    dice por que; mejor pararse aqui con las respuestas a la vista.
+  const comprobado = await consultarTercero(nit)
+  if (!comprobado.existe || !comprobado.sucursales.includes(config.siesa.sucursal)) {
+    throw new ErrorSiesaFactura(
+      `Pangea no rechazo el tercero ${nit} pero no aparece en el ERP (existe: ${comprobado.existe}, sucursales: ${comprobado.sucursales.join(',') || 'ninguna'}). Tercero: ${JSON.stringify(rTercero?.[0] ?? rTercero).slice(0, 300)} Clientes: ${JSON.stringify(rCliente?.[0] ?? rCliente).slice(0, 300)}`,
+      { tipo: 'rechazo' },
+    )
   }
 
   return { ensayo: false, existia: false, tercero: nit, sucursal: config.siesa.sucursal, documentoTercero, documentoCliente }

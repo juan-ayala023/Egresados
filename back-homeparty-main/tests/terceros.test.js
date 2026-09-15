@@ -185,7 +185,14 @@ test('un rechazo que viene dentro del ArrayOfstring se detecta', () => {
   // no se lee, un rechazo pasa por exito.
   assert.ok(respuestaFallo([{ TerceroResult: { string: ['Error: el tercero ya existe'] } }]))
   assert.ok(respuestaFallo([{ TerceroResult: { string: ['No se pudo crear el registro'] } }]))
-  assert.equal(respuestaFallo([{ TerceroResult: { string: ['1023626286'] } }]), null)
+  // 15 de septiembre de 2026: los rechazos no siempre dicen "error". Ahora
+  // CUALQUIER texto cuenta como rechazo (en exito el Result viene null), y
+  // quien llama comprueba en la tabla antes de darlo por perdido.
+  assert.ok(respuestaFallo([{ TerceroResult: { string: ['El dato es obligatorio. Valor: F200_FECHA_NACIMIENTO'] } }]))
+  assert.ok(respuestaFallo([{ TerceroResult: { string: ['1023626286'] } }]))
+  assert.equal(respuestaFallo([{ TerceroResult: null }]), null)
+  assert.equal(respuestaFallo([{ Financiera_FacturaResult: null }]), null)
+  assert.equal(respuestaFallo([{ TerceroResult: { string: [] } }]), null)
 })
 
 // -----------------------------------------------------------------------------
