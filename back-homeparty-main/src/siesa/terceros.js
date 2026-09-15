@@ -483,9 +483,16 @@ export async function asegurarTercero(comprador, { configuracion } = {}) {
     // crea solo la sucursal 001 y no se toca el tercero.
     const cli = await obtenerCliente()
     const r = await cli.ClientesAsync({ Clientes: paraPangea(documentoCliente) })
+    console.log(`[siesa] respuesta de Clientes para ${nit}: ${JSON.stringify(r?.[0] ?? r ?? '').slice(0, 600)}`)
     const fallo = respuestaFallo(r)
     if (fallo) {
-      throw new ErrorSiesaFactura(`SIESA rechazo la sucursal del cliente: ${fallo}`, { tipo: 'rechazo' })
+      // Pangea contesta "Cliente Creado Correctamente" como texto, igual que
+      // un rechazo. La tabla manda (15 de septiembre de 2026: HC80-FD5W4B
+      // quedo sin factura por leer ese texto como error).
+      const despues = await consultarTercero(nit)
+      if (!despues.sucursales.includes(sucursal)) {
+        throw new ErrorSiesaFactura(`SIESA rechazo la sucursal del cliente: ${fallo.slice(0, 400)}`, { tipo: 'rechazo' })
+      }
     }
     return { ensayo: false, existia: true, tercero: encontrado.tercero, sucursal, documentoTercero: null, documentoCliente }
   }
