@@ -77,11 +77,11 @@ try {
     if (!t.existe) {
       console.log('  NO existe en t200_mm_terceros: se va a crear antes de facturar.')
     } else {
-      const { sucursal, crear } = elegirSucursal(t.sucursales)
+      const { sucursal, crear } = elegirSucursal(t.activas)
       if (crear) {
-        console.log(`  Ya existe (id ${t.tercero}) pero SIN sucursales: se le crea la ${sucursal}.`)
+        console.log(`  Ya existe (id ${t.tercero}) pero SIN sucursal activa (tiene: ${t.sucursales.join(', ') || 'ninguna'}): se le crea o activa la ${sucursal}.`)
       } else {
-        console.log(`  Ya existe en el ERP (id ${t.tercero}) con sucursales ${t.sucursales.join(', ')}. No se le toca nada.`)
+        console.log(`  Ya existe en el ERP (id ${t.tercero}) con sucursales activas ${t.activas.join(', ')}. No se le toca nada.`)
         console.log(`  Se factura a la sucursal ${sucursal}${sucursal === '000' ? ' (la persona misma)' : ''}.`)
       }
     }

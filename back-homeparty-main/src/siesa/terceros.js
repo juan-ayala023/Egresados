@@ -105,7 +105,8 @@ export function cedulaValida(cedula) {
  * 2026 corriendo la consulta contra la base real, la vispera de la primera
  * factura. Los nombres se verificaron con SELECT TOP 1 * sobre la tabla.
  *
- * @returns {Promise<{existe:boolean, tercero:string|null, sucursales:string[]}>}
+ * @returns {Promise<{existe:boolean, tercero:string|null, sucursales:string[], activas:string[]}>}
+ *   `sucursales` son todas; `activas` solo las que tienen f201_ind_estado_activo = 1.
  */
 export async function consultarTercero(cedula) {
   const nit = String(cedula ?? '').trim()
@@ -119,7 +120,7 @@ export async function consultarTercero(cedula) {
 
   const consulta = `
     SELECT * FROM OPENQUERY(${enlazado},
-    'SELECT t.f200_id, t.f200_nit, c.f201_id_sucursal
+    'SELECT t.f200_id, t.f200_nit, c.f201_id_sucursal, c.f201_ind_estado_activo
        FROM t200_mm_terceros t
             LEFT JOIN t201_mm_clientes c
               ON c.f201_id_cia = t.f200_id_cia
@@ -133,13 +134,17 @@ export async function consultarTercero(cedula) {
 
   if (filas.length === 0) return { existe: false, tercero: null, sucursales: [] }
 
-  return {
-    existe: true,
-    tercero: String(filas[0].f200_id ?? nit).trim(),
-    sucursales: filas
-      .map((f) => String(f.f201_id_sucursal ?? '').trim())
-      .filter(Boolean),
-  }
+  const sucursales = filas
+    .map((f) => String(f.f201_id_sucursal ?? '').trim())
+    .filter(Boolean)
+  // Una sucursal inactiva no se puede facturar ("La sucursal 001 del cliente
+  // no esta activa", 15 de septiembre de 2026). Se distingue aqui para que
+  // elegirSucursal no la escoja.
+  const activas = filas
+    .filter((f) => String(f.f201_ind_estado_activo ?? '').trim() === '1')
+    .map((f) => String(f.f201_id_sucursal ?? '').trim())
+    .filter(Boolean)
+  return { existe: true, tercero: String(filas[0].f200_id ?? nit).trim(), sucursales, activas }
 }
 
 // -----------------------------------------------------------------------------
@@ -440,11 +445,17 @@ export function respuestaFallo(respuesta) {
  * (000 desde el 15 de septiembre de 2026, tambien a pedido de contabilidad:
  * la persona misma). Nunca se crea una sucursal a quien ya tiene alguna.
  *
- * @param {string[]} sucursales las que ya tiene en t201_mm_clientes
+ * SOLO CUENTAN LAS ACTIVAS (15 de septiembre de 2026): una inactiva no se
+ * puede facturar. Si no tiene ninguna activa, se manda la de SIESA_ID_SUCURSAL
+ * por Clientes con F_ACTUALIZA_REG=1, que la crea si no existe o la activa si
+ * existe (fue lo que paso con las que este mismo sistema creo inactivas ese
+ * dia, antes de corregir F201_IND_ESTADO_ACTIVO).
+ *
+ * @param {string[]} activas las sucursales ACTIVAS que ya tiene
  * @returns {{sucursal: string, crear: boolean}}
  */
-export function elegirSucursal(sucursales) {
-  const limpias = (sucursales ?? []).map((s) => String(s ?? '').trim()).filter(Boolean)
+export function elegirSucursal(activas) {
+  const limpias = (activas ?? []).map((s) => String(s ?? '').trim()).filter(Boolean)
   if (limpias.includes('000')) return { sucursal: '000', crear: false }
   if (limpias.length > 0) {
     const menor = [...limpias].sort((a, b) => Number(a) - Number(b) || a.localeCompare(b))[0]
@@ -475,24 +486,25 @@ export async function asegurarTercero(comprador, { configuracion } = {}) {
   //    sobrescribiria los datos a alguien.
   const encontrado = await consultarTercero(nit)
   if (encontrado.existe) {
-    const { sucursal, crear } = elegirSucursal(encontrado.sucursales)
+    const { sucursal, crear } = elegirSucursal(encontrado.activas)
     if (!crear) {
       return { ensayo: false, existia: true, tercero: encontrado.tercero, sucursal, documentoTercero: null, documentoCliente: null }
     }
-    // Tercero sin ninguna sucursal: existe la persona pero no el cliente. Se
-    // crea solo la sucursal 001 y no se toca el tercero.
+    // Tercero sin ninguna sucursal ACTIVA: existe la persona pero no el
+    // cliente (o el cliente esta inactivo). Se manda solo la sucursal, que
+    // Pangea crea o actualiza (F_ACTUALIZA_REG=1); el tercero no se toca.
     const cli = await obtenerCliente()
     const r = await cli.ClientesAsync({ Clientes: paraPangea(documentoCliente) })
     console.log(`[siesa] respuesta de Clientes para ${nit}: ${JSON.stringify(r?.[0] ?? r ?? '').slice(0, 600)}`)
     const fallo = respuestaFallo(r)
-    if (fallo) {
-      // Pangea contesta "Cliente Creado Correctamente" como texto, igual que
-      // un rechazo. La tabla manda (15 de septiembre de 2026: HC80-FD5W4B
-      // quedo sin factura por leer ese texto como error).
-      const despues = await consultarTercero(nit)
-      if (!despues.sucursales.includes(sucursal)) {
-        throw new ErrorSiesaFactura(`SIESA rechazo la sucursal del cliente: ${fallo.slice(0, 400)}`, { tipo: 'rechazo' })
-      }
+    // Pangea contesta "Cliente Creado Correctamente" como texto, igual que un
+    // rechazo. La tabla manda: lo que importa es que la sucursal quede ACTIVA.
+    const despues = await consultarTercero(nit)
+    if (!despues.activas.includes(sucursal)) {
+      throw new ErrorSiesaFactura(
+        `La sucursal ${sucursal} del tercero ${nit} no quedo activa en el ERP (activas: ${despues.activas.join(',') || 'ninguna'}). Pangea: ${String(fallo ?? 'sin texto').slice(0, 300)}`,
+        { tipo: 'rechazo' },
+      )
     }
     return { ensayo: false, existia: true, tercero: encontrado.tercero, sucursal, documentoTercero: null, documentoCliente }
   }
@@ -520,7 +532,7 @@ export async function asegurarTercero(comprador, { configuracion } = {}) {
   const falloCliente = respuestaFallo(rCliente)
   if (falloCliente) {
     const despues = await consultarTercero(nit)
-    if (!despues.sucursales.includes(config.siesa.sucursal)) {
+    if (!despues.activas.includes(config.siesa.sucursal)) {
       // El tercero YA quedo creado. Se avisa distinto a proposito: reintentar
       // todo lo volveria a mandar, y lo que falta es solo la sucursal.
       throw new ErrorSiesaFactura(
@@ -547,9 +559,9 @@ export async function asegurarTercero(comprador, { configuracion } = {}) {
   //    tercero que no existe se rechaza igual, pero con un mensaje que no
   //    dice por que; mejor pararse aqui con las respuestas a la vista.
   const comprobado = await consultarTercero(nit)
-  if (!comprobado.existe || !comprobado.sucursales.includes(config.siesa.sucursal)) {
+  if (!comprobado.existe || !comprobado.activas.includes(config.siesa.sucursal)) {
     throw new ErrorSiesaFactura(
-      `Pangea no rechazo el tercero ${nit} pero no aparece en el ERP (existe: ${comprobado.existe}, sucursales: ${comprobado.sucursales.join(',') || 'ninguna'}). Tercero: ${JSON.stringify(rTercero?.[0] ?? rTercero).slice(0, 300)} Clientes: ${JSON.stringify(rCliente?.[0] ?? rCliente).slice(0, 300)}`,
+      `Pangea no rechazo el tercero ${nit} pero no quedo facturable en el ERP (existe: ${comprobado.existe}, sucursales activas: ${comprobado.activas.join(',') || 'ninguna'}). Tercero: ${JSON.stringify(rTercero?.[0] ?? rTercero).slice(0, 300)} Clientes: ${JSON.stringify(rCliente?.[0] ?? rCliente).slice(0, 300)}`,
       { tipo: 'rechazo' },
     )
   }

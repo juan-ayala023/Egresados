@@ -23,7 +23,7 @@ process.env.SIESA_F_CIA = '1'
 process.env.SIESA_ID_SUCURSAL = '001'
 process.env.SIESA_ENSAYO = 'true'
 
-const { armarTercero, armarCliente, armarCriterio, partirNombre, tipoIdentSiesa, cedulaValida, consultarTercero, respuestaFallo } =
+const { armarTercero, armarCliente, armarCriterio, partirNombre, tipoIdentSiesa, cedulaValida, consultarTercero, respuestaFallo, elegirSucursal } =
   await import('../src/siesa/terceros.js')
 
 /* La misma fila 465 que usan las pruebas de facturacion. */
@@ -274,4 +274,11 @@ test('la sucursal del cliente se crea ACTIVA', () => {
   // SIESA la dejo inactiva y rechazo la factura.
   const c = armarCliente(COMPRADOR, CONFIG_465)
   assert.equal(c.F201_IND_ESTADO_ACTIVO, '1')
+})
+
+test('una sucursal inactiva no se elige: si no hay activas se crea o activa la del .env', () => {
+  // 15 de septiembre de 2026: "La sucursal 001 del cliente no esta activa".
+  // elegirSucursal recibe SOLO las activas; vacio = crear/activar.
+  assert.deepEqual(elegirSucursal([]), { sucursal: '001', crear: true })
+  assert.deepEqual(elegirSucursal(['002']), { sucursal: '002', crear: false })
 })
