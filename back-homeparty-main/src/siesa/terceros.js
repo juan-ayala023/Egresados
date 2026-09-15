@@ -455,6 +455,9 @@ export async function asegurarTercero(comprador, { configuracion } = {}) {
     // La tabla manda: si a pesar del texto el tercero quedo, se sigue.
     const despues = await consultarTercero(nit)
     if (!despues.existe) {
+      // El XML tal cual salio: es la unica forma de ver que campo llego nulo
+      // cuando Pangea contesta "Value cannot be null" sin decir cual.
+      console.error(`[siesa] XML enviado a Tercero para ${nit}: ${String(cli.lastRequest ?? '').replace(/\s+/g, ' ').slice(0, 4000)}`)
       throw new ErrorSiesaFactura(`SIESA rechazo el tercero: ${falloTercero.slice(0, 400)}`, { tipo: 'rechazo' })
     }
     console.warn(`[siesa] Tercero ${nit} respondio con texto pero quedo creado: ${falloTercero.slice(0, 200)}`)
