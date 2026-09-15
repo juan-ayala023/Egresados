@@ -147,6 +147,45 @@ export const pendientesDeFactura = (limite = 50) =>
      LIMIT ?`).all(limite)
 
 /**
+ * Reintenta las facturas que fallaron POR RED, no por SIESA.
+ *
+ * 15 de septiembre de 2026: Pangea (10.90.11.140) estuvo inalcanzable un rato
+ * y siete pagos quedaron con "ECONNRESET" / "ETIMEDOUT" / "EHOSTUNREACH" en
+ * siesa_error, esperando a que alguien corriera el script a mano. Un fallo
+ * de red se arregla solo con el tiempo; un rechazo de SIESA ("la sucursal no
+ * esta activa") necesita a una persona, y reintentarlo cada rato solo llena
+ * el log. Por eso el filtro por el texto del error.
+ *
+ * Una a la vez, a proposito: si Pangea sigue caido, no vale la pena
+ * martillarlo con diez llamadas en paralelo.
+ */
+const ERRORES_DE_RED = /ECONNRESET|ETIMEDOUT|EHOSTUNREACH|ECONNREFUSED|ENOTFOUND|socket hang up|timeout|No se pudo hablar|ESOCKET|ELOGIN|Failed to connect/i
+export const esErrorDeRed = (mensaje) => ERRORES_DE_RED.test(String(mensaje ?? ''))
+
+export async function reintentarFacturasDeRed({ minutosDeEspera = 5, limite = 10 } = {}) {
+  if (!facturacionActiva() || config.siesa.ensayo) return { reintentadas: 0, facturadas: 0 }
+  const corte = new Date(Date.now() - minutosDeEspera * 60_000).toISOString()
+  const filas = db.prepare(`
+    SELECT id, referencia, siesa_error
+      FROM orden
+     WHERE estado = 'pagada' AND siesa_factura IS NULL
+       AND siesa_error IS NOT NULL
+       AND (siesa_intentado_en IS NULL OR siesa_intentado_en < ?)
+     ORDER BY pagada_en ASC
+     LIMIT ?`).all(corte, limite)
+
+  let reintentadas = 0
+  let facturadas = 0
+  for (const f of filas) {
+    if (!esErrorDeRed(f.siesa_error)) continue
+    reintentadas += 1
+    const r = await facturarOrden(f.id)
+    if (r.facturada) facturadas += 1
+  }
+  return { reintentadas, facturadas }
+}
+
+/**
  * ¿Esta prendida la facturacion automatica?
  *
  * Sin WSDL configurado no hay nada que intentar, y llamar a SIESA en cada

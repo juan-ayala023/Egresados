@@ -9,6 +9,7 @@ import { totalEgresados } from './servicios/egresados.js'
 import { barrer } from './servicios/reconciliacion.js'
 import { reintentarPendientes } from './servicios/correos.js'
 import { despacharCorreo, despacharFactura } from './servicios/pagos.js'
+import { reintentarFacturasDeRed } from './servicios/facturacion.js'
 import { facturacionActiva } from './servicios/facturacion.js'
 
 // Se revisa ANTES de abrir el puerto: mas vale no arrancar que arrancar mal.
@@ -115,6 +116,20 @@ barrido.unref?.()
 // correo y ya cumplieron su espera. Corre aparte del barrido porque la primera
 // espera es de un minuto: un fallo pasajero de SMTP se resuelve solo, rapido.
 // -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Reintento de facturas que fallaron por red (Pangea o SQL Server caidos en
+// el momento del pago). Cada 10 minutos, una a la vez. Los rechazos de SIESA
+// no se reintentan solos: esos necesitan a alguien (ver el panel).
+// -----------------------------------------------------------------------------
+const facturas = setInterval(() => {
+  reintentarFacturasDeRed()
+    .then((c) => {
+      if (c.reintentadas) console.log(`[siesa] reintento por red: ${c.facturadas}/${c.reintentadas} facturada(s)`)
+    })
+    .catch((e) => console.error('[siesa] Fallo el reintento de facturas:', e.message))
+}, 10 * CADA_MINUTO)
+facturas.unref?.()
+
 const correos = setInterval(() => {
   reintentarPendientes()
     .then((c) => {

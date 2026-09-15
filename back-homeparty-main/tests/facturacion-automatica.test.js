@@ -147,3 +147,30 @@ test('los ultimos cuatro de la tarjeta se guardan con el pago', async () => {
   assert.equal(orden.estado, 'pagada')
   assert.equal(orden.ultimos_cuatro, '4242')
 })
+
+test('el reintento automatico solo toma las que fallaron por red', async () => {
+  // 15 de septiembre de 2026: Pangea inalcanzable un rato dejo siete facturas
+  // esperando a que alguien corriera el script. Un rechazo de SIESA no se
+  // reintenta solo: ese necesita a una persona.
+  const { reintentarFacturasDeRed } = await import('../src/servicios/facturacion.js')
+  const red = ordenPagada({ referencia: 'HC80-RED001' })
+  const siesa = ordenPagada({ referencia: 'HC80-RECHAZ' })
+  const hace10 = new Date(Date.now() - 10 * 60_000).toISOString()
+  db.prepare(`UPDATE orden SET siesa_error = ?, siesa_intentado_en = ? WHERE id = ?`)
+    .run('SIESA rechazo la factura: read ECONNRESET', hace10, red)
+  db.prepare(`UPDATE orden SET siesa_error = ?, siesa_intentado_en = ? WHERE id = ?`)
+    .run('SIESA rechazo la factura: La sucursal 001 del cliente no esta activa', hace10, siesa)
+
+  // En esta prueba SIESA esta en ensayo y sin WSDL: no reintenta nada, pero
+  // tampoco revienta.
+  const r = await reintentarFacturasDeRed()
+  assert.equal(r.reintentadas, 0)
+
+  // El filtro, que es lo que importa.
+  const { esErrorDeRed } = await import('../src/servicios/facturacion.js')
+  assert.equal(esErrorDeRed('SIESA rechazo la factura: read ECONNRESET'), true)
+  assert.equal(esErrorDeRed('connect EHOSTUNREACH 10.90.11.140:8082'), true)
+  assert.equal(esErrorDeRed('SIESA rechazo la factura: read ETIMEDOUT'), true)
+  assert.equal(esErrorDeRed('SIESA rechazo la factura: La sucursal 001 del cliente no esta activa'), false)
+  assert.equal(esErrorDeRed('SIESA rechazo el tercero: El dato es obligatorio'), false)
+})
