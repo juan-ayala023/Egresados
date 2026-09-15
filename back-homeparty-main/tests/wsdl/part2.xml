@@ -1,0 +1,219 @@
+<xs:schema elementFormDefault="qualified" targetNamespace="http://schemas.datacontract.org/2004/07/CRM.SERVICIOS" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://schemas.datacontract.org/2004/07/CRM.SERVICIOS">
+  <xs:complexType name="Factura_Financiera">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="F311_ID_COND_PAGO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F311_ID_MONEDA_DOCTO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F311_ID_SUCURSAL_CLI" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F311_ID_TERCERO_VENDEDOR" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F311_ID_TIPO_CLI" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F311_NUMERO_ORDEN_COMPRA" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F311_REFERENCIA" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F350_CONSEC_DOCTO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F350_FECHA" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F350_ID_CLASE_DOCTO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F350_ID_CO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F350_ID_TERCERO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F350_ID_TIPO_DOCTO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F350_IND_ESTADO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F350_NOTAS" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F_CIA" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="MOVIMIENTOS" nillable="true" type="tns:ArrayOfFactura_Financiera_Movimiento"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="Factura_Financiera" nillable="true" type="tns:Factura_Financiera"/>
+  <xs:complexType name="ArrayOfFactura_Financiera_Movimiento">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="Factura_Financiera_Movimiento" nillable="true" type="tns:Factura_Financiera_Movimiento"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfFactura_Financiera_Movimiento" nillable="true" type="tns:ArrayOfFactura_Financiera_Movimiento"/>
+  <xs:complexType name="Factura_Financiera_Movimiento">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="F320_CANTIDAD" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F320_ID_CCOSTO_MOVTO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F320_ID_CO_MOVTO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F320_ID_MOTIVO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F320_ID_SERVICIO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F320_ID_SUCURSAL_CLIENTE" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F320_ID_SUCURSAL_PROVEEDOR" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F320_ID_TERCERO_MOVTO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F320_ID_UN_MOVTO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F320_NOTAS" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F320_VLR_BRUTO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F320_VLR_DSCTO_1" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F320_VLR_DSCTO_2" nillable="true" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="Factura_Financiera_Movimiento" nillable="true" type="tns:Factura_Financiera_Movimiento"/>
+  <xs:complexType name="Tercero">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="F015_CELULAR" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F015_COD_POSTAL" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F015_CONTACTO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F015_DIRECCION1" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F015_DIRECCION2" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F015_DIRECCION3" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F015_EMAIL" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F015_FAX" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F015_ID_BARRIO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F015_ID_CIUDAD" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F015_ID_DEPTO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F015_ID_PAIS" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F015_TELEFONO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F200_APELLIDO1" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F200_APELLIDO2" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F200_DV_NIT" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F200_FECHA_NACIMIENTO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F200_ID" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F200_ID_CIIU" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F200_ID_TIPO_IDENT" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F200_IND_ACCIONISTA" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F200_IND_CLIENTE" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F200_IND_EMPLEADO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F200_IND_ESTADO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F200_IND_INTERNO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F200_IND_NO_DOMICILIADO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F200_IND_OTROS" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F200_IND_PROVEEDOR" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F200_IND_TIPO_TERCERO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F200_NIT" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F200_NOMBRES" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F200_NOMBRE_EST" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F200_RAZON_SOCIAL" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F_ACTUALIZA_REG" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F_CIA" nillable="true" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="Tercero" nillable="true" type="tns:Tercero"/>
+  <xs:complexType name="Clientes">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="F015_COD_POSTAL" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F015_CONTACTO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F015_DIRECCION1" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F015_DIRECCION2" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F015_DIRECCION3" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F015_EMAIL" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F015_FAX" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F015_ID_BARRIO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F015_ID_CIUDAD" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F015_ID_DEPTO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F015_ID_PAIS" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F015_TELEFONO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F201_CODIGO_EAN" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F201_CUPO_CREDITO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F201_DESCRIPCION_SUCURSAL" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F201_DIAS_GRACIA" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F201_FECHA_INGRESO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F201_ID_CLIENTE_CORP" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F201_ID_COND_PAGO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F201_ID_CO_FACTURA" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F201_ID_CO_MOVTO_FACTURA" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F201_ID_GRUPO_DSCTO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F201_ID_LISTA_PRECIO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F201_ID_MONEDA" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F201_ID_PARAMETRO_EDI" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F201_ID_SUCURSAL" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F201_ID_SUCURSAL_CORP" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F201_ID_TERCERO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F201_ID_TIPO_CLI" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F201_ID_UN_MOVTO_FACTURA" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F201_ID_VENDEDOR" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F201_IND_BLOQUEADO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F201_IND_BLOQUEO_CUPO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F201_IND_BLOQUEO_MORA" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F201_IND_CALIFICACION" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F201_IND_ESTADO_ACTIVO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F201_IND_FACTURA_UNIFICADA" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F201_IND_PEDIDO_BACKORDER" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F201_NOTAS" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F201_PORC_EXCESO_VENTA" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F201_PORC_MAX_MARGEN" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F201_PORC_MIN_MARGEN" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F_ACTUALIZA_REG" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F_CIA" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="f015_celular" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="f201_dia_maximo_factura" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="f201_fecha_cupo" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="f201_id_cobrador" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="f201_id_motivo_bloqueo" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="f201_id_portafolio_edi" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="f201_ind_anticipo_terc_corp" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="f201_ind_compromiso_um_emp" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="f201_porc_tolerancia" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="f201_valida_cupo_despacho" nillable="true" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="Clientes" nillable="true" type="tns:Clientes"/>
+  <xs:complexType name="CriterioCliente">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="F207_ID_CRITERIO_MAYOR" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F207_ID_PLAN_CRITERIOS" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F207_ID_SUCURSAL" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F207_ID_TERCERO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F_ACTUALIZA_REG" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F_CIA" nillable="true" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="CriterioCliente" nillable="true" type="tns:CriterioCliente"/>
+  <xs:complexType name="ReciboCaja">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="F350_CONSEC_DOCTO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F350_FECHA" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F350_ID_CLASE_DOCTO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F350_ID_CO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F350_ID_TERCERO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F350_ID_TIPO_DOCTO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F350_IND_ESTADO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F350_NOTAS" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F351_ID_AUXILIAR_AJUSTE" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F351_ID_AUXILIAR_OTRO_ING" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F351_ID_AUXILIAR_PP" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F351_ID_CCOSTO_AJUSTE" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F351_ID_CCOSTO_OTRO_ING" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F351_ID_CCOSTO_PP" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F351_ID_CO_OTRO_ING" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F351_ID_SUCURSAL_OTRO_ING" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F351_ID_TERCERO_OTRO_ING" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F351_ID_UN_OTRO_ING" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F353_CONSEC_DOCTO_CRUCE" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F353_ID_AUXILIAR_DOCTO_CRUCE" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F353_ID_CO_DOCTO_CRUCE" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F353_ID_SUCURSAL_DOCTO_CRUCE" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F353_ID_TIPO_DOCTO_CRUCE" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F353_ID_UN_DOCTO_CRUCE" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F353_NRO_CUOTA_CRUCE" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F354_VALOR_APLICADO_PP" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F354_VALOR_APROVECHA" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F354_VALOR_CR" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F354_VALOR_RETENCION" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F357_FECHA_RECAUDO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F357_ID_CAJA" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F357_ID_CCOSTO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F357_ID_COBRADOR" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F357_ID_FE" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F357_ID_MONEDA_APLICAR" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F357_ID_MONEDA_INGRESO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F357_ID_UN" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F357_IND_VALIDA_MEDPAGO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F357_REFERENCIA" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F357_VALOR_APLICAR_REAL" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F357_VALOR_INGRESO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F358_COD_SEGURIDAD" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F358_FECHA_CONSIGNACION" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F358_FECHA_VCTO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F358_ID_BANCO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F358_ID_CAUSALES_DEVOLUCION" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F358_ID_CCOSTO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F358_ID_MEDIOS_PAGO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F358_ID_TERCERO" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F358_NOTAS" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F358_NRO_AUTORIZACION" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F358_NRO_CHEQUE" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F358_NRO_CUENTA" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F358_REFERENCIA_OTROS" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F358_VALOR" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="F_CIA" nillable="true" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ReciboCaja" nillable="true" type="tns:ReciboCaja"/>
+</xs:schema>

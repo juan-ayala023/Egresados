@@ -347,6 +347,32 @@ async function obtenerCliente() {
  * se lee, un rechazo pasa por exito y la factura de despues falla sin motivo
  * aparente.
  */
+/**
+ * EL NAMESPACE DE LOS CAMPOS, PUESTO A MANO.
+ *
+ * Los campos del Tercero, del Cliente y del Criterio van en el espacio de
+ * nombres del contrato de datos (CRM.SERVICIOS), no en el de la operacion
+ * (tempuri). En la factura y el recibo node-soap lo resuelve solo, pero en
+ * estas tres operaciones el elemento del parametro se llama IGUAL que la
+ * operacion (Tercero > Tercero, Clientes > Clientes) y node-soap se pierde:
+ * deja los campos en tempuri. WCF ignora lo que viene en otro namespace, le
+ * llegan todos los campos nulos y contesta "Value cannot be null. Parameter
+ * name: String" sin decir cual.
+ *
+ * Se descubrio el 15 de septiembre de 2026 con las primeras cinco compras de
+ * gente que no existia en el ERP. Aqui cada campo lleva su xmlns explicito.
+ */
+export const ESPACIO_CRM = 'http://schemas.datacontract.org/2004/07/CRM.SERVICIOS'
+
+export function paraPangea(documento) {
+  const ordenado = ordenarParaPangea(documento)
+  const conEspacio = {}
+  for (const [campo, valor] of Object.entries(ordenado)) {
+    conEspacio[campo] = { attributes: { xmlns: ESPACIO_CRM }, $value: valor }
+  }
+  return conEspacio
+}
+
 export function respuestaFallo(respuesta) {
   const cuerpo = respuesta?.[0] ?? respuesta ?? null
 
@@ -437,7 +463,7 @@ export async function asegurarTercero(comprador, { configuracion } = {}) {
     // Tercero sin ninguna sucursal: existe la persona pero no el cliente. Se
     // crea solo la sucursal 001 y no se toca el tercero.
     const cli = await obtenerCliente()
-    const r = await cli.ClientesAsync({ Clientes: ordenarParaPangea(documentoCliente) })
+    const r = await cli.ClientesAsync({ Clientes: paraPangea(documentoCliente) })
     const fallo = respuestaFallo(r)
     if (fallo) {
       throw new ErrorSiesaFactura(`SIESA rechazo la sucursal del cliente: ${fallo}`, { tipo: 'rechazo' })
@@ -448,7 +474,7 @@ export async function asegurarTercero(comprador, { configuracion } = {}) {
   // 2. No esta: se crea la persona y despues su sucursal.
   const cli = await obtenerCliente()
 
-  const rTercero = await cli.TerceroAsync({ Tercero: ordenarParaPangea(documentoTercero) })
+  const rTercero = await cli.TerceroAsync({ Tercero: paraPangea(documentoTercero) })
   console.log(`[siesa] respuesta de Tercero para ${nit}: ${JSON.stringify(rTercero?.[0] ?? rTercero ?? '').slice(0, 600)}`)
   const falloTercero = respuestaFallo(rTercero)
   if (falloTercero) {
@@ -463,7 +489,7 @@ export async function asegurarTercero(comprador, { configuracion } = {}) {
     console.warn(`[siesa] Tercero ${nit} respondio con texto pero quedo creado: ${falloTercero.slice(0, 200)}`)
   }
 
-  const rCliente = await cli.ClientesAsync({ Clientes: ordenarParaPangea(documentoCliente) })
+  const rCliente = await cli.ClientesAsync({ Clientes: paraPangea(documentoCliente) })
   console.log(`[siesa] respuesta de Clientes para ${nit}: ${JSON.stringify(rCliente?.[0] ?? rCliente ?? '').slice(0, 600)}`)
   const falloCliente = respuestaFallo(rCliente)
   if (falloCliente) {
@@ -484,7 +510,7 @@ export async function asegurarTercero(comprador, { configuracion } = {}) {
   const criterio = armarCriterio(comprador)
   if (criterio) {
     try {
-      await cli.Criterios_ClientesAsync({ CriClientes: ordenarParaPangea(criterio) })
+      await cli.Criterios_ClientesAsync({ CriClientes: paraPangea(criterio) })
     } catch (e) {
       console.warn(`[siesa] criterio del tercero ${nit} no se pudo aplicar: ${e.message}`)
     }

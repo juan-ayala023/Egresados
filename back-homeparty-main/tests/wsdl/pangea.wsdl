@@ -1,0 +1,115 @@
+<wsdl:definitions name="Pangea_Integrador" targetNamespace="http://tempuri.org/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:wsx="http://schemas.xmlsoap.org/ws/2004/09/mex" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:wsa10="http://www.w3.org/2005/08/addressing" xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy" xmlns:wsap="http://schemas.xmlsoap.org/ws/2004/08/addressing/policy" xmlns:msc="http://schemas.microsoft.com/ws/2005/12/wsdl/contract" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:wsam="http://www.w3.org/2007/05/addressing/metadata" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://tempuri.org/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/">
+  <wsdl:types>
+    <xsd:schema targetNamespace="http://tempuri.org/Imports">
+      <xsd:import schemaLocation="part1.xml" namespace="http://tempuri.org/"/>
+      <xsd:import schemaLocation="part4.xml" namespace="http://schemas.microsoft.com/2003/10/Serialization/"/>
+      <xsd:import schemaLocation="part2.xml" namespace="http://schemas.datacontract.org/2004/07/CRM.SERVICIOS"/>
+      <xsd:import schemaLocation="part3.xml" namespace="http://schemas.microsoft.com/2003/10/Serialization/Arrays"/>
+    </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="IPangea_Integrador_Financiera_Factura_InputMessage">
+    <wsdl:part name="parameters" element="tns:Financiera_Factura"/>
+  </wsdl:message>
+  <wsdl:message name="IPangea_Integrador_Financiera_Factura_OutputMessage">
+    <wsdl:part name="parameters" element="tns:Financiera_FacturaResponse"/>
+  </wsdl:message>
+  <wsdl:message name="IPangea_Integrador_Tercero_InputMessage">
+    <wsdl:part name="parameters" element="tns:Tercero"/>
+  </wsdl:message>
+  <wsdl:message name="IPangea_Integrador_Tercero_OutputMessage">
+    <wsdl:part name="parameters" element="tns:TerceroResponse"/>
+  </wsdl:message>
+  <wsdl:message name="IPangea_Integrador_Clientes_InputMessage">
+    <wsdl:part name="parameters" element="tns:Clientes"/>
+  </wsdl:message>
+  <wsdl:message name="IPangea_Integrador_Clientes_OutputMessage">
+    <wsdl:part name="parameters" element="tns:ClientesResponse"/>
+  </wsdl:message>
+  <wsdl:message name="IPangea_Integrador_Criterios_Clientes_InputMessage">
+    <wsdl:part name="parameters" element="tns:Criterios_Clientes"/>
+  </wsdl:message>
+  <wsdl:message name="IPangea_Integrador_Criterios_Clientes_OutputMessage">
+    <wsdl:part name="parameters" element="tns:Criterios_ClientesResponse"/>
+  </wsdl:message>
+  <wsdl:message name="IPangea_Integrador_Recibo_de_caja_InputMessage">
+    <wsdl:part name="parameters" element="tns:Recibo_de_caja"/>
+  </wsdl:message>
+  <wsdl:message name="IPangea_Integrador_Recibo_de_caja_OutputMessage">
+    <wsdl:part name="parameters" element="tns:Recibo_de_cajaResponse"/>
+  </wsdl:message>
+  <wsdl:portType name="IPangea_Integrador">
+    <wsdl:operation name="Financiera_Factura">
+      <wsdl:input wsaw:Action="http://tempuri.org/IPangea_Integrador/Financiera_Factura" message="tns:IPangea_Integrador_Financiera_Factura_InputMessage"/>
+      <wsdl:output wsaw:Action="http://tempuri.org/IPangea_Integrador/Financiera_FacturaResponse" message="tns:IPangea_Integrador_Financiera_Factura_OutputMessage"/>
+    </wsdl:operation>
+    <wsdl:operation name="Tercero">
+      <wsdl:input wsaw:Action="http://tempuri.org/IPangea_Integrador/Tercero" message="tns:IPangea_Integrador_Tercero_InputMessage"/>
+      <wsdl:output wsaw:Action="http://tempuri.org/IPangea_Integrador/TerceroResponse" message="tns:IPangea_Integrador_Tercero_OutputMessage"/>
+    </wsdl:operation>
+    <wsdl:operation name="Clientes">
+      <wsdl:input wsaw:Action="http://tempuri.org/IPangea_Integrador/Clientes" message="tns:IPangea_Integrador_Clientes_InputMessage"/>
+      <wsdl:output wsaw:Action="http://tempuri.org/IPangea_Integrador/ClientesResponse" message="tns:IPangea_Integrador_Clientes_OutputMessage"/>
+    </wsdl:operation>
+    <wsdl:operation name="Criterios_Clientes">
+      <wsdl:input wsaw:Action="http://tempuri.org/IPangea_Integrador/Criterios_Clientes" message="tns:IPangea_Integrador_Criterios_Clientes_InputMessage"/>
+      <wsdl:output wsaw:Action="http://tempuri.org/IPangea_Integrador/Criterios_ClientesResponse" message="tns:IPangea_Integrador_Criterios_Clientes_OutputMessage"/>
+    </wsdl:operation>
+    <wsdl:operation name="Recibo_de_caja">
+      <wsdl:input wsaw:Action="http://tempuri.org/IPangea_Integrador/Recibo_de_caja" message="tns:IPangea_Integrador_Recibo_de_caja_InputMessage"/>
+      <wsdl:output wsaw:Action="http://tempuri.org/IPangea_Integrador/Recibo_de_cajaResponse" message="tns:IPangea_Integrador_Recibo_de_caja_OutputMessage"/>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="BasicHttpBinding_IPangea_Integrador" type="tns:IPangea_Integrador">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="Financiera_Factura">
+      <soap:operation soapAction="http://tempuri.org/IPangea_Integrador/Financiera_Factura" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Tercero">
+      <soap:operation soapAction="http://tempuri.org/IPangea_Integrador/Tercero" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Clientes">
+      <soap:operation soapAction="http://tempuri.org/IPangea_Integrador/Clientes" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Criterios_Clientes">
+      <soap:operation soapAction="http://tempuri.org/IPangea_Integrador/Criterios_Clientes" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Recibo_de_caja">
+      <soap:operation soapAction="http://tempuri.org/IPangea_Integrador/Recibo_de_caja" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="Pangea_Integrador">
+    <wsdl:port name="BasicHttpBinding_IPangea_Integrador" binding="tns:BasicHttpBinding_IPangea_Integrador">
+      <soap:address location="http://10.90.11.17:8080/SERVICIOS/Pangea_Integrador.svc"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>
