@@ -134,3 +134,26 @@ test('validarOrden usa las reglas nuevas', async () => {
   afuera.comprador.direccion = '1200 Brickell Ave 33131'
   assert.deepEqual(validarOrden(afuera).errores, {})
 })
+
+test('un correo con punto al final se limpia; uno sin dominio valido se rechaza', async () => {
+  // 15 de septiembre de 2026: "moniaarrubla@gmail.com." paso la validacion,
+  // Gmail lo rechazo 7 veces y la boleta no llego.
+  const { limpiarCorreo, validarOrden } = await import('../src/lib/validaciones.js')
+  assert.equal(limpiarCorreo('Monia@Gmail.com. '), 'monia@gmail.com')
+  const base = {
+    tipoBoletaId: 'homecoming-80', cantidad: 1,
+    comprador: {
+      nombre: 'Monica Arrubla Gomez', tipoDocumento: 'CC', cedula: '43000000', celular: '3001234567',
+      direccion: 'Cra 43A # 1-50', ciudad: 'Medellín, Antioquia', fechaNacimiento: '1980-01-01', promocion: '1998',
+    },
+    asistentes: [{ nombre: 'Monica Arrubla Gomez', tipoDocumento: 'CC', cedula: '43000000', promocion: '1998' }],
+    aceptaTratamientoDatos: true, aceptaTerminos: true,
+  }
+  const conPunto = validarOrden({ ...base, comprador: { ...base.comprador, correo: 'moniaarrubla@gmail.com.' } })
+  assert.equal(conPunto.errores['comprador.correo'], undefined)
+  assert.equal(conPunto.datos.comprador.correo, 'moniaarrubla@gmail.com')
+  const sinDominio = validarOrden({ ...base, comprador: { ...base.comprador, correo: 'monia@gmail' } })
+  assert.ok(sinDominio.errores['comprador.correo'])
+  const dosPuntos = validarOrden({ ...base, comprador: { ...base.comprador, correo: 'monia@gmail..com' } })
+  assert.ok(dosPuntos.errores['comprador.correo'])
+})

@@ -11,7 +11,10 @@
 import { config } from '../config.js'
 import { validarDireccion, validarCiudad, esCiudadConocida } from './direcciones.js'
 
-const RE_CORREO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+// El dominio tiene que terminar en letras: el 15 de septiembre de 2026 una
+// compradora escribio "...@gmail.com." (punto al final), la regla anterior lo
+// acepto, Gmail lo rechazo 7 veces y la boleta no le llego.
+const RE_CORREO = /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)*\.[a-zA-Z]{2,}$/
 const ANIO_MINIMO_PROMOCION = 1948
 export const NO_EGRESADO = 'no-egresado'
 
@@ -71,8 +74,11 @@ export const normalizarTipoDocumento = (valor) => {
   return TIPOS_DOCUMENTO.includes(v) ? v : TIPO_DOCUMENTO_POR_DEFECTO
 }
 
+/** Sin espacios ni puntos sobrantes al final, y en minuscula. */
+export const limpiarCorreo = (valor) => limpio(valor).replace(/[.\s]+$/, '').toLowerCase()
+
 function validarCorreo(valor) {
-  if (!RE_CORREO.test(limpio(valor))) return 'Escribe un correo valido.'
+  if (!RE_CORREO.test(limpiarCorreo(valor))) return 'Escribe un correo valido.'
   return null
 }
 
@@ -251,7 +257,7 @@ export function validarOrden(cuerpo) {
       nombre: limpio(c.nombre),
       tipoDocumento: normalizarTipoDocumento(c.tipoDocumento),
       cedula: soloDigitos(c.cedula),
-      correo: limpio(c.correo).toLowerCase(),
+      correo: limpiarCorreo(c.correo),
       celular: soloDigitos(c.celular),
       direccion: limpio(c.direccion) || null,
       ciudad: limpio(c.ciudad) || null,
@@ -262,7 +268,7 @@ export function validarOrden(cuerpo) {
       nombre: limpio(a.nombre),
       tipoDocumento: normalizarTipoDocumento(a.tipoDocumento),
       cedula: soloDigitos(a.cedula) || null,
-      correo: limpio(a.correo).toLowerCase() || null,
+      correo: limpiarCorreo(a.correo) || null,
       celular: soloDigitos(a.celular) || null,
       promocion: limpio(a.promocion),
       esEgresado: esEgresado(a.promocion),

@@ -199,7 +199,9 @@ export default function Checkout({ boleta, cantidad, onClose }: Props) {
          persona y en la puerta se cruza con la cedula. */
       if (a.nombre.trim().split(/\s+/).length < 2) nuevos[`${i}-nombre`] = 'Escribe nombre y apellidos.';
       if (a.cedula.trim().length < 6) nuevos[`${i}-cedula`] = 'Mínimo 6 dígitos.';
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(a.correo)) nuevos[`${i}-correo`] = 'Correo no válido.';
+      /* Misma regla que el servidor: el dominio termina en letras (sin punto
+         al final, que Gmail rechaza). Se limpian puntos y espacios sobrantes. */
+      if (!/^[^\s@]+@[^\s@.]+(\.[^\s@.]+)*\.[a-zA-Z]{2,}$/.test(a.correo.trim().replace(/[.\s]+$/, ''))) nuevos[`${i}-correo`] = 'Correo no válido.';
       if (a.celular.replace(/\D/g, '').length < 10) nuevos[`${i}-celular`] = 'Mínimo 10 dígitos.';
       /* Solo QUIEN COMPRA (índice 0) tiene que poner su año de grado.
          Para los acompañantes es opcional: quien compra sabe el suyo, pero
