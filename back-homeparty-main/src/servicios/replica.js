@@ -100,7 +100,7 @@ const TABLAS = {
       // Al mediodia UTC a proposito: un DATE a medianoche se corre un dia si
       // el driver lo pasa por otra zona horaria.
       ['fecha_nacimiento', 'DATE', (v) => (v ? new Date(`${String(v).slice(0, 10)}T12:00:00Z`) : null)],
-      ['promocion', 'NVARCHAR(10)', texto],
+      ['promocion', 'NVARCHAR(50)', texto],
       ['egresado_verificado', 'BIT', booleano],
       ['acepta_datos', 'BIT', booleano],
       ['acepta_terminos', 'BIT', booleano],
@@ -119,7 +119,7 @@ const TABLAS = {
       ['cedula', 'NVARCHAR(20)', texto],
       ['correo', 'NVARCHAR(120)', texto],
       ['celular', 'NVARCHAR(20)', texto],
-      ['promocion', 'NVARCHAR(10)', texto],
+      ['promocion', 'NVARCHAR(50)', texto],
       ['es_egresado', 'BIT', booleano],
       ['correo_enviado_en', 'DATETIME2(0)', fecha],
     ],
@@ -208,6 +208,14 @@ async function enviarFila(conexion, nombre, fila) {
   for (const [columna, tipo, leer] of t.columnas) {
     let valor = leer(fila[columna])
     if (valor instanceof Date && !tipo.startsWith('DATE ')) valor = aBogota(valor)
+    // Un texto mas largo que la columna tumba la fila entera con un error de
+    // TDS (16 de septiembre de 2026: una "promocion" de mas de 10 letras).
+    // Se recorta y se avisa; mejor una fila con un campo cortado que sin fila.
+    const largo = /NVARCHAR\((\d+)\)/.exec(tipo)
+    if (largo && typeof valor === 'string' && valor.length > Number(largo[1])) {
+      console.warn(`[replica] ${nombre}.${columna} recortado a ${largo[1]} (fila ${fila[t.clave]})`)
+      valor = valor.slice(0, Number(largo[1]))
+    }
     req.input(columna, tipoSql(tipo), valor)
     nombres.push(columna)
   }
