@@ -159,7 +159,10 @@ export const pendientesDeFactura = (limite = 50) =>
  * Una a la vez, a proposito: si Pangea sigue caido, no vale la pena
  * martillarlo con diez llamadas en paralelo.
  */
-const ERRORES_DE_RED = /ECONNRESET|ETIMEDOUT|EHOSTUNREACH|ECONNREFUSED|ENOTFOUND|socket hang up|timeout|No se pudo hablar|ESOCKET|ELOGIN|Failed to connect/i
+// "Error desconocido" es lo que contesta Pangea cuando SIESA no esta bien
+// (16 de septiembre de 2026, dos pagos a las 7:30 de la manana; a las 10
+// salieron sin cambiar nada). Es transitorio, asi que se reintenta igual.
+const ERRORES_DE_RED = /ECONNRESET|ETIMEDOUT|EHOSTUNREACH|ECONNREFUSED|ENOTFOUND|socket hang up|timeout|No se pudo hablar|ESOCKET|ELOGIN|Failed to connect|Error desconocido/i
 export const esErrorDeRed = (mensaje) => ERRORES_DE_RED.test(String(mensaje ?? ''))
 
 export async function reintentarFacturasDeRed({ minutosDeEspera = 5, limite = 10 } = {}) {

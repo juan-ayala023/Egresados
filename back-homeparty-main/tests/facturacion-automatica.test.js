@@ -171,6 +171,7 @@ test('el reintento automatico solo toma las que fallaron por red', async () => {
   assert.equal(esErrorDeRed('SIESA rechazo la factura: read ECONNRESET'), true)
   assert.equal(esErrorDeRed('connect EHOSTUNREACH 10.90.11.140:8082'), true)
   assert.equal(esErrorDeRed('SIESA rechazo la factura: read ETIMEDOUT'), true)
+  assert.equal(esErrorDeRed('SIESA rechazo el tercero: Error desconocido'), true)
   assert.equal(esErrorDeRed('SIESA rechazo la factura: La sucursal 001 del cliente no esta activa'), false)
   assert.equal(esErrorDeRed('SIESA rechazo el tercero: El dato es obligatorio'), false)
 })
