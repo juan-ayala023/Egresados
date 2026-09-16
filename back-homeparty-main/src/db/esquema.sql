@@ -141,3 +141,13 @@ CREATE TABLE IF NOT EXISTS egresado (
   cargado_en  TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_egresado_promocion ON egresado (promocion);
+
+-- Que se le mando ya al SQL Server del colegio (replica), y con que contenido.
+-- Ver src/servicios/replica.js.
+CREATE TABLE IF NOT EXISTS replica_huella (
+  tabla      TEXT NOT NULL,
+  clave      TEXT NOT NULL,
+  huella     TEXT NOT NULL,
+  enviada_en TEXT NOT NULL,
+  PRIMARY KEY (tabla, clave)
+);

@@ -270,6 +270,18 @@ export const config = {
     // Es el mismo nombre que usa la plataforma del colegio en sus OPENQUERY.
     servidorErp: texto('SIESA_LINKED_SERVER', 'CSERPDB'),
   },
+
+  // --- Replica de las ventas al SQL Server del colegio -------------------
+  // Pedido de Don Luis (15 de septiembre de 2026): las ventas tienen que
+  // estar en su SQL Server, donde tiene backups y reportes. Usa la misma
+  // conexion de MSSQL_* que SIESA, pero escribe en otra base. Ver
+  // src/servicios/replica.js. Solo crea y escribe tablas con el prefijo:
+  // nada mas de esa base se toca.
+  replica: {
+    activa: booleano('REPLICA_SQLSERVER', false),
+    baseDatos: texto('REPLICA_BASE', 'EventosTCS'),
+    prefijo: texto('REPLICA_PREFIJO', 'homecoming_'),
+  },
 }
 
 // -----------------------------------------------------------------------------

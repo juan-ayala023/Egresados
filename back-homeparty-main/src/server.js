@@ -10,6 +10,7 @@ import { barrer } from './servicios/reconciliacion.js'
 import { reintentarPendientes } from './servicios/correos.js'
 import { despacharCorreo, despacharFactura } from './servicios/pagos.js'
 import { reintentarFacturasDeRed } from './servicios/facturacion.js'
+import { replicar, replicaActiva } from './servicios/replica.js'
 import { facturacionActiva } from './servicios/facturacion.js'
 
 // Se revisa ANTES de abrir el puerto: mas vale no arrancar que arrancar mal.
@@ -34,6 +35,7 @@ const servidor = app.listen(config.puerto, () => {
   }
   // Que se vea de una: el 14 de septiembre de 2026 el API corrio un dia
   // entero en ensayo sin que nadie lo notara, porque el arranque no lo decia.
+  console.log(`  Replica SQL     ${replicaActiva() ? `activa: ${config.replica.baseDatos}.dbo.${config.replica.prefijo}* cada minuto` : 'apagada'}`)
   console.log(`  SIESA           ${!facturacionActiva() ? 'sin configurar (no se factura)'
     : config.siesa.ensayo ? 'ENSAYO: los documentos se arman pero NO se envian al ERP'
     : 'REAL: factura y recibo se emiten en el ERP al confirmar cada pago'}`)
@@ -129,6 +131,21 @@ const facturas = setInterval(() => {
     .catch((e) => console.error('[siesa] Fallo el reintento de facturas:', e.message))
 }, 10 * CADA_MINUTO)
 facturas.unref?.()
+
+// -----------------------------------------------------------------------------
+// Replica al SQL Server del colegio (Don Luis). Cada minuto, lo que cambio.
+// Si esta apagada (REPLICA_SQLSERVER=false) no hace nada.
+// -----------------------------------------------------------------------------
+if (replicaActiva()) {
+  const replica = setInterval(() => {
+    replicar()
+      .then((c) => {
+        if (c.enviadas || c.errores) console.log(`[replica] ${c.enviadas} fila(s) enviada(s), ${c.errores} con error`)
+      })
+      .catch((e) => console.error('[replica] Fallo el barrido:', e.message))
+  }, CADA_MINUTO)
+  replica.unref?.()
+}
 
 const correos = setInterval(() => {
   reintentarPendientes()

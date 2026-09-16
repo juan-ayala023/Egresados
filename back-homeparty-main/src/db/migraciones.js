@@ -117,6 +117,20 @@ const MIGRACIONES = [
       `ALTER TABLE comprador ADD COLUMN fecha_nacimiento TEXT`,
     ],
   },
+  {
+    nombre: '008-replica-huellas',
+    // Que se le mando ya al SQL Server del colegio, y con que contenido.
+    // Ver src/servicios/replica.js.
+    sql: [
+      `CREATE TABLE IF NOT EXISTS replica_huella (
+         tabla      TEXT NOT NULL,
+         clave      TEXT NOT NULL,
+         huella     TEXT NOT NULL,
+         enviada_en TEXT NOT NULL,
+         PRIMARY KEY (tabla, clave)
+       )`,
+    ],
+  },
 ]
 
 /** Columnas que ya existen en una tabla. */

@@ -20,7 +20,8 @@
     "facturar": "node scripts/facturar.js",
     "listar-siesa": "node scripts/listar-siesa.js",
     "respaldo": "node scripts/respaldo.js",
-    "desbloquear-clientes": "node scripts/desbloquear-clientes.js"
+    "desbloquear-clientes": "node scripts/desbloquear-clientes.js",
+    "replicar": "node scripts/replicar.js"
   },
   "dependencies": {
     "better-sqlite3": "^11.10.0",
