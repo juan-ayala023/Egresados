@@ -21,7 +21,8 @@
     "listar-siesa": "node scripts/listar-siesa.js",
     "respaldo": "node scripts/respaldo.js",
     "desbloquear-clientes": "node scripts/desbloquear-clientes.js",
-    "replicar": "node scripts/replicar.js"
+    "replicar": "node scripts/replicar.js",
+    "rescatar": "node scripts/rescatar-orden.js"
   },
   "dependencies": {
     "better-sqlite3": "^11.10.0",
