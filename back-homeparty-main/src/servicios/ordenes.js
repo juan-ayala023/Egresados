@@ -99,6 +99,45 @@ const q = {
            wompi_transaction_id = ?, metodo_pago = ?, franquicia = ?
      WHERE id = ? AND estado = 'pendiente'`),
 
+  // REABRIR UNA ORDEN CERRADA (22 de septiembre de 2026).
+  //
+  // Wompi deja reintentar el pago con la MISMA referencia. Tres personas
+  // pagaron asi: el primer intento les fue rechazado -- la orden quedo
+  // 'rechazada' y el cupo liberado -- y el segundo intento, segundos despues,
+  // fue aprobado. Ese pago entro al colegio y nadie lo supo: confirmarPago
+  // solo actuaba sobre ordenes 'pendiente', asi que no hubo boleta ni factura.
+  //
+  // Por eso una orden cerrada puede volver a 'pagada' si llega un pago
+  // aprobado. No se toca 'anulada': esa la cerro una persona a proposito.
+  reabrirComoPagada: db.prepare(`
+    UPDATE orden
+       SET estado = 'pagada', pagada_en = ?, cerrada_en = NULL, motivo_cierre = NULL,
+           wompi_transaction_id = ?, metodo_pago = ?, franquicia = ?,
+           ultimos_cuatro = ?, autorizacion_banco = ?
+     WHERE id = ? AND estado IN ('rechazada','expirada')`),
+
+  // Entro el pago pero ya no queda cupo. No se emiten boletas: se deja el
+  // estado que el panel muestra como alerta critica para reembolsar.
+  reabrirSinCupo: db.prepare(`
+    UPDATE orden
+       SET estado = 'pagada_sin_cupo', pagada_en = ?, cerrada_en = ?,
+           motivo_cierre = 'Entro el pago cuando ya no habia cupo',
+           wompi_transaction_id = ?, metodo_pago = ?, franquicia = ?,
+           ultimos_cuatro = ?, autorizacion_banco = ?
+     WHERE id = ? AND estado IN ('rechazada','expirada')`),
+
+  // La reserva se habia liberado al rechazar: vuelve a contar como vendida.
+  recuperarReserva: db.prepare(
+    `UPDATE reserva_cupo SET estado = 'consumida' WHERE orden_id = ?`),
+
+  // Ordenes cerradas hace poco: hay que preguntarle a Wompi si al final
+  // alguien pago con otro intento. Ver reabrirComoPagada.
+  cerradasRecientes: db.prepare(`
+    SELECT * FROM orden
+     WHERE estado IN ('rechazada','expirada') AND cerrada_en >= ?
+     ORDER BY cerrada_en DESC
+     LIMIT ?`),
+
   // El id de transaccion se guarda apenas se conoce (vuelve en el redirect),
   // no solo al confirmar el pago: sin el no se le puede preguntar nada a la
   // pasarela, y es justo lo que necesita el barrido.
@@ -315,8 +354,36 @@ export function confirmarPago(referencia, { estadoDestino, transactionId, metodo
     const orden = q.porReferencia.get(referencia)
     if (!orden) throw errores.noEncontrado('La orden')
 
+    // Una orden ya cerrada puede reabrirse SOLO si el pago fue aprobado (ver
+    // reabrirComoPagada). Cualquier otro caso se queda como esta.
     if (orden.estado !== 'pendiente') {
-      return { cambio: false, estado: orden.estado, ordenId: orden.id }
+      if (estadoDestino !== 'pagada' || !['rechazada', 'expirada'].includes(orden.estado)) {
+        return { cambio: false, estado: orden.estado, ordenId: orden.id }
+      }
+
+      // ¿Todavia cabe? El aforo manda: si ya se vendio lo que habia, no se
+      // emiten boletas y queda la alerta para reembolsar.
+      const d = disponibilidad()
+      const datos = [ahora(), transactionId ?? null, metodoPago ?? null, franquicia,
+        ultimosCuatro ?? null, autorizacionBanco ?? null, orden.id]
+
+      if (orden.cantidad > d.disponibles) {
+        q.reabrirSinCupo.run(ahora(), ahora(), ...datos.slice(1))
+        console.error(
+          `[orden] ${orden.referencia}: entro un pago aprobado sobre una orden `
+          + `${orden.estado} y NO queda cupo (${d.disponibles}). Revisar y reembolsar.`,
+        )
+        return { cambio: true, estado: 'pagada_sin_cupo', ordenId: orden.id }
+      }
+
+      q.reabrirComoPagada.run(...datos)
+      q.recuperarReserva.run(orden.id)
+      emitirBoletas(orden.id)
+      console.warn(
+        `[orden] ${orden.referencia}: estaba ${orden.estado} y entro un pago `
+        + `aprobado (${transactionId}). Se reabrio y se emitieron las boletas.`,
+      )
+      return { cambio: true, estado: 'pagada', ordenId: orden.id, reabierta: true }
     }
 
     if (estadoDestino === 'pagada') {
@@ -503,6 +570,10 @@ export const guardarTransaccion = (ordenId, idTransaccion) =>
   q.guardarTransaccion.run(idTransaccion, ordenId).changes > 0
 
 /** Ordenes pendientes creadas hace mas de N minutos. */
+/** Ordenes cerradas en las ultimas N horas, para preguntarle a Wompi por ellas. */
+export const cerradasRecientes = (horas = 72, limite = 50) =>
+  q.cerradasRecientes.all(new Date(Date.now() - horas * 3600_000).toISOString(), limite)
+
 export const pendientesViejas = (minutos, limite = 50) =>
   q.pendientesViejas.all(enMinutos(-minutos), limite)
 

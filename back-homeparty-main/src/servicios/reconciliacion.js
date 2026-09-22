@@ -30,7 +30,7 @@ import {
 import { enMinutos } from '../lib/fechas.js'
 import { aplicarPago } from './pagos.js'
 import {
-  buscarPorReferencia, pendientesViejas, guardarTransaccion, extenderReserva,
+  buscarPorReferencia, pendientesViejas, cerradasRecientes, guardarTransaccion, extenderReserva,
 } from './ordenes.js'
 
 /**
@@ -41,7 +41,11 @@ import {
  *                    correoPara: number|null}>}
  */
 export async function reconciliarOrden(orden) {
-  if (orden.estado !== 'pendiente') {
+  // Las cerradas (rechazada/expirada) tambien se revisan: Wompi deja
+  // reintentar con la misma referencia, y ese segundo intento puede haber
+  // sido aprobado sin que nos enteraramos (22 de septiembre de 2026).
+  const cerrada = ['rechazada', 'expirada'].includes(orden.estado)
+  if (orden.estado !== 'pendiente' && !cerrada) {
     return { consultada: false, estado: orden.estado, correoPara: null, motivo: 'ya no esta pendiente' }
   }
 
@@ -52,7 +56,10 @@ export async function reconciliarOrden(orden) {
      este barrido no podia rescatarlo, porque tampoco tenia que consultar.
 
      La referencia SI la tenemos siempre: es nuestra. Se busca por ella. */
-  let idTransaccion = orden.wompi_transaction_id
+  // EN UNA ORDEN CERRADA SE IGNORA EL ID GUARDADO. Ese es el del intento que
+  // fallo, y preguntar por el siempre dira "rechazado". Lo que hay que buscar
+  // es si HAY un pago aprobado para esa referencia.
+  let idTransaccion = cerrada ? null : orden.wompi_transaction_id
   if (!idTransaccion) {
     try {
       const encontrada = await buscarPagoPorReferencia(orden.referencia)
@@ -149,9 +156,12 @@ export async function reconciliarPorRedirect(referencia, idTransaccion) {
 export async function barrer({ minutosDeGracia = 10, limite = 50 } = {}) {
   if (enSimulacion()) return { revisadas: 0, motivo: 'simulacion' }
 
-  const ordenes = pendientesViejas(minutosDeGracia, limite)
+  // Las pendientes de siempre, MAS las cerradas de los ultimos tres dias por
+  // si alguna termino pagandose en un segundo intento.
+  const ordenes = [...pendientesViejas(minutosDeGracia, limite), ...cerradasRecientes(72, limite)]
   const conteo = {
     revisadas: ordenes.length,
+    reabiertas: 0,
     pagadas: 0,
     rechazadas: 0,
     siguenPendientes: 0,
@@ -165,7 +175,8 @@ export async function barrer({ minutosDeGracia = 10, limite = 50 } = {}) {
 
     if (r.motivo === 'SIN_TRANSACCION') conteo.sinTransaccion++
     else if (!r.consultada) conteo.errores++
-    else if (r.estado === 'pagada') conteo.pagadas++
+    else if (r.estado === 'pagada') { conteo.pagadas++; if (orden.estado !== 'pendiente') conteo.reabiertas++ }
+    else if (r.estado === 'pagada_sin_cupo') conteo.reabiertas++
     else if (r.estado === 'rechazada') conteo.rechazadas++
     else if (r.estado === 'pendiente') conteo.siguenPendientes++
 
