@@ -26,6 +26,11 @@
 //      Un fallo aqui no toca ni el pago, ni las boletas, ni el correo.
 //   3. Respeta SIESA_ENSAYO. Mientras este en true no se manda nada al ERP:
 //      arma los documentos, los deja en el log y anota que fue ensayo.
+//   4. VA DE A UNA. Pangea no aguanta dos facturas al tiempo: responde "El
+//      numero de registro debe ser unico en el archivo" y las pierde las dos.
+//      Se descubrio el 22 de septiembre de 2026 rescatando tres pagos juntos;
+//      con ventas normales no se notaba porque entran espaciadas. Desde
+//      entonces todas las llamadas hacen fila (ver enFila).
 // -----------------------------------------------------------------------------
 import { db } from '../db/index.js'
 import { config } from '../config.js'
@@ -93,7 +98,27 @@ async function completarDatosTarjeta(orden) {
  * @returns {Promise<{facturada:boolean, ensayo?:boolean, motivo?:string,
  *                    numeroFactura?:string, numeroRecibo?:string}>}
  */
+/**
+ * LA FILA. Una sola factura a la vez contra el ERP.
+ *
+ * Es una cadena de promesas: cada llamada espera a que termine la anterior.
+ * No hace falta nada mas sofisticado -- son unas pocas por minuto en el peor
+ * dia -- y asi el orden de emision es el orden en que se pago.
+ */
+let fila = Promise.resolve()
+
+function enFila(tarea) {
+  const turno = fila.then(tarea, tarea)
+  // La fila no se puede romper por un fallo: el siguiente igual tiene turno.
+  fila = turno.catch(() => {})
+  return turno
+}
+
 export async function facturarOrden(ordenId) {
+  return enFila(() => facturarOrdenAhora(ordenId))
+}
+
+async function facturarOrdenAhora(ordenId) {
   const orden = q.porId.get(ordenId)
   if (!orden) return { facturada: false, motivo: 'La orden no existe' }
 

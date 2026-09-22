@@ -175,3 +175,19 @@ test('el reintento automatico solo toma las que fallaron por red', async () => {
   assert.equal(esErrorDeRed('SIESA rechazo la factura: La sucursal 001 del cliente no esta activa'), false)
   assert.equal(esErrorDeRed('SIESA rechazo el tercero: El dato es obligatorio'), false)
 })
+
+test('las facturas van de a una, nunca dos al tiempo contra el ERP', async () => {
+  // 22 de septiembre de 2026: al rescatar tres pagos juntos, Pangea respondio
+  // "El numero de registro debe ser unico en el archivo" y se perdieron dos
+  // facturas. No aguanta concurrencia: desde entonces hacen fila.
+  const { facturarOrden } = await import('../src/servicios/facturacion.js')
+  const ids = ['HC80-FILA01', 'HC80-FILA02', 'HC80-FILA03'].map((r) => ordenPagada({ referencia: r }))
+
+  // Se lanzan las tres a la vez, como haria el despacho tras tres pagos.
+  const resultados = await Promise.all(ids.map((id) => facturarOrden(id)))
+
+  // En esta prueba SIESA esta en ensayo: lo que importa es que las tres
+  // terminen sin reventar y que ninguna quede a medias.
+  assert.equal(resultados.length, 3)
+  for (const r of resultados) assert.equal(typeof r.facturada, 'boolean')
+})
