@@ -277,6 +277,13 @@ export const config = {
   // conexion de MSSQL_* que SIESA, pero escribe en otra base. Ver
   // src/servicios/replica.js. Solo crea y escribe tablas con el prefijo:
   // nada mas de esa base se toca.
+  // --- Cortesias ---------------------------------------------------------
+  // Invitaciones que entrega el colegio (profesores, invitados especiales).
+  // No se pagan, no se facturan, y POR DEFECTO NO CONSUMEN EL AFORO de las
+  // boletas en venta: el comite las pidio como adicionales (6 de octubre de
+  // 2026). Si algun dia tienen que salir de las 500, se pone en true.
+  cortesiasEnAforo: booleano('CORTESIAS_EN_AFORO', false),
+
   replica: {
     activa: booleano('REPLICA_SQLSERVER', false),
     baseDatos: texto('REPLICA_BASE', 'EventosTCS'),

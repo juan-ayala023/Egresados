@@ -70,6 +70,7 @@ const TABLAS = {
       ['franquicia', 'NVARCHAR(30)', texto],
       ['ultimos_cuatro', 'NVARCHAR(4)', texto],
       ['autorizacion_banco', 'NVARCHAR(30)', texto],
+      ['es_cortesia', 'BIT', booleano],
       ['wompi_transaction_id', 'NVARCHAR(60)', texto],
       ['creada_en', 'DATETIME2(0)', fecha],
       ['expira_en', 'DATETIME2(0)', fecha],

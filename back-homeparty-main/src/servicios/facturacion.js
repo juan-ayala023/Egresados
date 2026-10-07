@@ -126,6 +126,12 @@ async function facturarOrdenAhora(ordenId) {
     return { facturada: false, motivo: `La orden esta en "${orden.estado}"` }
   }
 
+  // Una cortesia no se factura: no hubo pago, no hay nada que registrar en el
+  // ERP. Se avisa asi para que en el panel no parezca un fallo.
+  if (orden.es_cortesia) {
+    return { facturada: false, motivo: 'Es una cortesia: no se factura' }
+  }
+
   // Idempotencia. Es lo primero a proposito.
   if (orden.siesa_factura) {
     return { facturada: false, motivo: `Ya tiene la factura ${orden.siesa_factura}` }
@@ -167,7 +173,7 @@ export const pendientesDeFactura = (limite = 50) =>
   db.prepare(`
     SELECT id, referencia, pagada_en, siesa_error
       FROM orden
-     WHERE estado = 'pagada' AND siesa_factura IS NULL
+     WHERE estado = 'pagada' AND siesa_factura IS NULL AND es_cortesia = 0
      ORDER BY pagada_en ASC
      LIMIT ?`).all(limite)
 
@@ -196,7 +202,7 @@ export async function reintentarFacturasDeRed({ minutosDeEspera = 5, limite = 10
   const filas = db.prepare(`
     SELECT id, referencia, siesa_error
       FROM orden
-     WHERE estado = 'pagada' AND siesa_factura IS NULL
+     WHERE estado = 'pagada' AND siesa_factura IS NULL AND es_cortesia = 0
        AND siesa_error IS NOT NULL
        AND (siesa_intentado_en IS NULL OR siesa_intentado_en < ?)
      ORDER BY pagada_en ASC

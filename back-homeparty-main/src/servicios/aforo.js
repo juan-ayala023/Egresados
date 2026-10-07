@@ -17,13 +17,22 @@ import { config } from '../config.js'
 import { ahora, enMinutos } from '../lib/fechas.js'
 
 const consultas = {
+  // Las cortesias NO cuentan como vendidas: son invitaciones del colegio y,
+  // por decision del comite (6 de octubre de 2026), van por fuera de las 500.
+  // Se cuentan aparte para saber cuanta gente entra en total.
   vendidas: db.prepare(
-    `SELECT COALESCE(SUM(cantidad), 0) AS n FROM orden WHERE estado = 'pagada'`,
+    `SELECT COALESCE(SUM(cantidad), 0) AS n FROM orden
+      WHERE estado = 'pagada' AND es_cortesia = 0`,
+  ),
+  cortesias: db.prepare(
+    `SELECT COALESCE(SUM(cantidad), 0) AS n FROM orden
+      WHERE estado = 'pagada' AND es_cortesia = 1`,
   ),
   // Mismo criterio que `vendidas`: solo lo pagado de verdad. En CENTAVOS, que
   // es como lo guarda la base; quien lo muestre divide.
   recaudado: db.prepare(
-    `SELECT COALESCE(SUM(total_centavos), 0) AS n FROM orden WHERE estado = 'pagada'`,
+    `SELECT COALESCE(SUM(total_centavos), 0) AS n FROM orden
+      WHERE estado = 'pagada' AND es_cortesia = 0`,
   ),
   reservadas: db.prepare(
     `SELECT COALESCE(SUM(cantidad), 0) AS n
@@ -54,6 +63,8 @@ const consultas = {
 }
 
 export const vendidas = () => consultas.vendidas.get().n
+/** Boletas de cortesia ya emitidas. No salen del aforo en venta. */
+export const cortesias = () => consultas.cortesias.get().n
 export const reservadas = () => consultas.reservadas.get(ahora()).n
 export const recaudado = () => consultas.recaudado.get().n
 
@@ -61,15 +72,22 @@ export const recaudado = () => consultas.recaudado.get().n
 export function disponibilidad() {
   const v = vendidas()
   const r = reservadas()
+  const c = cortesias()
+  // Si algun dia las cortesias tienen que salir de las 500, se prende
+  // CORTESIAS_EN_AFORO y empiezan a descontar como una venta mas.
+  const ocupadas = v + (config.cortesiasEnAforo ? c : 0)
   return {
     aforo: config.evento.aforo,
     vendidas: v,
+    cortesias: c,
+    // Cuanta gente entra en total: lo que necesita logistica, no tesoreria.
+    asistentes: v + c,
     reservadas: r,
-    disponibles: Math.max(0, config.evento.aforo - v - r),
+    disponibles: Math.max(0, config.evento.aforo - ocupadas - r),
     // "disponibles" se recorta en 0 para no mostrarle numeros negativos a
     // nadie, pero eso ESCONDE una sobreventa. Se reporta aparte para que el
     // panel la vea el mismo dia y no en la puerta.
-    sobreventa: Math.max(0, v - config.evento.aforo),
+    sobreventa: Math.max(0, ocupadas - config.evento.aforo),
     // Plata efectivamente recaudada, en PESOS. Se calcula en la base sobre
     // TODAS las ordenes pagadas, no sobre las que quepan en una pantalla:
     // sumar en el navegador lo que se ve daria un total falso en cuanto haya

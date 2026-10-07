@@ -77,7 +77,7 @@ function obtenerTransporte() {
  *   data URI, que es lo unico que se ve al abrirlo en el navegador.
  * @returns {Promise<{html:string, imagenes:Array}>}
  */
-async function armarCorreo(orden, boletas, { paraArchivo = false, invitadoDe = null, enviadasAparte = [] } = {}) {
+async function armarCorreo(orden, boletas, { paraArchivo = false, invitadoDe = null, enviadasAparte = [], cortesia = false } = {}) {
   // invitadoDe = nombre de quien compro, cuando este correo va para un
   // acompanante y no para el comprador. Cambia el texto: a quien no pago hay
   // que decirle POR QUE le esta llegando una boleta.
@@ -191,6 +191,33 @@ async function armarCorreo(orden, boletas, { paraArchivo = false, invitadoDe = n
 
     <tr><td style="padding:32px 30px 0;">
 
+      ${cortesia ? `
+      <!-- INVITADOS ESPECIALES. Redaccion del colegio (Astrid), 6 de octubre
+           de 2026. Va completa y sin resumen de compra: no hubo compra. -->
+      <p style="margin:0 0 18px;font-size:15px;line-height:1.65;color:${NAVY};font-weight:bold;">
+        Eres parte de este gran legado TCS
+      </p>
+      <p style="margin:0 0 18px;font-size:15px;line-height:1.65;color:#374151;">
+        Ha pasado el tiempo, pero la huella que dejaste en The Columbus School permanece
+        intacta. Hoy queremos reencontrarnos, recordar los mejores momentos y celebrar
+        contigo y junto a nuestra comunidad de egresados estos 80 años de historia para
+        revivir y recordar.
+      </p>
+      <p style="margin:0 0 18px;font-size:15px;line-height:1.65;color:#374151;">
+        Te esperamos para brindar y celebrar en grande con <b>música en vivo</b> y
+        <b>show central</b>.
+      </p>
+      <p style="margin:0 0 18px;font-size:15px;line-height:1.65;color:#374151;">
+        <b>Dress code:</b> Informal (ven como te sientas más cómodo/a, lo importante es
+        disfrutar).<br>
+        Además, tendremos <b>bar abierto</b> y <b>zona gastronómica</b> disponibles para tu
+        consumo (pagos únicamente digitales, no se recibirá efectivo).
+      </p>
+      <p style="margin:0 0 26px;font-size:15px;line-height:1.65;color:${NAVY};font-weight:bold;">
+        Esta es tu boleta de ingreso. Al llegar, solo muéstranos tu documento de identidad
+        original y este código QR. ¡Y listo!
+      </p>
+      ` : `
       <p style="margin:0 0 18px;font-size:15px;line-height:1.65;color:#374151;">
         ¡Qué emoción tenerte de vuelta en casa! Han sido 80 años de historias, risas y
         momentos inolvidables, y esta celebración no estaría completa sin ti. Prepárate
@@ -202,6 +229,7 @@ async function armarCorreo(orden, boletas, { paraArchivo = false, invitadoDe = n
           ? `${escapar(invitadoDe)} compró tu boleta para el Homecoming. Aquí está tu código QR para entrar.`
           : 'Te enviamos el código QR con tu boleta para que puedas ingresar a esta gran fiesta.'}
       </p>
+      `}
 
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f7f8fa;border-radius:12px;margin:0 0 26px;">
         <tr><td style="padding:18px 20px;">
@@ -209,7 +237,11 @@ async function armarCorreo(orden, boletas, { paraArchivo = false, invitadoDe = n
             ${fila('Número de orden', `<b style="color:${NAVY};">${escapar(orden.referencia)}</b>`)}
             ${fila('Fecha', formatoLargo(config.evento.fecha))}
             ${fila('Lugar', escapar(config.evento.lugar))}
-            ${individual
+            ${cortesia
+              // Una cortesia no tiene total: mostrar "$0" seria raro y hasta
+              // incomodo para el invitado.
+              ? fila('Boletas', String(boletas.length))
+              : individual
               // Al acompanante NO se le muestra cuanto se pago: no es su plata
               // y el dato solo le sirve a quien compro.
               ? fila('Boletas', String(boletas.length))
@@ -296,12 +328,14 @@ export async function enviarBoletas(orden, comprador, boletas, adjuntos = [], op
   // `para` permite mandarle la boleta a un acompanante en vez de a quien pago.
   // `invitadoDe` es el nombre del comprador: si viene, el correo se redacta
   // para el acompanante.
-  const { para = null, invitadoDe = null, enviadasAparte = [] } = opciones
+  const { para = null, invitadoDe = null, enviadasAparte = [], cortesia = false } = opciones
   const destinatario = para ?? comprador.correo
 
-  const asunto = invitadoDe
-    ? `Tu boleta - ${config.evento.nombre}`
-    : `${boletas.length === 1 ? 'Tu boleta' : 'Tus boletas'} - ${config.evento.nombre} (${orden.referencia})`
+  const asunto = cortesia
+    ? `Tu invitación - ${config.evento.nombre}`
+    : invitadoDe
+      ? `Tu boleta - ${config.evento.nombre}`
+      : `${boletas.length === 1 ? 'Tu boleta' : 'Tus boletas'} - ${config.evento.nombre} (${orden.referencia})`
 
   const t = obtenerTransporte()
 
@@ -309,7 +343,7 @@ export async function enviarBoletas(orden, comprador, boletas, adjuntos = [], op
   // se arma con data URI para que se vea al abrirlo en el navegador.
   let html, imagenes
   try {
-    ({ html, imagenes } = await armarCorreo(orden, boletas, { paraArchivo: !t, invitadoDe, enviadasAparte }))
+    ({ html, imagenes } = await armarCorreo(orden, boletas, { paraArchivo: !t, invitadoDe, enviadasAparte, cortesia }))
   } catch (e) {
     return { enviado: false, via: 'error', detalle: `No se pudo armar el correo: ${e.message}` }
   }

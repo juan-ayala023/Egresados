@@ -9,7 +9,7 @@ const q = {
   // repetidos al lado. Es el formato que pidio el comite para el reporte.
   filasReporte: db.prepare(`
     SELECT o.referencia, o.estado, o.cantidad, o.total_centavos, o.metodo_pago,
-           o.creada_en, o.pagada_en, o.wompi_transaction_id,
+           o.es_cortesia, o.creada_en, o.pagada_en, o.wompi_transaction_id,
            c.nombre    AS comprador_nombre,
            c.cedula    AS comprador_cedula,
            c.correo    AS comprador_correo,
@@ -50,7 +50,7 @@ const q = {
 
   ultimasVentas: db.prepare(`
     SELECT o.id, o.referencia, o.estado, o.cantidad, o.total_centavos,
-           o.creada_en, o.pagada_en, o.metodo_pago, o.correo_enviado_a,
+           o.creada_en, o.pagada_en, o.metodo_pago, o.es_cortesia, o.correo_enviado_a,
            o.siesa_factura,
            c.nombre, c.cedula, c.correo, c.celular, c.promocion
       FROM orden o
@@ -128,7 +128,8 @@ const COLUMNAS = [
   ['estado_orden', (f) => f.estado],
   ['creada_en', (f) => f.creada_en],
   ['pagada_en', (f) => f.pagada_en],
-  ['metodo_pago', (f) => f.metodo_pago],
+  ['metodo_pago', (f) => (f.es_cortesia ? 'CORTESIA' : f.metodo_pago)],
+  ['es_cortesia', (f) => (f.es_cortesia ? 'si' : 'no')],
   ['transaccion_wompi', (f) => f.wompi_transaction_id],
   ['boletas_en_la_orden', (f) => f.cantidad],
   ['total_pagado_cop', (f) => (f.total_centavos / 100).toFixed(0)],

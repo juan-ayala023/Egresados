@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS orden (
   franquicia                TEXT,             -- VISA | MASTERCARD | AMEX... solo en tarjeta
   ultimos_cuatro            TEXT,             -- de la tarjeta; SIESA lo exige en el recibo
   autorizacion_banco        TEXT,             -- codigo de aprobacion del banco (Wompi external_identifier)
+  es_cortesia               INTEGER NOT NULL DEFAULT 0,  -- invitado del colegio: no pago, no se factura
   wompi_transaction_id      TEXT,
   creada_en                 TEXT    NOT NULL,
   expira_en                 TEXT    NOT NULL,

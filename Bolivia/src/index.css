@@ -1,0 +1,91 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-ink text-ivory font-sans antialiased;
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    @apply bg-bronze/40 text-ivory;
+  }
+
+  /* Scrollbar — cálida y discreta */
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-ink;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-wood/60 rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-bronze/70;
+  }
+}
+
+@layer components {
+  /* Contenedor editorial con mucho aire */
+  .container-luxe {
+    @apply mx-auto w-full max-w-[1440px] px-6 sm:px-10 lg:px-16;
+  }
+
+  /* Etiqueta pequeña en versalitas espaciadas */
+  .eyebrow {
+    @apply font-sans text-[0.7rem] uppercase tracking-luxe text-bronze;
+  }
+
+  /* Vidrio sutil */
+  .glass {
+    @apply bg-ivory/[0.06] backdrop-blur-md border border-ivory/10;
+  }
+  .glass-dark {
+    @apply bg-ink/40 backdrop-blur-md border border-ivory/10;
+  }
+
+  /* Línea de detalle */
+  .hairline {
+    @apply h-px w-full bg-gradient-to-r from-transparent via-bronze/40 to-transparent;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .text-pretty {
+    text-wrap: pretty;
+  }
+  .mask-fade-b {
+    -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+    mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+  }
+}
+
+/* Respeto por reduce-motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

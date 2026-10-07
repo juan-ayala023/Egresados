@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" rx="7" fill="#0B0B09" />
+  <!-- Silueta A-Frame: dos aguas que bajan hasta el suelo, como la cabaña real -->
+  <path d="M16 5 L27 26 L5 26 Z" fill="#B08D57" />
+  <path d="M16 11.5 L21.8 23 L10.2 23 Z" fill="#0B0B09" />
+  <rect x="14.4" y="17.5" width="3.2" height="5.5" fill="#B08D57" />
+</svg>

@@ -131,6 +131,18 @@ const MIGRACIONES = [
        )`,
     ],
   },
+  {
+    nombre: '009-cortesias',
+    // INVITACIONES DEL COLEGIO (6 de octubre de 2026).
+    //
+    // El comite pidio invitar a profesores e invitados especiales con boletas
+    // de cortesia: no pagan, no se facturan en SIESA, y por defecto no salen
+    // de las 500 en venta. Esta columna es lo que las distingue en todas
+    // partes (aforo, facturacion, reportes, puerta).
+    sql: [
+      `ALTER TABLE orden ADD COLUMN es_cortesia INTEGER NOT NULL DEFAULT 0`,
+    ],
+  },
 ]
 
 /** Columnas que ya existen en una tabla. */
