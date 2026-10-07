@@ -143,7 +143,12 @@ async function armarCorreo(orden, boletas, { paraArchivo = false, invitadoDe = n
                 // septiembre de 2026, y decirle "invitado / no egresado" a
                 // alguien que solo dejo la casilla vacia es afirmar algo que
                 // nadie dijo.
-                b.esEgresado
+                // En una cortesia la etiqueta es "Invitado/a especial": a un
+                // profesor invitado por el colegio no se le pone "no egresado"
+                // (Astrid, 7 de octubre de 2026).
+                b.cortesia
+                  ? 'Invitado/a especial'
+                  : b.esEgresado
                   ? `Promoción ${escapar(b.promocion)}`
                   : b.promocion
                   ? 'Invitado / no egresado'
@@ -201,11 +206,8 @@ async function armarCorreo(orden, boletas, { paraArchivo = false, invitadoDe = n
         Ha pasado el tiempo, pero la huella que dejaste en The Columbus School permanece
         intacta. Hoy queremos reencontrarnos, recordar los mejores momentos y celebrar
         contigo y junto a nuestra comunidad de egresados estos 80 años de historia para
-        revivir y recordar.
-      </p>
-      <p style="margin:0 0 18px;font-size:15px;line-height:1.65;color:#374151;">
-        Te esperamos para brindar y celebrar en grande con <b>música en vivo</b> y
-        <b>show central</b>.
+        revivir y recordar. Te esperamos para brindar y celebrar en grande con
+        <b>música en vivo</b> y <b>show central</b>.
       </p>
       <p style="margin:0 0 18px;font-size:15px;line-height:1.65;color:#374151;">
         <b>Dress code:</b> Informal (ven como te sientas más cómodo/a, lo importante es

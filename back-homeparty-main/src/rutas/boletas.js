@@ -70,6 +70,7 @@ rutasBoletas.get('/boletas/:id/pdf', limiteArchivos, asyncHandler(async (req, re
     asistente: b.asistente_nombre,
     promocion: b.promocion,
     esEgresado: b.es_egresado === 1,
+    cortesia: b.es_cortesia === 1,
     referencia: b.referencia,
   })
 

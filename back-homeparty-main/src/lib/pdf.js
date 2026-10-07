@@ -123,7 +123,10 @@ function dibujar(doc, b, qr) {
   fila('Asistente', b.asistente)
   // Vacio = el acompanante no puso su ano de grado (es opcional). No se
   // afirma que no sea egresado: eso nadie lo dijo.
-  fila('Promoción', b.esEgresado
+  // Una cortesia va como "Invitado/a especial" (Astrid, 7 de octubre de 2026).
+  fila('Promoción', b.cortesia
+    ? 'Invitado/a especial'
+    : b.esEgresado
     ? `Promoción ${b.promocion}`
     : b.promocion ? 'Invitado / no egresado' : 'Sin dato')
   fila('Fecha y hora', formatoLargo(config.evento.fecha))

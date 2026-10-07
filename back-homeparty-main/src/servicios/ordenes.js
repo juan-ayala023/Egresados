@@ -472,12 +472,17 @@ export async function enviarCorreoDeOrden(ordenId, { aTodos = false } = {}) {
   const filas = q.boletasConDueno.all(ordenId).filter((b) => b.estado !== 'anulada')
   const correoComprador = String(comprador.correo ?? '').trim().toLowerCase()
 
+  // Una cortesia lleva el texto de invitacion del colegio en vez del de
+  // compra, y sin resumen de pago (ver src/lib/correo.js).
+  const cortesia = orden.es_cortesia === 1
+
   // Forma que espera el armador del correo.
   const comoBoleta = (f) => ({
     id: f.id,
     asistente: f.asistente_nombre,
     promocion: f.promocion,
     esEgresado: f.es_egresado === 1,
+    cortesia,
     estado: f.estado,
     token: f.token_firmado,
   })
@@ -516,9 +521,6 @@ export async function enviarCorreoDeOrden(ordenId, { aTodos = false } = {}) {
 
   // --- 1. el correo de quien pago -----------------------------------------------
   const adjuntosComprador = (await Promise.all(delComprador.map(pdfDe))).filter(Boolean)
-  // Una cortesia lleva el texto de invitacion del colegio en vez del de
-  // compra, y sin resumen de pago (ver src/lib/correo.js).
-  const cortesia = orden.es_cortesia === 1
   const resultado = await enviarBoletas(
     orden, comprador, delComprador.map(comoBoleta), adjuntosComprador, { enviadasAparte, cortesia },
   )

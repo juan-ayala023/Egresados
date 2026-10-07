@@ -114,3 +114,22 @@ test('un invitado sin promocion no queda marcado como egresado', () => {
   const a = db.prepare(`SELECT * FROM asistente WHERE orden_id = ?`).get(ordenId)
   assert.equal(a.es_egresado, 0)
 })
+
+test('la boleta de un invitado dice "Invitado/a especial", no "no egresado"', async () => {
+  // Astrid, 7 de octubre de 2026: a un profesor invitado por el colegio no se
+  // le pone la etiqueta de "no egresado".
+  const { buscarBoleta } = await import('../src/servicios/boletas.js')
+  const { ordenId } = crearCortesia({ ...INVITADA, correo: 'etiqueta@ejemplo.com' })
+  const boleta = boletasDeOrden(ordenId, 'http://x')[0]
+
+  // La consulta que alimenta el PDF descargable tiene que traer la marca.
+  assert.equal(buscarBoleta(boleta.id).es_cortesia, 1)
+
+  // Y el PDF se genera sin reventar con esa etiqueta.
+  const { pdfDeBoleta } = await import('../src/lib/pdf.js')
+  const pdf = await pdfDeBoleta({
+    id: boleta.id, token: boleta.token, asistente: INVITADA.nombre,
+    promocion: 'no-egresado', esEgresado: false, cortesia: true, referencia: 'HC80-TEST',
+  })
+  assert.ok(pdf.length > 1000)
+})

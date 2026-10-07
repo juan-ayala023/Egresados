@@ -7,7 +7,7 @@ import { verificarToken, nuevoIdBoleta, generarToken, urlQr, urlPdf } from '../l
 
 const q = {
   porId: db.prepare(`
-    SELECT b.*, o.referencia, o.estado AS estado_orden,
+    SELECT b.*, o.referencia, o.estado AS estado_orden, o.es_cortesia,
            a.nombre AS asistente_nombre, a.promocion, a.es_egresado, a.id AS asistente_id
       FROM boleta b
       JOIN orden o ON o.id = b.orden_id
