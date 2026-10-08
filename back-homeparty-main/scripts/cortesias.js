@@ -191,7 +191,7 @@ function crearCortesiaSimulada(invitado) {
   const correo = String(invitado?.correo ?? '').trim().toLowerCase()
   if (!nombre || nombre.split(/\s+/).length < 2) return { marca: '!', nota: '  <- falta nombre completo' }
   if (!/^[^\s@]+@[^\s@.]+(\.[^\s@.]+)*\.[a-zA-Z]{2,}$/.test(correo)) return { marca: '!', nota: '  <- correo no valido' }
-  const ya = cortesiaDe(correo)
+  const ya = cortesiaDe({ cedula: invitado?.cedula, correo, nombre })
   if (ya) return { marca: '=', nota: `  (ya tiene ${ya.referencia})` }
   return { marca: '+', nota: '' }
 }

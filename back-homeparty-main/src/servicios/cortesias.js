@@ -16,9 +16,15 @@
 // anulan y se reemiten igual, y aparecen en los reportes y en la lista del
 // lector. Para quien escanea esa noche no hay ninguna diferencia.
 //
-// IDEMPOTENTE POR CORREO: si se vuelve a cargar el mismo archivo, a quien ya
+// IDEMPOTENTE POR PERSONA: si se vuelve a cargar el mismo archivo, a quien ya
 // tiene su cortesia no se le crea otra. Mercadeo va a mandar la lista por
 // tandas y se le va a traspapelar alguna; eso no puede costar boletas dobles.
+//
+// La llave es la CEDULA, no el correo. Al cargar la primera lista (8 de
+// octubre de 2026) habia dos parejas que compartian correo -- en el Excel la
+// celda venia combinada entre marido y mujer -- y con el correo como llave al
+// segundo de cada pareja no se le creaba boleta. Sin cedula se cae a
+// correo + nombre, que es lo unico que queda para distinguirlos.
 // -----------------------------------------------------------------------------
 import { db, enTransaccion } from '../db/index.js'
 import { config } from '../config.js'
@@ -28,11 +34,16 @@ import { nuevoIdBoleta, generarToken } from '../lib/qr.js'
 import { NO_EGRESADO } from '../lib/validaciones.js'
 
 const q = {
-  porCorreo: db.prepare(`
-    SELECT o.id, o.referencia, o.estado, o.es_cortesia, c.correo
+  porCedula: db.prepare(`
+    SELECT o.id, o.referencia, c.nombre, c.correo
       FROM orden o JOIN comprador c ON c.orden_id = o.id
-     WHERE o.es_cortesia = 1 AND LOWER(c.correo) = LOWER(?)
-       AND o.estado = 'pagada'`),
+     WHERE o.es_cortesia = 1 AND o.estado = 'pagada' AND c.cedula = ?`),
+
+  porCorreoYNombre: db.prepare(`
+    SELECT o.id, o.referencia, c.nombre, c.correo
+      FROM orden o JOIN comprador c ON c.orden_id = o.id
+     WHERE o.es_cortesia = 1 AND o.estado = 'pagada'
+       AND LOWER(c.correo) = LOWER(?) AND LOWER(c.nombre) = LOWER(?)`),
 
   insertarOrden: db.prepare(`
     INSERT INTO orden (
@@ -65,8 +76,17 @@ const q = {
      ORDER BY o.creada_en`),
 }
 
-/** ¿Esta persona ya tiene su cortesia? Se mira por correo, que es la llave real. */
-export const cortesiaDe = (correo) => q.porCorreo.get(String(correo ?? '').trim()) ?? null
+/**
+ * ¿Esta persona ya tiene su cortesia?
+ *
+ * Por cedula cuando la hay: es lo unico que distingue a dos personas que
+ * comparten correo (ver la nota de la cabecera). Sin cedula, correo + nombre.
+ */
+export function cortesiaDe({ cedula = '', correo = '', nombre = '' } = {}) {
+  const doc = String(cedula ?? '').replace(/\D/g, '')
+  if (doc) return q.porCedula.get(doc) ?? null
+  return q.porCorreoYNombre.get(String(correo ?? '').trim(), String(nombre ?? '').trim()) ?? null
+}
 
 export const listarCortesias = () => q.listar.all()
 
@@ -89,7 +109,9 @@ export function crearCortesia(invitado) {
     return { creada: false, motivo: `Correo no valido: "${invitado?.correo ?? ''}"` }
   }
 
-  const yaTiene = cortesiaDe(correo)
+  const cedula = String(invitado?.cedula ?? '').replace(/\D/g, '') || null
+
+  const yaTiene = cortesiaDe({ cedula, correo, nombre })
   if (yaTiene) {
     return { creada: false, referencia: yaTiene.referencia, ordenId: yaTiene.id, motivo: 'Ya tiene cortesia' }
   }
@@ -98,7 +120,6 @@ export function crearCortesia(invitado) {
   // graduo. Sin dato va la marca de no egresado, igual que un acompanante.
   const promocion = String(invitado?.promocion ?? '').trim() || NO_EGRESADO
   const esEgresado = promocion !== NO_EGRESADO ? 1 : 0
-  const cedula = String(invitado?.cedula ?? '').replace(/\D/g, '') || null
   const celular = String(invitado?.celular ?? '').replace(/\D/g, '') || null
   const tipoDocumento = String(invitado?.tipoDocumento ?? 'CC').toUpperCase()
 

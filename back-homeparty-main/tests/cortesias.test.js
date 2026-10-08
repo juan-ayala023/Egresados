@@ -27,11 +27,12 @@ const { disponibilidad } = await import('../src/servicios/aforo.js')
 const { facturarOrden, pendientesDeFactura } = await import('../src/servicios/facturacion.js')
 const { boletasDeOrden } = await import('../src/servicios/ordenes.js')
 
+// Sin cedula a proposito: asi cada prueba que cambia solo el correo crea una
+// persona distinta (la llave es cedula, o correo + nombre cuando no hay).
 const INVITADA = {
   nombre: 'Astrid Munoz Gomez',
   correo: 'astrid@ejemplo.com',
   celular: '3001234567',
-  cedula: '43111222',
   promocion: '',
 }
 
@@ -80,13 +81,35 @@ test('el recaudo no se mueve con las cortesias', () => {
 })
 
 test('cargar dos veces la misma lista no duplica boletas', () => {
-  const primera = crearCortesia({ ...INVITADA, correo: 'repetida@ejemplo.com' })
-  const segunda = crearCortesia({ ...INVITADA, correo: 'REPETIDA@ejemplo.com' })
+  const primera = crearCortesia({ ...INVITADA, cedula: '43999001', correo: 'repetida@ejemplo.com' })
+  const segunda = crearCortesia({ ...INVITADA, cedula: '43999001', correo: 'REPETIDA@ejemplo.com' })
 
   assert.equal(primera.creada, true)
   assert.equal(segunda.creada, false)
   assert.equal(segunda.referencia, primera.referencia, 'devuelve la que ya tenia')
-  assert.equal(cortesiaDe('repetida@ejemplo.com').id, primera.ordenId)
+  assert.equal(cortesiaDe({ cedula: '43999001' }).id, primera.ordenId)
+})
+
+test('dos personas que comparten correo reciben cada una su boleta', () => {
+  // 8 de octubre de 2026: en el Excel del colegio la celda del correo venia
+  // combinada entre marido y mujer. Con el correo como llave, al segundo de
+  // la pareja no se le creaba nada.
+  const ella = crearCortesia({ nombre: 'Susan Walley de Jaramillo', cedula: '1146443938', correo: 'pareja@ejemplo.com' })
+  const el = crearCortesia({ nombre: 'Jesus Alfonso Jaramillo', cedula: '8255774', correo: 'pareja@ejemplo.com' })
+
+  assert.equal(ella.creada, true)
+  assert.equal(el.creada, true, 'el segundo de la pareja tambien recibe boleta')
+  assert.notEqual(ella.referencia, el.referencia)
+})
+
+test('sin cedula, la llave es correo + nombre', () => {
+  const uno = crearCortesia({ nombre: 'Ana Perez Lopez', correo: 'juntos@ejemplo.com' })
+  const otra = crearCortesia({ nombre: 'Luis Perez Lopez', correo: 'juntos@ejemplo.com' })
+  const repetido = crearCortesia({ nombre: 'Ana Perez Lopez', correo: 'juntos@ejemplo.com' })
+
+  assert.equal(uno.creada, true)
+  assert.equal(otra.creada, true, 'otra persona en el mismo correo si se crea')
+  assert.equal(repetido.creada, false, 'la misma persona no se duplica')
 })
 
 test('sin nombre completo o con correo malo no se crea nada', () => {
