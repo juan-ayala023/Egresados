@@ -79,6 +79,10 @@ async function pedirAdmin<T>(ruta: string, token: string, init?: RequestInit): P
 export type Aforo = {
   aforo: number;
   vendidas: number;
+  /* Invitaciones del colegio. NO salen de las boletas en venta: van sumadas
+     aparte, y `asistentes` es la gente que entra en total. */
+  cortesias: number;
+  asistentes: number;
   reservadas: number;
   disponibles: number;
   sobreventa: number;
@@ -209,6 +213,25 @@ export type Venta = {
 export const obtenerVentas = (token: string, limite = 25) =>
   pedirAdmin<{ total: number; ventas: Venta[] }>(
     `/api/admin/ventas?limite=${limite}`,
+    token
+  );
+
+export type Cortesia = {
+  id: number;
+  referencia: string;
+  nombre: string;
+  correo: string;
+  celular: string | null;
+  cedula: string | null;
+  creada_en: string;
+  correo_enviado_en: string | null;
+  boleta_id: string | null;
+  usada_en: string | null;
+};
+
+export const obtenerCortesias = (token: string) =>
+  pedirAdmin<{ total: number; enviadas: number; usadas: number; cortesias: Cortesia[] }>(
+    '/api/admin/cortesias',
     token
   );
 

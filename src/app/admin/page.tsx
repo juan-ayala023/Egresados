@@ -15,8 +15,8 @@ import { Fragment, useCallback, useEffect, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import {
   leerToken, guardarToken, olvidarToken,
-  obtenerAlertas, atenderAlerta, obtenerVentas, buscarOrdenes, obtenerFicha, reenviarBoletas, anularOrden, descargarCsv, descargarCsvLector,
-  type Alertas, type Venta, type OrdenBuscada, type FichaOrden,
+  obtenerAlertas, atenderAlerta, obtenerVentas, buscarOrdenes, obtenerFicha, reenviarBoletas, anularOrden, descargarCsv, descargarCsvLector, obtenerCortesias,
+  type Alertas, type Venta, type OrdenBuscada, type FichaOrden, type Cortesia,
 } from '@/lib/admin';
 import { ErrorApi } from '@/lib/api';
 
@@ -39,6 +39,9 @@ export default function Panel() {
      septiembre de 2026: con mas de 25 ventas no veia las primeras. */
   const [limiteVentas, setLimiteVentas] = useState(25);
   const [totalVentas, setTotalVentas] = useState(0);
+  /* Las invitaciones del colegio, aparte de las ventas: mezcladas con las
+     compras (en $0) parecian un error. Comite, 8 de octubre de 2026. */
+  const [cortesias, setCortesias] = useState<{ total: number; enviadas: number; usadas: number; cortesias: Cortesia[] } | null>(null);
   /* Qué venta está desplegada, por referencia. Una sola a la vez: con 500
      ventas, abrirlas todas convierte la tabla en un muro. */
   const [desplegada, setDesplegada] = useState<string | null>(null);
@@ -55,10 +58,11 @@ export default function Panel() {
     try {
       /* En paralelo: son dos llamadas independientes y en serie el panel
          tarda el doble en pintar. */
-      const [al, ve] = await Promise.all([obtenerAlertas(t), obtenerVentas(t, limiteVentas)]);
+      const [al, ve, co] = await Promise.all([obtenerAlertas(t), obtenerVentas(t, limiteVentas), obtenerCortesias(t)]);
       setAlertas(al);
       setVentas(ve.ventas);
       setTotalVentas(ve.total);
+      setCortesias(co);
       setEntrado(true);
       guardarToken(t);
     } catch (e) {
@@ -84,6 +88,7 @@ export default function Panel() {
     const id = setInterval(() => {
       obtenerAlertas(token).then(setAlertas).catch(() => {});
       obtenerVentas(token, limiteVentas).then((v) => { setVentas(v.ventas); setTotalVentas(v.total); }).catch(() => {});
+      obtenerCortesias(token).then(setCortesias).catch(() => {});
     }, 60_000);
     return () => clearInterval(id);
   }, [entrado, token, limiteVentas]);
@@ -230,8 +235,13 @@ export default function Panel() {
       {a && (
         <section className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {[
-            ['Aforo', a.aforo.aforo],
+            ['Aforo en venta', a.aforo.aforo],
             ['Vendidas', a.aforo.vendidas],
+            /* Las invitaciones del colegio NO descuentan boletas en venta:
+               van sumadas aparte. `Asistentes` es la gente que entra en
+               total, que es el numero que necesita logistica. */
+            ['Invitaciones', a.aforo.cortesias],
+            ['Asistentes', a.aforo.asistentes],
             /* El número que el comité pregunta primero y que antes no estaba
                en ninguna parte: había que abrir el CSV y sumar en Excel.
                Viene de la BASE, sobre todas las órdenes pagadas -- no de sumar
@@ -349,6 +359,60 @@ export default function Panel() {
           ))}
         </div>
       </section>
+
+
+      {/* --- invitaciones del colegio ---
+          Van en su propia tabla, no entre las ventas: una cortesía con total
+          $0 en medio de las compras parecía un error, y el comité preguntó si
+          estaba descontando boletas (no lo hace). Aquí se ve a quién se le
+          mandó y quién ya entró. Comité, 8 de octubre de 2026. */}
+      {cortesias && cortesias.total > 0 && (
+        <section className="mt-12">
+          <div className="flex flex-wrap items-baseline justify-between gap-3">
+            <h2 className="font-display text-lg text-bone">Invitaciones especiales</h2>
+            <span className="font-body text-xs text-muted">
+              {cortesias.total} enviada{cortesias.total === 1 ? '' : 's'} ·{' '}
+              {cortesias.usadas} ingresada{cortesias.usadas === 1 ? '' : 's'} · no descuentan boletas en venta
+            </span>
+          </div>
+
+          <div className="mt-5 overflow-x-auto">
+            <table className="w-full min-w-[640px] border-collapse font-body text-sm">
+              <thead>
+                <tr className="border-b border-white/10 text-left text-[11px] uppercase tracking-wider text-muted">
+                  <th className="py-2 pr-4 font-black">Referencia</th>
+                  <th className="py-2 pr-4 font-black">Invitado</th>
+                  <th className="py-2 pr-4 font-black">Enviada</th>
+                  <th className="py-2 pr-4 font-black">Correo</th>
+                  <th className="py-2 font-black">Ingreso</th>
+                </tr>
+              </thead>
+              <tbody>
+                {cortesias.cortesias.map((c) => (
+                  <tr key={c.id} className="border-b border-white/[0.06]">
+                    <td className="py-3 pr-4 font-mono text-[12px] text-gold">{c.referencia}</td>
+                    <td className="py-3 pr-4">
+                      <div className="text-bone">{c.nombre}</div>
+                      <div className="text-[12px] text-muted">{c.correo}</div>
+                    </td>
+                    <td className="py-3 pr-4 text-[12px] text-muted">{fecha(c.creada_en)}</td>
+                    <td className="py-3 pr-4 text-[12px]">
+                      {c.correo_enviado_en
+                        ? <span className="text-emerald-400/90">enviado</span>
+                        : <span className="text-amber-400/90">pendiente</span>}
+                    </td>
+                    <td className="py-3 text-[12px]">
+                      {c.usada_en
+                        ? <span className="text-emerald-400/90">{fecha(c.usada_en)}</span>
+                        : <span className="text-muted">—</span>}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
 
       {/* --- últimas ventas ---
           La razón de existir de esta tabla: antes solo había buscador, y para

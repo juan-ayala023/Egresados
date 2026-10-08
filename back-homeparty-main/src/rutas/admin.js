@@ -28,7 +28,7 @@ import {
   anularBoleta, reemitirBoleta, ingresosEscaneados, conteoPuerta, tokensParaOffline,
 } from '../servicios/boletas.js'
 import {
-  buscarOrdenes, ultimasVentas, totalVentasPagadas, resumenEstados, ordenesEnCsv, boletasParaLectorEnCsv,
+  buscarOrdenes, ultimasVentas, totalVentasPagadas, cortesiasEmitidas, resumenEstados, ordenesEnCsv, boletasParaLectorEnCsv,
   registrarAuditoria,
 } from '../servicios/reportes.js'
 import { alertas, atenderAlerta, reabrirAlerta } from '../servicios/alertas.js'
@@ -136,6 +136,22 @@ rutasAdmin.get('/admin/ventas', (req, res) => {
   // `total` es el total de pagadas, no el largo de la lista: el panel lo usa
   // para mostrar "25 de 180" y ofrecer "Ver todas".
   res.json({ total: totalVentasPagadas(), ventas })
+})
+
+// -----------------------------------------------------------------------------
+// GET /api/admin/cortesias
+//
+// Las invitaciones del colegio, aparte de las ventas. Mercadeo necesita saber
+// a quien se le mando y quien ya entro, y no puede confundirlas con compras:
+// hasta el 8 de octubre de 2026 salian en "Ultimas ventas" con total $0.
+rutasAdmin.get('/admin/cortesias', (_req, res) => {
+  const lista = cortesiasEmitidas()
+  res.json({
+    total: lista.length,
+    enviadas: lista.filter((c) => c.correo_enviado_en).length,
+    usadas: lista.filter((c) => c.usada_en).length,
+    cortesias: lista,
+  })
 })
 
 // -----------------------------------------------------------------------------

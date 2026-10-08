@@ -133,3 +133,17 @@ test('la boleta de un invitado dice "Invitado/a especial", no "no egresado"', as
   })
   assert.ok(pdf.length > 1000)
 })
+
+test('las invitaciones NO salen entre las ventas del panel', async () => {
+  // Comite, 8 de octubre de 2026: una cortesia con total $0 en medio de las
+  // compras parecia un error, y preguntaron si estaba descontando boletas.
+  const { ultimasVentas, totalVentasPagadas, cortesiasEmitidas } =
+    await import('../src/servicios/reportes.js')
+
+  const antesVentas = totalVentasPagadas()
+  const { referencia } = crearCortesia({ ...INVITADA, correo: 'panel@ejemplo.com' })
+
+  assert.equal(totalVentasPagadas(), antesVentas, 'no suma al contador de ventas')
+  assert.ok(!ultimasVentas(100).some((v) => v.referencia === referencia), 'no sale en la tabla de ventas')
+  assert.ok(cortesiasEmitidas().some((c) => c.referencia === referencia), 'sale en su propia lista')
+})

@@ -46,7 +46,21 @@ const q = {
 
      Solo pagadas: las pendientes son carritos a medio llenar y las expiradas
      ruido. Quien necesite verlas usa el buscador o el CSV. */
-  totalPagadas: db.prepare(`SELECT COUNT(*) AS n FROM orden WHERE estado = 'pagada'`),
+  // Solo VENTAS: las cortesias tienen su propia lista en el panel, porque
+  // mezcladas con $0 parecian una compra rara (el comite, 8 de octubre de 2026).
+  totalPagadas: db.prepare(
+    `SELECT COUNT(*) AS n FROM orden WHERE estado = 'pagada' AND es_cortesia = 0`),
+
+  // Las invitaciones del colegio, con el estado de su correo y de su ingreso.
+  cortesias: db.prepare(`
+    SELECT o.id, o.referencia, o.creada_en, o.correo_enviado_en,
+           c.nombre, c.cedula, c.correo, c.celular,
+           b.id AS boleta_id, b.estado AS boleta_estado, b.usada_en
+      FROM orden o
+      JOIN comprador c ON c.orden_id = o.id
+ LEFT JOIN boleta b    ON b.orden_id = o.id AND b.estado != 'anulada'
+     WHERE o.es_cortesia = 1 AND o.estado = 'pagada'
+  ORDER BY o.creada_en DESC`),
 
   ultimasVentas: db.prepare(`
     SELECT o.id, o.referencia, o.estado, o.cantidad, o.total_centavos,
@@ -55,7 +69,7 @@ const q = {
            c.nombre, c.cedula, c.correo, c.celular, c.promocion
       FROM orden o
       JOIN comprador c ON c.orden_id = o.id
-     WHERE o.estado = 'pagada'
+     WHERE o.estado = 'pagada' AND o.es_cortesia = 0
   ORDER BY o.pagada_en DESC
      LIMIT ?`),
 
@@ -93,6 +107,9 @@ export function buscarOrdenes(texto) {
  * Las ultimas ventas pagadas, para la tabla del panel.
  * @param {number} limite cuantas traer (tope 200: mas no se lee en pantalla)
  */
+/** Las invitaciones del colegio: quien, si le llego el correo y si ya entro. */
+export const cortesiasEmitidas = () => q.cortesias.all()
+
 /** Cuantas ventas pagadas hay en total (para el "25 de 180" del panel). */
 export const totalVentasPagadas = () => q.totalPagadas.get().n
 
