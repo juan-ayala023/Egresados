@@ -213,7 +213,7 @@ async function armarCorreo(orden, boletas, { paraArchivo = false, invitadoDe = n
         <b>Dress code:</b> Informal (ven como te sientas más cómodo/a, lo importante es
         disfrutar).<br>
         Además, tendremos <b>bar abierto</b> y <b>zona gastronómica</b> disponibles para tu
-        consumo (pagos únicamente digitales, no se recibirá efectivo).
+        consumo. Se aceptan todos los medios de pago, tanto digitales como en efectivo.
       </p>
       <p style="margin:0 0 26px;font-size:15px;line-height:1.65;color:${NAVY};font-weight:bold;">
         Esta es tu boleta de ingreso. Al llegar, solo muéstranos tu documento de identidad
