@@ -23,7 +23,8 @@
     "desbloquear-clientes": "node scripts/desbloquear-clientes.js",
     "replicar": "node scripts/replicar.js",
     "rescatar": "node scripts/rescatar-orden.js",
-    "cortesias": "node scripts/cortesias.js"
+    "cortesias": "node scripts/cortesias.js",
+    "ceder": "node scripts/ceder-boleta.js"
   },
   "dependencies": {
     "better-sqlite3": "^11.10.0",

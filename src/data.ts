@@ -414,6 +414,43 @@ export const imagenes = {
   fallback: 'https://placehold.co/800x600/002E5C/C88A12?text=Homecoming',
 };
 
+/* LAS MARCAS QUE APOYAN EL EVENTO (27 de octubre de 2026).
+   Van en la franja de abajo del hero, en el orden que pidió mercadeo:
+   Reserva Santa María, Coordinadora, Asopaf.
+
+   Las tres son versiones BLANCAS sobre transparente, que es lo único que
+   sobrevive sobre el navy de esa franja.
+
+   `alto` es la altura a la que se muestra cada una, y NO es la misma para
+   todas a propósito: son formas muy distintas (Coordinadora es un lettering
+   diez veces más ancho que alto; Asopaf es casi cuadrado), así que igualar
+   la altura dejaría a una dominando la fila. Se igualan por peso visual.
+   Los valores no superan el tamaño real de cada archivo, para que ninguna
+   se vea pixelada. */
+export const patrocinadores = [
+  {
+    nombre: 'Reserva Santa María',
+    archivo: '/images/patrocinadores/reserva-santa-maria.png',
+    ancho: 4035,
+    alto: 1244,
+    clase: 'h-11 sm:h-14',
+  },
+  {
+    nombre: 'Coordinadora',
+    archivo: '/images/patrocinadores/coordinadora.png',
+    ancho: 338,
+    alto: 32,
+    clase: 'h-5 sm:h-6',
+  },
+  {
+    nombre: 'Asopaf',
+    archivo: '/images/patrocinadores/asopaf.png',
+    ancho: 150,
+    alto: 99,
+    clase: 'h-12 sm:h-16',
+  },
+];
+
 /* Años de graduación para el formulario: de la fundación al año pasado */
 export const anosGraduacion = Array.from(
   { length: new Date().getFullYear() - evento.fundacion },

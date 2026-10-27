@@ -11,7 +11,7 @@ import ManitoClic from './ManitoClic';
 import Aurora from './Aurora';
 import CompartirWhatsApp from './CompartirWhatsApp';
 import { dur, ease, escalonar, palabra, subir } from '@/lib/motion';
-import { evento, imagenes } from '@/data';
+import { evento, imagenes, patrocinadores } from '@/data';
 
 /* Entrada del sello: entra grande y se asienta, como el golpe de un sello de
    tinta. Ahora vive dentro de una tarjeta a la derecha, así que la tarjeta
@@ -226,6 +226,40 @@ export default function Hero({ listo }: { listo: boolean }) {
             </span>
           </motion.div>
 
+          {/* EL CONTEO, PEGADO A LA FICHA DE LA FECHA (27 de octubre de 2026).
+              Antes vivía en la franja de abajo. El comité pidió moverlo aquí
+              y dejarle esa franja a los patrocinadores, para que las marcas
+              se vean de primer vistazo. Aquí además queda junto al dato que
+              explica la cuenta: la fecha del evento.
+
+              gap-7 con 4 unidades y etiquetas de tracking ancho sumaba más
+              de 330px: se desbordaba en iPhone SE. Escala con la pantalla. */}
+          <motion.div
+            variants={subir}
+            className="mt-[clamp(1rem,2.6vh,1.5rem)] flex flex-col gap-x-8 gap-y-3 sm:flex-row sm:items-end"
+          >
+            <div className="w-full sm:w-auto">
+              <p className="mb-2.5 font-body text-[10px] font-black uppercase tracking-eyebrow text-gold">
+                Conteo regresivo
+              </p>
+              <div className="flex w-full items-end justify-between gap-3 sm:w-auto sm:justify-start sm:gap-7">
+                {unidades.map((u) => (
+                  <Unidad key={u.l} valor={u.v} label={u.l} />
+                ))}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 pb-1">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-gold opacity-60" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-gold" />
+              </span>
+              <span className="font-body text-[11px] font-black uppercase tracking-[0.18em] text-bone/70">
+                {evento.urgencia}
+              </span>
+            </div>
+          </motion.div>
+
           {/* Un solo botón: el colegio pidió quitar "Ver detalles de la noche"
               para que la única acción del hero sea comprar. A esa sección se
               sigue llegando desde el menú de arriba. */}
@@ -275,37 +309,33 @@ export default function Hero({ listo }: { listo: boolean }) {
         </motion.div>
       </motion.div>
 
+      {/* --- LA FRANJA DE ABAJO ES DE LAS MARCAS (27 de octubre de 2026) ---
+          El comité pidió que los patrocinadores ocuparan esta franja -- la
+          única que se ve completa sin bajar -- y que el conteo se fuera
+          arriba, junto a la fecha. Son más grandes que cuando compartían
+          espacio con el contador: aquí la banda es suya.
+          Orden pedido: Reserva Santa María, Coordinadora, Asopaf. */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={listo ? { opacity: 1, y: 0 } : {}}
         transition={{ duration: dur.slow, ease: ease.out, delay: 0.75 }}
-        className="relative z-10 border-t border-white/[0.08] bg-ink/50 backdrop-blur-sm"
+        className="relative z-10 border-t border-white/[0.08] bg-ink/60 backdrop-blur-sm"
       >
-        <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-4 px-6 py-[clamp(0.9rem,2vh,1.5rem)] md:flex-row md:items-center md:gap-6">
-          {/* Los cuatro números no decían qué eran. El rótulo lo aclara sin
-              tener que leer "Días / Horas / Min / Seg" y deducirlo.
-
-              gap-7 con 4 unidades y etiquetas de tracking ancho sumaba más
-              de 330px: se desbordaba en iPhone SE. Escala con la pantalla. */}
-          <div className="w-full sm:w-auto">
-            <p className="mb-2.5 font-body text-[10px] font-black uppercase tracking-eyebrow text-gold">
-              Conteo regresivo
-            </p>
-            <div className="flex w-full items-end justify-between gap-3 sm:w-auto sm:justify-start sm:gap-7">
-              {unidades.map((u) => (
-                <Unidad key={u.l} valor={u.v} label={u.l} />
-              ))}
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-gold opacity-60" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-gold" />
-            </span>
-            <span className="font-body text-xs font-black uppercase tracking-[0.18em] text-bone/70">
-              {evento.urgencia}
-            </span>
+        <div className="mx-auto flex max-w-7xl flex-col items-center gap-x-12 gap-y-5 px-6 py-[clamp(1rem,2.4vh,1.6rem)] sm:flex-row sm:justify-center md:gap-x-16">
+          <p className="font-body text-[10px] font-black uppercase tracking-eyebrow text-gold">
+            Con el apoyo de:
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-5 sm:gap-x-14">
+            {patrocinadores.map((m) => (
+              <Image
+                key={m.nombre}
+                src={m.archivo}
+                alt={m.nombre}
+                width={m.ancho}
+                height={m.alto}
+                className={`${m.clase} w-auto max-w-[62vw] object-contain`}
+              />
+            ))}
           </div>
         </div>
       </motion.div>

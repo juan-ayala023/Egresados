@@ -33,8 +33,16 @@ const q = {
     INSERT INTO boleta (id, orden_id, asistente_id, token_firmado, estado, emitida_en)
     VALUES (?, ?, ?, ?, 'emitida', ?)`),
 
+  // El correo va aqui porque en una CESION la boleta tiene que llegarle a
+  // quien va a entrar, no a quien compro (26 de octubre de 2026: un papa que
+  // no podia ir le cedio la boleta a su hijo, con el visto bueno del colegio).
+  // correo_enviado_en se limpia para que el reenvio no lo salte por creer que
+  // ya le habia salido a esa persona.
   actualizarAsistente: db.prepare(`
-    UPDATE asistente SET nombre = ?, cedula = ?, promocion = ?, es_egresado = ? WHERE id = ?`),
+    UPDATE asistente
+       SET nombre = ?, cedula = ?, promocion = ?, es_egresado = ?,
+           correo = COALESCE(?, correo), correo_enviado_en = NULL
+     WHERE id = ?`),
 
   // Lista para la app de puerta en modo offline.
   tokensValidos: db.prepare(`
@@ -201,6 +209,7 @@ export function reemitirBoleta(id, nuevosDatos = {}, base) {
         nuevosDatos.cedula ?? null,
         nuevosDatos.promocion ?? vieja.promocion,
         (nuevosDatos.promocion ?? vieja.promocion) === 'no-egresado' ? 0 : 1,
+        nuevosDatos.correo ?? null,
         vieja.asistente_id,
       )
     }
