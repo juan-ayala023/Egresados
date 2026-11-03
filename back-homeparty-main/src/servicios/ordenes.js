@@ -15,6 +15,7 @@ import { nuevoIdBoleta, generarToken, urlQr, urlPdf } from '../lib/qr.js'
 import { enviarBoletas } from '../lib/correo.js'
 import { pdfDeBoleta, nombreArchivoBoleta } from '../lib/pdf.js'
 import { revisarComprador } from './egresados.js'
+import { limpiarCorreo, esCorreoValido, correoSugerido } from '../lib/validaciones.js'
 import {
   disponibilidad, estadoVenta, liberarReservasVencidas,
   reservarCupos, vencimientoDeReserva, consumirReserva, liberarReserva,
@@ -71,6 +72,18 @@ const q = {
   marcarCorreoAsistente: db.prepare(
     `UPDATE asistente SET correo_enviado_en = ? WHERE id = ?`),
   asistentesDe: db.prepare(`SELECT * FROM asistente WHERE orden_id = ? ORDER BY indice`),
+
+  // Corregir un correo mal escrito (ver corregirCorreo, al final del archivo).
+  cambiarCorreoComprador: db.prepare(`UPDATE comprador SET correo = ? WHERE orden_id = ?`),
+  cambiarCorreoAsistente: db.prepare(`UPDATE asistente SET correo = ? WHERE id = ?`),
+  olvidarErrorDeCorreo: db.prepare(`
+    UPDATE orden SET correo_ultimo_error = NULL, correo_proximo_intento = NULL WHERE id = ?`),
+  compradoresPagados: db.prepare(`
+    SELECT o.id, o.referencia, o.correo_enviado_en, o.correo_ultimo_error,
+           c.nombre, c.correo
+      FROM orden o JOIN comprador c ON c.orden_id = o.id
+     WHERE o.estado = 'pagada'
+     ORDER BY o.pagada_en`),
   boletasDe: db.prepare(`
     SELECT b.*, a.nombre AS asistente_nombre, a.promocion, a.es_egresado
       FROM boleta b
@@ -589,3 +602,48 @@ export const extenderReserva = (ordenId, hasta) =>
 
 export const compradorDe = (ordenId) => q.compradorDe.get(ordenId) ?? null
 export const asistentesDe = (ordenId) => q.asistentesDe.all(ordenId)
+
+/**
+ * Corrige el correo de una compra. Devuelve que cambio, para que quien llame
+ * reenvie la boleta.
+ *
+ * 3 de noviembre de 2026: una compradora escribio "@hotmail.vom". El correo
+ * salio hacia un dominio que no existe y nunca le llego. No es ceder la boleta
+ * ni rescatar la orden: es la misma persona, la misma boleta y el mismo QR,
+ * con el correo bien escrito.
+ *
+ * Los asistentes que tenian el correo malo se corrigen tambien: es la misma
+ * persona equivocandose una sola vez. A quien puso otro correo no se le toca.
+ */
+export function corregirCorreo(ordenId, correoNuevo) {
+  const orden = q.porId.get(ordenId)
+  if (!orden) return { ok: false, motivo: 'La orden no existe' }
+
+  const comprador = q.compradorDe.get(ordenId)
+  if (!comprador) return { ok: false, motivo: 'La orden no tiene comprador' }
+
+  const nuevo = limpiarCorreo(correoNuevo)
+  if (!esCorreoValido(nuevo)) return { ok: false, motivo: `"${correoNuevo}" no es un correo valido` }
+
+  const viejo = String(comprador.correo ?? '').trim().toLowerCase()
+  if (nuevo === viejo) return { ok: false, motivo: 'Ese ya es el correo que tiene' }
+
+  const arrastrados = q.asistentesDe.all(ordenId)
+    .filter((a) => String(a.correo ?? '').trim().toLowerCase() === viejo)
+
+  enTransaccion(() => {
+    q.cambiarCorreoComprador.run(nuevo, ordenId)
+    for (const a of arrastrados) q.cambiarCorreoAsistente.run(nuevo, a.id)
+    // Que no quede marcada como fallida por el intento anterior.
+    q.olvidarErrorDeCorreo.run(ordenId)
+  })
+
+  return { ok: true, de: viejo, a: nuevo, asistentes: arrastrados.length }
+}
+
+/** Las compras pagadas cuyo correo parece tener el dominio mal escrito. */
+export function correosSospechosos() {
+  return q.compradoresPagados.all()
+    .map((f) => ({ ...f, sugerido: correoSugerido(f.correo) }))
+    .filter((f) => f.sugerido || !esCorreoValido(f.correo))
+}

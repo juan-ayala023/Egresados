@@ -77,8 +77,56 @@ export const normalizarTipoDocumento = (valor) => {
 /** Sin espacios ni puntos sobrantes al final, y en minuscula. */
 export const limpiarCorreo = (valor) => limpio(valor).replace(/[.\s]+$/, '').toLowerCase()
 
+export const esCorreoValido = (valor) => RE_CORREO.test(limpiarCorreo(valor))
+
 function validarCorreo(valor) {
-  if (!RE_CORREO.test(limpiarCorreo(valor))) return 'Escribe un correo valido.'
+  if (!esCorreoValido(valor)) return 'Escribe un correo valido.'
+  return null
+}
+
+// -----------------------------------------------------------------------------
+// Dominios mal escritos
+// -----------------------------------------------------------------------------
+// El 3 de noviembre de 2026 una compradora escribio "@hotmail.vom". El correo
+// es valido segun la regla de arriba -- .vom es un dominio posible -- pero no
+// existe, y su boleta se fue al vacio. Esto NO rechaza nada en el formulario:
+// solo sirve para que despues se puedan buscar los dedazos y corregirlos.
+//
+// Son los dominios a los que de verdad le compran. Si uno se parece mucho a
+// estos sin ser igual, casi seguro es un dedazo.
+const DOMINIOS_CONOCIDOS = [
+  'gmail.com', 'hotmail.com', 'hotmail.es', 'outlook.com', 'outlook.es',
+  'yahoo.com', 'yahoo.es', 'icloud.com', 'live.com', 'me.com', 'msn.com',
+  'columbus.edu.co', 'une.net.co', 'une.com.co', 'etb.net.co', 'telmex.net.co',
+]
+
+/** Cuantos cambios de una letra hacen falta para pasar de a a b. */
+function distanciaDeEdicion(a, b) {
+  const f = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array(b.length).fill(0)])
+  for (let j = 0; j <= b.length; j += 1) f[0][j] = j
+  for (let i = 1; i <= a.length; i += 1) {
+    for (let j = 1; j <= b.length; j += 1) {
+      f[i][j] = a[i - 1] === b[j - 1]
+        ? f[i - 1][j - 1]
+        : 1 + Math.min(f[i - 1][j - 1], f[i - 1][j], f[i][j - 1])
+    }
+  }
+  return f[a.length][b.length]
+}
+
+/**
+ * Si el dominio del correo se parece a uno conocido sin serlo, devuelve el
+ * correo que la persona seguramente queria escribir. Si no, null.
+ */
+export function correoSugerido(valor) {
+  const correo = limpiarCorreo(valor)
+  const [usuario, dominio] = correo.split('@')
+  if (!usuario || !dominio || DOMINIOS_CONOCIDOS.includes(dominio)) return null
+  for (const bueno of DOMINIOS_CONOCIDOS) {
+    // Un solo dedazo en los dominios cortos, dos en los largos.
+    const margen = bueno.length > 12 ? 2 : 1
+    if (distanciaDeEdicion(dominio, bueno) <= margen) return `${usuario}@${bueno}`
+  }
   return null
 }
 
