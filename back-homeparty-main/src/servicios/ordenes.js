@@ -475,11 +475,31 @@ function emitirBoletas(ordenId) {
  * como no enviada y se reintenta. Si el SMTP esta caido, no se intenta nada
  * mas -- mandar tres individuales solo multiplicaria el fallo.
  */
+/**
+ * Cuanto se aparta una orden mientras se le esta mandando el correo. Tiene que
+ * ser mas que el timeout mas largo del envio (2 minutos, ver correo.js) para
+ * que no se solapen, y poco, porque si el proceso se muere a mitad la orden
+ * queda esperando ese rato antes del siguiente intento.
+ */
+const MINUTOS_RESERVADA = 3
+
 export async function enviarCorreoDeOrden(ordenId, { aTodos = false } = {}) {
   const orden = q.porId.get(ordenId)
   if (!orden || orden.estado !== 'pagada') {
     return { enviado: false, detalle: 'La orden no esta pagada' }
   }
+
+  // RESERVA MIENTRAS SE ENVIA, PARA QUE NADIE MAS MANDE EL MISMO CORREO.
+  //
+  // 4 de noviembre de 2026: un envio se quedo colgado (ver los timeouts en
+  // src/lib/correo.js) y mientras tanto el barrido del minuto siguiente tomo
+  // la MISMA orden y la mando por su lado. Es lo que le paso en octubre a la
+  // compradora a la que su boleta le llego dos veces.
+  //
+  // Apartarla por unos minutos la saca de pendientesDeCorreo mientras el envio
+  // esta en curso. Si sale bien, correo_enviado_en deja de ser NULL y ya no
+  // vuelve a entrar; si falla, quien llama le agenda su espera normal.
+  q.agendarProximoIntento.run(enMinutos(MINUTOS_RESERVADA), ordenId)
 
   const comprador = q.compradorDe.get(ordenId)
   const filas = q.boletasConDueno.all(ordenId).filter((b) => b.estado !== 'anulada')

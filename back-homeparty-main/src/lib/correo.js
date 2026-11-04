@@ -54,6 +54,22 @@ function obtenerTransporte() {
     port: config.correo.puerto,
     secure: config.correo.puerto === 465,
     auth: config.correo.usuario ? { user: config.correo.usuario, pass: config.correo.clave } : undefined,
+    // SIN ESTO EL ENVIO SE PUEDE QUEDAR COLGADO PARA SIEMPRE.
+    //
+    // 4 de noviembre de 2026: cargando la tercera tanda de cortesias, el
+    // septimo correo salio y el octavo se quedo esperando a Gmail. Nodemailer
+    // sin timeouts deja el socket abierto indefinidamente: el script no
+    // termino nunca y la ultima invitada se quedo sin su boleta.
+    //
+    // Peor que eso: la cola de reintentos manda los correos uno detras de
+    // otro, asi que un envio colgado TRABA a todos los que vienen detras. Un
+    // comprador podria quedarse sin su boleta por culpa del correo de otro.
+    //
+    // Con esto, si el servidor no contesta se falla rapido, queda el error
+    // guardado y el reintento automatico lo vuelve a intentar mas tarde.
+    connectionTimeout: 30_000,   // abrir la conexion
+    greetingTimeout: 20_000,     // que el servidor salude
+    socketTimeout: 120_000,      // mandar el mensaje con sus adjuntos
   })
   hostDelTransporte = config.correo.host
   return transporte

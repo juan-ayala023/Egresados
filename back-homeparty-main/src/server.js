@@ -147,8 +147,16 @@ if (replicaActiva()) {
   replica.unref?.()
 }
 
+// Si la pasada anterior todavia va, esta no arranca. Los correos salen uno
+// detras de otro y uno lento puede tardar mas de un minuto: sin esta guardia
+// se encimaban dos pasadas sobre las mismas ordenes (4 de noviembre de 2026).
+let enviandoCorreos = false
+
 const correos = setInterval(() => {
+  if (enviandoCorreos) return
+  enviandoCorreos = true
   reintentarPendientes()
+    .finally(() => { enviandoCorreos = false })
     .then((c) => {
       if (c.enviados || c.agotados) {
         console.log(
