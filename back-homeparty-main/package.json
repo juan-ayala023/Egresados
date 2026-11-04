@@ -25,7 +25,8 @@
     "rescatar": "node scripts/rescatar-orden.js",
     "cortesias": "node scripts/cortesias.js",
     "ceder": "node scripts/ceder-boleta.js",
-    "correo": "node scripts/corregir-correo.js"
+    "correo": "node scripts/corregir-correo.js",
+    "probar-correo": "node scripts/probar-correo.js"
   },
   "dependencies": {
     "better-sqlite3": "^11.10.0",
