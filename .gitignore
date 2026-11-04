@@ -10,3 +10,6 @@ next-env.d.ts
 originales-galeria
 originales-artistas
 logs/
+
+# Capturas del navegador de pruebas
+.playwright-mcp/
