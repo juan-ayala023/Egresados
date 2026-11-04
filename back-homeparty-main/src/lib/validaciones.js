@@ -96,7 +96,7 @@ function validarCorreo(valor) {
 // estos sin ser igual, casi seguro es un dedazo.
 const DOMINIOS_CONOCIDOS = [
   'gmail.com', 'hotmail.com', 'hotmail.es', 'outlook.com', 'outlook.es',
-  'yahoo.com', 'yahoo.es', 'icloud.com', 'live.com', 'me.com', 'msn.com',
+  'yahoo.com', 'yahoo.es', 'icloud.com', 'live.com', 'me.com', 'msn.com', 'aol.com',
   'columbus.edu.co', 'une.net.co', 'une.com.co', 'etb.net.co', 'telmex.net.co',
 ]
 
