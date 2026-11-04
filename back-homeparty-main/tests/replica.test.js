@@ -122,3 +122,98 @@ test('las fechas van en hora de Bogota, como la plataforma del colegio', async (
   // 14:30 UTC -> 09:30 Bogota, representado como Date "naive" 5h atras.
   assert.equal(merge.params.pagada_en.toISOString(), '2026-09-15T09:30:00.000Z')
 })
+
+// -----------------------------------------------------------------------------
+// UNA COLUMNA QUE FALTA ALLA NO PUEDE TUMBAR LA REPLICA ENTERA.
+//
+// 4 de noviembre de 2026: las tablas se crearon el 16 de septiembre y el 7 de
+// octubre llego `es_cortesia`. Aqui se crea la tabla si no existe pero nunca
+// se altera -- es la base del colegio --, asi que la tabla de alla se quedo
+// sin esa columna y TODOS los MERGE de `orden` fallaron durante casi un mes:
+// "Invalid column name 'es_cortesia'", 259 errores por minuto y cero filas.
+// Lo peor es que comprador, asistente y boleta SI entraban: alla quedaron
+// compradores cuya orden nunca llego.
+// -----------------------------------------------------------------------------
+
+/**
+ * Conexion falsa que se comporta como una tabla de verdad: responde al
+ * INFORMATION_SCHEMA con las columnas del CREATE TABLE que recibio, menos las
+ * que se le digan. Asi se reproduce una tabla vieja a la que le falta una.
+ */
+function conexionConTablaVieja(sinEstas = []) {
+  const consultas = []
+  const columnasPorTabla = new Map()
+  return {
+    consultas,
+    request() {
+      const params = {}
+      return {
+        input(nombre, _tipo, valor) { params[nombre] = valor; return this },
+        async query(texto) {
+          consultas.push({ texto, params })
+
+          const creando = /dbo\.(homecoming_\w+)', 'U'/.exec(texto)
+          if (creando) {
+            const columnas = [...texto.matchAll(/\[(\w+)\] (?:INT|BIGINT|BIT|NVARCHAR|DATETIME2|DATE)/g)]
+              .map((m) => m[1])
+              .filter((c) => !sinEstas.includes(c))
+            columnasPorTabla.set(creando[1], columnas)
+            return { recordset: [] }
+          }
+
+          const mirando = /TABLE_NAME = '(homecoming_\w+)'/.exec(texto)
+          if (mirando) {
+            const columnas = columnasPorTabla.get(mirando[1]) ?? []
+            return { recordset: columnas.map((c) => ({ COLUMN_NAME: c })) }
+          }
+
+          return { recordset: [] }
+        },
+      }
+    },
+  }
+}
+
+test('si a la tabla de alla le falta una columna, la fila igual llega sin ella', async () => {
+  ordenPagada('HC80-REP006')
+  const c = conexionConTablaVieja(['es_cortesia'])
+  const r = await replicar({ conexion: c, todo: true })
+
+  assert.equal(r.errores, 0, 'ninguna fila se cae por la columna que falta')
+  assert.ok(r.enviadas > 0, 'la venta sigue llegando al SQL Server')
+
+  const merge = c.consultas.find((x) => /MERGE .*homecoming_orden/.test(x.texto))
+  assert.ok(!/es_cortesia/.test(merge.texto), 'no se menciona la columna que no existe')
+  assert.ok(/referencia/.test(merge.texto), 'lo demas si va')
+})
+
+test('la columna que falta se avisa con el ALTER exacto, y UNA sola vez', async () => {
+  ordenPagada('HC80-REP007')
+  const avisos = []
+  const warn = console.warn
+  console.warn = (...x) => avisos.push(x.join(' '))
+  try {
+    // Dos pasadas: el barrido corre cada minuto y asi era como el log se
+    // llenaba de cientos de lineas iguales hasta que nadie lo miraba.
+    await replicar({ conexion: conexionConTablaVieja(['ultimos_cuatro']), todo: true })
+    await replicar({ conexion: conexionConTablaVieja(['ultimos_cuatro']), todo: true })
+  } finally {
+    console.warn = warn
+  }
+
+  const sobreLaColumna = avisos.filter((a) => a.includes('ultimos_cuatro'))
+  assert.equal(sobreLaColumna.length, 1, 'no repite el aviso en cada pasada')
+  assert.ok(
+    /ALTER TABLE dbo\.homecoming_orden ADD \[ultimos_cuatro\] NVARCHAR\(4\)/.test(sobreLaColumna[0]),
+    `el aviso trae el ALTER listo para copiar: ${sobreLaColumna[0]}`,
+  )
+})
+
+test('ni siquiera con una columna faltante se manda un ALTER a la base del colegio', async () => {
+  ordenPagada('HC80-REP008')
+  const c = conexionConTablaVieja(['es_cortesia'])
+  await replicar({ conexion: c, todo: true })
+  for (const { texto } of c.consultas) {
+    assert.ok(!/\b(DROP|ALTER|DELETE|TRUNCATE)\b/i.test(texto), `consulta peligrosa: ${texto.slice(0, 80)}`)
+  }
+})

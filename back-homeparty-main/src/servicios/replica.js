@@ -196,6 +196,59 @@ export async function asegurarTablas(conexion = null) {
         CONSTRAINT [PK_${nombreCompleto}] PRIMARY KEY ([${t.clave}])
       )`)
   }
+  await mirarColumnas(conexion)
+}
+
+// -----------------------------------------------------------------------------
+// QUE COLUMNAS TIENE DE VERDAD LA TABLA DE ALLA.
+//
+// 4 de noviembre de 2026, y esto costo casi un mes de replica: las tablas se
+// crearon el 16 de septiembre; el 7 de octubre llegaron las cortesias y con
+// ellas la columna `es_cortesia`. Aqui se CREA la tabla si no existe, pero
+// nunca se altera -- esa es la regla, es la base del colegio -- asi que la
+// tabla de alla se quedo sin esa columna y TODOS los MERGE de `orden`
+// empezaron a fallar con "Invalid column name 'es_cortesia'". 259 errores
+// por minuto, cero filas enviadas, y nadie mirando ese log.
+//
+// Ahora se mira que columnas existen realmente y se manda lo que cabe. Una
+// columna nueva deja de ser una caida total: se avisa UNA vez, con el ALTER
+// exacto para que quien responde por esa base lo corra si quiere el dato, y
+// mientras tanto la venta sigue llegando.
+// -----------------------------------------------------------------------------
+const columnasEnDestino = new Map()
+const faltantesAvisadas = new Set()
+
+async function mirarColumnas(conexion) {
+  for (const nombre of ORDEN_DE_CARGA) {
+    const r = await conexion.request().query(`
+      SELECT COLUMN_NAME FROM ${BASE()}.INFORMATION_SCHEMA.COLUMNS
+       WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = '${PREFIJO()}${nombre}'`)
+
+    const hay = new Set((r?.recordset ?? []).map((f) => f.COLUMN_NAME))
+    // Una conexion de prueba puede no saber contestar esto: entonces no se
+    // filtra nada y se manda todo, que es el comportamiento de siempre.
+    if (hay.size === 0) { columnasEnDestino.delete(nombre); continue }
+    columnasEnDestino.set(nombre, hay)
+
+    const faltan = TABLAS[nombre].columnas.map(([c]) => c).filter((c) => !hay.has(c))
+    for (const columna of faltan) {
+      const marca = `${nombre}.${columna}`
+      if (faltantesAvisadas.has(marca)) continue
+      faltantesAvisadas.add(marca)
+      const tipo = TABLAS[nombre].columnas.find(([c]) => c === columna)[1].replace(' NOT NULL', '')
+      console.warn(
+        `[replica] A ${PREFIJO()}${nombre} le falta la columna ${columna}: ese dato NO se esta copiando. `
+        + `Para que llegue, en ${BASE()}: ALTER TABLE dbo.${PREFIJO()}${nombre} ADD [${columna}] ${tipo};`,
+      )
+    }
+  }
+}
+
+/** Las columnas de esta tabla que de verdad existen alla. */
+function columnasQueCaben(nombre) {
+  const hay = columnasEnDestino.get(nombre)
+  const todas = TABLAS[nombre].columnas
+  return hay ? todas.filter(([c]) => hay.has(c)) : todas
 }
 
 // -----------------------------------------------------------------------------
@@ -206,7 +259,7 @@ async function enviarFila(conexion, nombre, fila) {
   const t = TABLAS[nombre]
   const req = conexion.request()
   const nombres = []
-  for (const [columna, tipo, leer] of t.columnas) {
+  for (const [columna, tipo, leer] of columnasQueCaben(nombre)) {
     let valor = leer(fila[columna])
     if (valor instanceof Date && !tipo.startsWith('DATE ')) valor = aBogota(valor)
     // Un texto mas largo que la columna tumba la fila entera con un error de
