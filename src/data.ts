@@ -433,21 +433,21 @@ export const patrocinadores = [
     archivo: '/images/patrocinadores/reserva-santa-maria.png',
     ancho: 4035,
     alto: 1244,
-    clase: 'h-10 sm:h-12',
+    clase: 'h-10 sm:h-11',
   },
   {
     nombre: 'Coordinadora',
     archivo: '/images/patrocinadores/coordinadora.png',
     ancho: 338,
     alto: 32,
-    clase: 'h-4 sm:h-5',
+    clase: 'h-4',
   },
   {
     nombre: 'Asopaf',
     archivo: '/images/patrocinadores/asopaf.png',
     ancho: 150,
     alto: 99,
-    clase: 'h-11 sm:h-14',
+    clase: 'h-11 sm:h-12',
   },
   /* Los dos últimos llegaron el 3 de noviembre de 2026. Venían con mucho aire
      transparente alrededor (el de Oviedo medía 12813x10161 y pesaba 824 KB):
@@ -457,14 +457,24 @@ export const patrocinadores = [
     archivo: '/images/patrocinadores/autolarte.png',
     ancho: 1813,
     alto: 400,
-    clase: 'h-8 sm:h-10',
+    clase: 'h-8 sm:h-9',
   },
   {
     nombre: 'Oviedo',
     archivo: '/images/patrocinadores/oviedo.png',
     ancho: 1425,
     alto: 400,
-    clase: 'h-9 sm:h-11',
+    clase: 'h-9 sm:h-10',
+  },
+  /* 6 de noviembre de 2026. Es un logotipo de puro texto, como Coordinadora:
+     va a la misma altura de letra que ella, no a la de los que llevan simbolo
+     (Asopaf, Oviedo), que necesitan mas alto para leerse. */
+  {
+    nombre: 'Tres Trigos',
+    archivo: '/images/patrocinadores/tres-trigos.png',
+    ancho: 2941,
+    alto: 400,
+    clase: 'h-4',
   },
 ];
 

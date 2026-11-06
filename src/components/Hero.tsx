@@ -325,7 +325,10 @@ export default function Hero({ listo }: { listo: boolean }) {
           <p className="font-body text-[10px] font-black uppercase tracking-eyebrow text-gold">
             Con el apoyo de:
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-5 sm:gap-x-14">
+          {/* El aire entre logos se apreto el 6 de noviembre de 2026, al entrar
+              el sexto (Tres Trigos): con 56px la fila medía 1036 y el ancho
+              util es 1030, asi que el ultimo se caia a un renglon solo. */}
+          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-5 sm:gap-x-9">
             {patrocinadores.map((m) => (
               <Image
                 key={m.nombre}
