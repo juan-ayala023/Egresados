@@ -170,3 +170,33 @@ test('las invitaciones NO salen entre las ventas del panel', async () => {
   assert.ok(!ultimasVentas(100).some((v) => v.referencia === referencia), 'no sale en la tabla de ventas')
   assert.ok(cortesiasEmitidas().some((c) => c.referencia === referencia), 'sale en su propia lista')
 })
+
+// -----------------------------------------------------------------------------
+// UN SOLO NOMBRE SE ACEPTA SI HAY DOCUMENTO.
+//
+// 6 de noviembre de 2026: en la lista del colegio llego una invitada que
+// figura solo como "Taffy" -- asi la conocen -- con su cedula de extranjeria.
+// Decision de Juanjo: mandarsela asi, que es la unica con ese nombre.
+//
+// La regla del nombre completo sigue viva para lo que fue hecha: atrapar
+// renglones a medio llenar. Lo que cambia es que con documento la identidad
+// ya no depende del nombre -- en la puerta se valida contra el documento.
+// -----------------------------------------------------------------------------
+test('con documento, un solo nombre se acepta', () => {
+  const r = crearCortesia({
+    nombre: 'Taffy', correo: 'tafmej@yahoo.com', cedula: '179839', tipoDocumento: 'CE',
+  })
+  assert.equal(r.creada, true, r.motivo)
+})
+
+test('sin documento, un solo nombre se sigue rechazando', () => {
+  const r = crearCortesia({ nombre: 'Taffy', correo: 'otra.taffy@yahoo.com' })
+  assert.equal(r.creada, false)
+  assert.match(r.motivo, /nombre completo/)
+})
+
+test('sin nombre no se crea nada, ni con documento', () => {
+  const r = crearCortesia({ nombre: '   ', correo: 'alguien@gmail.com', cedula: '123456' })
+  assert.equal(r.creada, false)
+  assert.match(r.motivo, /nombre/)
+})

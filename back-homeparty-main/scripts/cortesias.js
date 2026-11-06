@@ -189,7 +189,10 @@ process.exit(fallidos || malos ? 1 : 0)
 function crearCortesiaSimulada(invitado) {
   const nombre = String(invitado?.nombre ?? '').trim()
   const correo = String(invitado?.correo ?? '').trim().toLowerCase()
-  if (!nombre || nombre.split(/\s+/).length < 2) return { marca: '!', nota: '  <- falta nombre completo' }
+  const doc = String(invitado?.cedula ?? '').replace(/\D/g, '')
+  if (!nombre) return { marca: '!', nota: '  <- falta el nombre' }
+  // Con documento se acepta un solo nombre: ver la nota en crearCortesia.
+  if (nombre.split(/\s+/).length < 2 && !doc) return { marca: '!', nota: '  <- falta nombre completo, o el documento' }
   if (!/^[^\s@]+@[^\s@.]+(\.[^\s@.]+)*\.[a-zA-Z]{2,}$/.test(correo)) return { marca: '!', nota: '  <- correo no valido' }
   const ya = cortesiaDe({ cedula: invitado?.cedula, correo, nombre })
   if (ya) return { marca: '=', nota: `  (ya tiene ${ya.referencia})` }

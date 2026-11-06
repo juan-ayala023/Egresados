@@ -102,14 +102,28 @@ export function crearCortesia(invitado) {
   const correo = String(invitado?.correo ?? '').trim().toLowerCase()
   const nombre = String(invitado?.nombre ?? '').trim()
 
-  if (!nombre || nombre.split(/\s+/).length < 2) {
-    return { creada: false, motivo: 'Falta el nombre completo (nombre y apellido)' }
+  const cedula = String(invitado?.cedula ?? '').replace(/\D/g, '') || null
+
+  // EL NOMBRE COMPLETO SE EXIGE SOLO SI NO HAY DOCUMENTO.
+  //
+  // La regla esta para atrapar filas a medio llenar: un nombre suelto suele
+  // ser un renglon incompleto del archivo de mercadeo. Pero el 6 de noviembre
+  // de 2026 llego una invitada que en la lista del colegio figura solo como
+  // "Taffy" -- asi la conocen -- con su CE 179839. Decision de Juanjo:
+  // mandarsela asi, que es la unica con ese nombre.
+  //
+  // Con documento, la identidad no depende del nombre: en la puerta se valida
+  // contra el documento, que es el dato duro. Sin documento, el nombre es lo
+  // unico que hay y ahi si tiene que estar completo.
+  if (!nombre) {
+    return { creada: false, motivo: 'Falta el nombre' }
+  }
+  if (nombre.split(/\s+/).length < 2 && !cedula) {
+    return { creada: false, motivo: 'Falta el nombre completo (nombre y apellido), o el documento' }
   }
   if (!/^[^\s@]+@[^\s@.]+(\.[^\s@.]+)*\.[a-zA-Z]{2,}$/.test(correo)) {
     return { creada: false, motivo: `Correo no valido: "${invitado?.correo ?? ''}"` }
   }
-
-  const cedula = String(invitado?.cedula ?? '').replace(/\D/g, '') || null
 
   const yaTiene = cortesiaDe({ cedula, correo, nombre })
   if (yaTiene) {
