@@ -106,3 +106,48 @@ test('una boleta YA USADA no se puede ceder', () => {
   assert.equal(r.ok, false)
   assert.match(r.motivo, /ya se uso/i)
 })
+
+// -----------------------------------------------------------------------------
+// CEDERLE LA BOLETA A OTRO EGRESADO.
+//
+// 12 de noviembre de 2026: una egresada de la promocion 1995 no pudo ir y le
+// vendio su boleta a una COMPANERA de la misma promocion. El primer caso, en
+// octubre, fue un padre cediendosela a su hijo -- ahi "no egresado" era lo
+// correcto. Aqui no: la boleta tiene que decir Promocion 1995, que es lo que
+// la persona quiere ver y lo que mira quien recibe en la puerta.
+// -----------------------------------------------------------------------------
+test('si quien recibe la boleta es egresado, conserva su promocion', () => {
+  const orden = compraPagada('43626904')
+  const vieja = boletasDeOrden(orden.id, 'http://x')[0]
+
+  const r = reemitirBoleta(vieja.id, {
+    nombre: 'Sandra Restrepo Posada',
+    cedula: '43603104',
+    correo: 'sandrarestrepop@gmail.com',
+    promocion: '1995',
+    motivo: 'Cedida a Sandra Restrepo Posada',
+  }, 'http://x')
+  assert.equal(r.ok, true)
+
+  const a = db.prepare(`SELECT * FROM asistente WHERE orden_id = ?`).get(orden.id)
+  assert.equal(a.nombre, 'Sandra Restrepo Posada')
+  assert.equal(a.promocion, '1995')
+  assert.equal(a.es_egresado, 1, 'queda marcada como egresada, no como acompanante')
+})
+
+test('sin promocion, quien recibe la boleta queda como no egresado', () => {
+  const orden = compraPagada('43626905')
+  const vieja = boletasDeOrden(orden.id, 'http://x')[0]
+
+  reemitirBoleta(vieja.id, {
+    nombre: 'Martin Palacio Zapata',
+    cedula: '1125290710',
+    correo: 'martinpalacio@ejemplo.com',
+    promocion: 'no-egresado',
+    motivo: 'Cedida a Martin Palacio Zapata',
+  }, 'http://x')
+
+  const a = db.prepare(`SELECT * FROM asistente WHERE orden_id = ?`).get(orden.id)
+  assert.equal(a.es_egresado, 0)
+  assert.equal(a.promocion, 'no-egresado')
+})

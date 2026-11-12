@@ -4,6 +4,9 @@
 //   npm run ceder -- HC80-XXXXXX                              muestra la orden
 //   npm run ceder -- HC80-XXXXXX --a "Nombre Apellido" \
 //        --documento 1020304050 --correo nuevo@correo.com     muestra que haria
+//
+//   Si quien recibe la boleta es egresado/a, --promocion 1995 con su ano de
+//   grado; sin eso sale sin promocion, como la de un acompanante.
 //   ... y con --aplicar lo hace de verdad
 //
 //   Si la orden tiene varias boletas, se escoge con --boleta N (1, 2, 3...).
@@ -43,8 +46,16 @@ const correo = valor('--correo')
 const cual = Number(valor('--boleta') || 1)
 const aplicar = args.includes('--aplicar')
 
+// A quien recibe la boleta se le pone "no egresado" salvo que se diga su
+// promocion. En octubre el primer caso fue un padre cediendosela a su hijo, y
+// ahi era lo correcto. Pero el 12 de noviembre de 2026 una egresada del 95 le
+// vendio la suya a una COMPANERA del 95: sin esto, la boleta de Sandra diria
+// "no egresado" en vez de "Promocion 1995".
+const promocion = valor('--promocion')
+
 if (!referencia) {
-  console.log('\n  Uso: npm run ceder -- HC80-XXXXXX --a "Nombre Apellido" --documento 123 --correo x@y.com [--boleta N] [--aplicar]\n')
+  console.log('\n  Uso: npm run ceder -- HC80-XXXXXX --a "Nombre Apellido" --documento 123 --correo x@y.com')
+  console.log('       [--promocion 1995] [--boleta N] [--aplicar]\n')
   process.exit(1)
 }
 
@@ -69,6 +80,7 @@ boletas.forEach((b, i) => {
 if (!nombre) {
   console.log('')
   console.log('  Para ceder: --a "Nombre Apellido" --documento 123 --correo x@y.com')
+  console.log('  Si quien la recibe es egresado/a, agrega --promocion con su ano de grado.')
   console.log('  Si hay varias boletas, agrega --boleta N con el numero de la lista.')
   console.log('')
   process.exit(0)
@@ -92,11 +104,18 @@ if (correo && !/^[^\s@]+@[^\s@.]+(\.[^\s@.]+)*\.[a-zA-Z]{2,}$/.test(correo.trim(
   process.exit(1)
 }
 
+const anio = new Date().getFullYear()
+if (promocion && !(/^\d{4}$/.test(promocion.trim()) && Number(promocion) >= 1948 && Number(promocion) <= anio)) {
+  console.log(`\n  Promocion no valida: "${promocion}". Es el ano de grado, entre 1948 y ${anio}.\n`)
+  process.exit(1)
+}
+
 console.log('')
 console.log(`  CEDER la boleta ${cual} (${elegida.asistente})`)
 console.log(`         a  ${nombre}`)
 console.log(`         documento ${documento || '(sin cambio)'}`)
 console.log(`         correo    ${correo || '(sin cambio)'}`)
+console.log(`         promocion ${promocion || 'no es egresado/a'}`)
 console.log('')
 console.log('  El QR actual queda ANULADO y se emite uno nuevo.')
 
@@ -110,7 +129,7 @@ const r = reemitirBoleta(elegida.id, {
   nombre: nombre.trim(),
   cedula: documento ? String(documento).replace(/\D/g, '') : null,
   correo: correo ? correo.trim().toLowerCase() : null,
-  promocion: 'no-egresado',
+  promocion: promocion ? promocion.trim() : 'no-egresado',
   motivo: `Cedida a ${nombre.trim()}`,
 }, config.urlPublica)
 
