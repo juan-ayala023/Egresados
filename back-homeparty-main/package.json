@@ -26,7 +26,8 @@
     "cortesias": "node scripts/cortesias.js",
     "ceder": "node scripts/ceder-boleta.js",
     "correo": "node scripts/corregir-correo.js",
-    "probar-correo": "node scripts/probar-correo.js"
+    "probar-correo": "node scripts/probar-correo.js",
+    "aviso": "node scripts/aviso-invitados.js"
   },
   "dependencies": {
     "better-sqlite3": "^11.10.0",
