@@ -101,6 +101,19 @@ const transporte = SIN_SMTP ? null : nodemailer.createTransport({
   connectionTimeout: 30_000,
   greetingTimeout: 20_000,
   socketTimeout: 120_000,
+
+  // UNA SOLA CONEXION Y UN CORREO POR SEGUNDO.
+  //
+  // 12 de noviembre de 2026: el primer intento se colgo en el correo 17 de 54.
+  // Sin pool, cada sendMail abre su propia conexion SMTP: Gmail ve 54
+  // conexiones nuevas con un adjunto de 237 KB cada una, lo lee como rafaga y
+  // deja de responder. Con una conexion reutilizada y un ritmo de un mensaje
+  // por segundo pasa sin quejarse. Tarda un minuto mas; vale la pena.
+  pool: true,
+  maxConnections: 1,
+  maxMessages: 100,
+  rateDelta: 1_000,
+  rateLimit: 1,
 })
 
 const NAVY = '#004990'
@@ -173,6 +186,9 @@ for (const i of pendientes) {
     console.log(`  !! ${i.correo}: ${e.message}`)
   }
 }
+
+// Con pool hay que cerrar la conexion o el proceso se queda vivo esperandola.
+transporte?.close()
 
 console.log('')
 console.log(`  ${enviados} enviado(s), ${fallidos} fallido(s).`)
